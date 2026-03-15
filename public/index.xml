@@ -6,8 +6,296 @@
     <description>Recent content on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 15 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 15 Mar 2026 22:44:41 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【OpenGL】使用曲面细分着色器绘制Bezier曲线</title>
+      <link>http://localhost:1313/posts/opengl-tessellation-beziercurve/</link>
+      <pubDate>Sun, 15 Mar 2026 22:44:41 +0800</pubDate>
+      <guid>http://localhost:1313/posts/opengl-tessellation-beziercurve/</guid>
+      <description>&lt;h1 id=&#34;opengl使用曲面细分着色器绘制bezier曲线&#34;&gt;【OpenGL】使用曲面细分着色器绘制Bezier曲线&lt;/h1&gt;
+&lt;p&gt;这篇文章将直接介绍**使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="opengl使用曲面细分着色器绘制bezier曲线">【OpenGL】使用曲面细分着色器绘制Bezier曲线</h1>
+<p>这篇文章将直接介绍**使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。</p>
+<h2 id="介绍">介绍</h2>
+<p>**曲面细分着色器（Tessellation Shaders）**是在 OpenGL4.0 版本引入的。在这之前，有一些私有扩展可以使用，但是直到 4.0 曲面细分才正式成为 OpenGL 的一部分。</p>
+<hr>
+<p>在没有曲面细分之前，想在 OpenGL 里画 Bezier 曲线和曲面需要在 CPU 将所有的点计算出来再通过总线（带宽相对于现代GPU极小的 PCIE 接口）上传至 GPU ，而从 CPU 到 GPU 的数据交换及其耗时，所以曲面细分着色器的作用就是将细分任务直接交给 GPU 不仅减少了大量数据的传递也大大加快了计算速度。</p>
+<p>除了绘制 Bezier 曲线和曲面，曲面细分着色器还能实现**位移贴图（Displacement Mapping）**和 <strong>动态细节级别（Dynamic LOD）</strong>。</p>
+<ul>
+<li>
+<p><strong>位移贴图</strong></p>
+<p>传统的发现贴图是只是通过关照来欺骗眼睛（实际上还是一个平面），而曲面细分可以让一个三角形面内部的顶点沿着你想要的法线方向位移到你想要的位置从而实现真的轮廓。</p>
+</li>
+<li>
+<p><strong>动态LOD</strong></p>
+<p>可以根据相机到物理的距离动态调整物体的三角形面，从而大幅提升性能。</p>
+</li>
+</ul>
+<hr>
+<p>这时有人可能就要问了：“主播主播，曲面细分着色器这么厉害，但是我记得**几何着色器（Geometry Shader）<strong>和</strong>计算着色器（Compute Shader）**也能干相关的任务，为什么不直接使用几何着色器和计算着色器，非要整出个曲面细分着色器呢“？？</p>
+<ul>
+<li>不使用 Geometry Shader 是因为它在执行细分任务的时候太慢了，GS 必须等到顶点着色器（Vertex Shader）把整个**图元（Primitive）**处理完成后了才能开始工作，而 TS 可以直接并行处理多个顶点，并且 TS 还有专门的硬件处理。</li>
+<li>不使用 Compute Shader 是因它也太慢了，CS 是脱渲染离管线的，而 TS 是渲染管线的一部分，你需要将数据传入 CS 计算再将 CS 写入缓冲区，并且还需要使用 CPU 进行同步，并且 TS 还有专门的硬件处理。</li>
+</ul>
+<hr>
+<p>上面提到了 TS 是渲染管线中的一部分，显然它是可编程的，并且位于 VS 的下一步，GS 的上一步。</p>
+<p><strong>具体来分是：</strong></p>
+<p><strong>Vertex Shader -&gt; Tessellation Control Shader -&gt; Tessellation Engine -&gt; Tessellation Evaluation Shader -&gt; Geometry Shader -&gt;  &hellip;</strong></p>
+<p>可以看到 TS 不止一个，这就是为什么 曲面细分着色器 的英文是复数形式。</p>
+<p>其中：</p>
+<ul>
+<li>
+<p><strong>Tessellation Control Shader 决定了”细分多少份“</strong></p>
+<p>输出 <strong>Tessellation Levels</strong>（细分因子）。它告诉下一步：边缘要切几段，内部要切几份。</p>
+</li>
+<li>
+<p>**Tessellation Engine ** <strong>根据TCS的定义执行切割操作生成新的顶点（固定的不可编程）</strong></p>
+</li>
+<li>
+<p><strong>Tessellation Evaluation Shader 根据 TE 生成出来的点计算出该点的位置</strong></p>
+<p>输入 TE 生成的参数化坐标，结合 TCS 传来的原始顶点，通过插值算法确定新顶点的<strong>真实世界位置</strong>。</p>
+</li>
+</ul>
+<h2 id="开始绘制bezier曲线"><strong>开始绘制Bezier曲线</strong></h2>
+<p>理解了曲面细分在渲染管线中的位置之后，我们就可以开始真正绘制一条 Bezier 曲线了。</p>
+<p>整体流程其实很简单：</p>
+<ol>
+<li>在 CPU 端提供 <strong>Bezier 曲线的控制点</strong></li>
+<li>让 GPU 通过 <strong>Tessellation Shader 对参数空间进行细分</strong></li>
+<li>在 <strong>TES 中根据 Bezier 公式计算曲线上的真实点</strong></li>
+</ol>
+<p>换句话说：</p>
+<blockquote>
+<p>CPU 只负责提供控制点，GPU 负责计算整条曲线。</p>
+</blockquote>
+<p>这也是 Tessellation Shader 最大的价值：
+<strong>避免 CPU 预计算大量顶点并传输到 GPU。</strong></p>
+<h2 id="创建-shader-程序">创建 Shader 程序</h2>
+<p>和普通的 OpenGL 程序一样，我们需要创建并编译 Shader，只不过这里多了两个阶段：</p>
+<ul>
+<li>Tessellation Control Shader (TCS)</li>
+<li>Tessellation Evaluation Shader (TES)</li>
+</ul>
+<p>因此完整的程序包含四个阶段：</p>
+<ul>
+<li>Vertex Shader</li>
+<li>Tessellation Control Shader</li>
+<li>Tessellation Evaluation Shader</li>
+<li>Fragment Shader</li>
+</ul>
+<p>代码如下：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="kt">bool</span> <span class="n">Shader</span><span class="o">::</span><span class="n">Compile</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">vert_src</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">tcs_src</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">tes_src</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">frag_src</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">GLuint</span> <span class="n">vs</span> <span class="o">=</span> <span class="n">CompileStage</span><span class="p">(</span><span class="n">GL_VERTEX_SHADER</span><span class="p">,</span> <span class="n">vert_src</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="n">GLuint</span> <span class="n">tc</span> <span class="o">=</span> <span class="n">CompileStage</span><span class="p">(</span><span class="n">GL_TESS_CONTROL_SHADER</span><span class="p">,</span> <span class="n">tcs_src</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">    <span class="n">GLuint</span> <span class="n">te</span> <span class="o">=</span> <span class="n">CompileStage</span><span class="p">(</span><span class="n">GL_TESS_EVALUATION_SHADER</span><span class="p">,</span> <span class="n">tes_src</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="n">GLuint</span> <span class="n">fs</span> <span class="o">=</span> <span class="n">CompileStage</span><span class="p">(</span><span class="n">GL_FRAGMENT_SHADER</span><span class="p">,</span> <span class="n">frag_src</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">vs</span> <span class="o">||</span> <span class="o">!</span><span class="n">tc</span> <span class="o">||</span> <span class="o">!</span><span class="n">te</span> <span class="o">||</span> <span class="o">!</span><span class="n">fs</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">        <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">vs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">        <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">tc</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">        <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">te</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">        <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">fs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">id_</span> <span class="o">=</span> <span class="n">glCreateProgram</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="n">glAttachShader</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">vs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">glAttachShader</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">tc</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">glAttachShader</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">te</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="n">glAttachShader</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">fs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="n">glLinkProgram</span><span class="p">(</span><span class="n">id_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">vs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">tc</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">te</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">fs</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">GLint</span> <span class="n">ok</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">glGetProgramiv</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="n">GL_LINK_STATUS</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ok</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ok</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">        <span class="kt">char</span> <span class="n">log</span><span class="p">[</span><span class="mi">512</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">        <span class="n">glGetProgramInfoLog</span><span class="p">(</span><span class="n">id_</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">log</span><span class="p">),</span> <span class="k">nullptr</span><span class="p">,</span> <span class="n">log</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">        <span class="n">glDeleteProgram</span><span class="p">(</span><span class="n">id_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="n">id_</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="k">return</span> <span class="nb">false</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="k">return</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">36</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">
+</span></span><span class="line"><span class="ln">38</span><span class="cl"><span class="n">GLuint</span> <span class="n">Shader</span><span class="o">::</span><span class="n">CompileStage</span><span class="p">(</span><span class="n">GLenum</span> <span class="n">type</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span><span class="o">*</span> <span class="n">src</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="n">GLuint</span> <span class="n">s</span> <span class="o">=</span> <span class="n">glCreateShader</span><span class="p">(</span><span class="n">type</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="n">glShaderSource</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">src</span><span class="p">,</span> <span class="k">nullptr</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">42</span><span class="cl">    <span class="n">glCompileShader</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="n">GLint</span> <span class="n">ok</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">44</span><span class="cl">    <span class="n">glGetShaderiv</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">GL_COMPILE_STATUS</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ok</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">45</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">ok</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">46</span><span class="cl">        <span class="kt">char</span> <span class="n">log</span><span class="p">[</span><span class="mi">512</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">47</span><span class="cl">        <span class="n">glGetShaderInfoLog</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">log</span><span class="p">),</span> <span class="k">nullptr</span><span class="p">,</span> <span class="n">log</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">48</span><span class="cl">        <span class="n">glDeleteShader</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">49</span><span class="cl">        <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">50</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">51</span><span class="cl">    <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">52</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>接下来和原来的一样，定义4个控制点，创建vbo，vao。唯一不同的点就是在渲染循环中我们需要使用</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glPatchParameteri</span><span class="p">(</span><span class="n">GL_PATCH_VERTICES</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+</span></span></code></pre></div><p>来设置图形中最小单元的顶点数。也就是 Primitive</p>
+<p>常规的Primitive有：</p>
+<ul>
+<li>点 1个顶点</li>
+<li>线 2个顶点</li>
+<li>三角形 3个顶点</li>
+<li>矩形4个顶点</li>
+</ul>
+<p>而这里使用的是对Primitive的更抽象的形式是 <code>GL_PATCHES</code>，GL_PATCHES 不再预设这个单元长什么样，而是由你自己定义。<strong><code>glPatchParameteri(GL_PATCH_VERTICES, n)</code> 就是在填补这个定义的空白。</strong> 它告诉OpenGL：“从现在起，每 n 个点打包成一个单元扔给我。”</p>
+<p>我们这里是以4个控制点为一个Bezier曲线 Patch</p>
+<p>然后使用</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glDrawArrays</span><span class="p">(</span><span class="n">GL_PATCHES</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+</span></span></code></pre></div><p>进行渲染</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glBindVertexArray</span><span class="p">(</span><span class="n">vao_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glPatchParameteri</span><span class="p">(</span><span class="n">GL_PATCH_VERTICES</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glLineWidth</span><span class="p">(</span><span class="n">line_width_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">bezier_shader_</span><span class="p">.</span><span class="n">Bind</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glUniform1f</span><span class="p">(</span><span class="n">bezier_shader_</span><span class="p">.</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_TessLevel&#34;</span><span class="p">),</span> <span class="n">tess_level_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl">
+</span></span><span class="line"><span class="ln">8</span><span class="cl"><span class="n">glDrawArrays</span><span class="p">(</span><span class="n">GL_PATCHES</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">9</span><span class="cl"><span class="n">bezier_shader_</span><span class="p">.</span><span class="n">Unbind</span><span class="p">();</span>
+</span></span></code></pre></div><p>接下来编写Shader</p>
+<p>先介绍 TES</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">isolines</span><span class="p">,</span> <span class="n">equal_spacing</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_Projection</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">float</span> <span class="n">t</span> <span class="o">=</span> <span class="n">gl_TessCoord</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="k">float</span> <span class="n">t1</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">t</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="c1">// Cubic Bezier: B(t) = (1-t)^3 P0 + 3(1-t)^2 t P1 + 3(1-t) t^2 P2 + t^3 P3</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="k">vec4</span> <span class="n">p</span> <span class="o">=</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">gl_in</span><span class="p">[</span><span class="mo">0</span><span class="p">].</span><span class="n">gl_Position</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">           <span class="o">+</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">gl_in</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="n">gl_Position</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">           <span class="o">+</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">t1</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">gl_in</span><span class="p">[</span><span class="mi">2</span><span class="p">].</span><span class="n">gl_Position</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">           <span class="o">+</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">t</span> <span class="o">*</span> <span class="n">gl_in</span><span class="p">[</span><span class="mi">3</span><span class="p">].</span><span class="n">gl_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">gl_Position</span> <span class="o">=</span> <span class="n">u_Projection</span> <span class="o">*</span> <span class="n">p</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">isolines</span><span class="p">,</span> <span class="n">equal_spacing</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span></code></pre></div><ul>
+<li>
+<p><code>isolines</code>：告诉 GPU 我们正在绘制<strong>线段</strong>。</p>
+</li>
+<li>
+<p><code>equal_spacing</code>：要求硬件在 $[0, 1]$ 的参数空间内进行<strong>等间距</strong>采样。</p>
+</li>
+<li>
+<p><code>in</code>：表示这些设置是针对输入到此着色器的数据。</p>
+</li>
+</ul>
+<p>除了isolines布局还有</p>
+<ul>
+<li>triangles</li>
+<li>quads</li>
+</ul>
+<p>不同的布局决定了使用什么样的坐标系去生成新的顶点。</p>
+<h3 id="isolines布局">isolines布局</h3>
+<p>isolines布局 TE 会将顶点细分到一个[0,0]*[1,1]上的坐标系中</p>
+<p>细分因子</p>
+<ul>
+<li><code>gl_TessLevelOuter[0]</code>：决定“有多少条线”</li>
+<li><code>gl_TessLevelOuter[1]</code>：决定“每条线切多少段”</li>
+<li>没有<code>gl_TessLevelInner</code>，因为一条线不存在内部</li>
+</ul>
+<p>当你设置了这两个 Outer 因子后，硬件会生成 <code>gl_TessCoord</code></p>
+<ul>
+<li>
+<p><code>gl_TessCoord.x</code>：代表当前点在<strong>该条线段</strong>上的位置（0.0 到 1.0）。这就是你之前代码里用来算贝塞尔曲线的 $t$。</p>
+</li>
+<li>
+<p><code>gl_TessCoord.y</code>：代表当前点属于<strong>哪一条线</strong>（0.0 到 1.0）。</p>
+</li>
+<li>
+<p>如果 <code>gl_TessLevelOuter[0] = 1</code>，那么所有的 <code>gl_TessCoord.y</code> 永远是 0。</p>
+</li>
+<li>
+<p>如果 <code>gl_TessLevelOuter[0] = 2</code>，你会得到 $y=0$ 的一组点和 $y=1.0$ 的一组点。</p>
+</li>
+</ul>
+<h3 id="triangles-布局">triangles 布局</h3>
+<p><code>triangles</code> 布局将 Patch 视为一个平面三角形，并向其内部进行填充。</p>
+<p><strong>坐标系：重心坐标 (Barycentric Coordinates)</strong></p>
+<p>硬件生成的 <code>gl_TessCoord</code> 是一个 <code>vec3(u, v, w)</code>。</p>
+<ul>
+<li>这三个分量代表当前点距离三角形三条边的权重。</li>
+<li>它们始终满足：$u + v + w = 1.0$。</li>
+<li>三个顶点分别对应 $(1,0,0)$、$(0,1,0)$ 和 $(0,0,1)$。</li>
+</ul>
+<p><strong>细分因子</strong></p>
+<ul>
+<li><code>gl_TessLevelOuter[0, 1, 2]</code>：分别控制三角形的三条<strong>外边</strong>被切成多少段。</li>
+<li><code>gl_TessLevelInner[0]</code>：控制三角形<strong>内部</strong>向中心点嵌套缩小的频率（内部只有 1 个因子）。</li>
+</ul>
+<h3 id="quads-布局">quads 布局</h3>
+<p><code>quads</code> 布局将 Patch 视为一个单位正方形，最适合做参数化曲面（如贝塞尔曲面）或地形。</p>
+<p><strong>坐标系：二维笛卡尔坐标 $[0,1] \times [0,1]$</strong></p>
+<p>硬件生成的 <code>gl_TessCoord</code> 是一个 <code>vec2(u, v)</code>（虽然也是 <code>vec3</code> 类型，但 $z$ 轴始终为 0）。</p>
+<ul>
+<li><code>u</code> 是水平方向位置，<code>v</code> 是垂直方向位置。</li>
+<li>这非常适合直接映射纹理坐标</li>
+</ul>
+<p>细分因子</p>
+<ul>
+<li><code>gl_TessLevelOuter[0, 1, 2, 3]</code>：
+<ul>
+<li><code>Outer[0]</code> 和 <code>Outer[2]</code>：控制左右两条边（垂直边）的段数。</li>
+<li><code>Outer[1]</code> 和 <code>Outer[3]</code>：控制上下两条边（水平边）的段数。</li>
+</ul>
+</li>
+<li><code>gl_TessLevelInner[0, 1]</code>：
+<ul>
+<li><code>Inner[0]</code>：控制内部水平方向（横向）切几刀。</li>
+<li><code>Inner[1]</code>：控制内部垂直方向（纵向）切几刀。</li>
+</ul>
+</li>
+</ul>
+<p>接下来是 TCS</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">vertices</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="k">out</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">u_TessLevel</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">gl_out</span><span class="p">[</span><span class="n">gl_InvocationID</span><span class="p">].</span><span class="n">gl_Position</span> <span class="o">=</span> <span class="n">gl_in</span><span class="p">[</span><span class="n">gl_InvocationID</span><span class="p">].</span><span class="n">gl_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">gl_InvocationID</span> <span class="o">==</span> <span class="mo">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">        <span class="n">gl_TessLevelOuter</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">        <span class="n">gl_TessLevelOuter</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_TessLevel</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>这其中有很多要讲的</p>
+<p>TCS 中一般分为两种任务</p>
+<ol>
+<li>逐顶点任务</li>
+<li>逐面片设置</li>
+</ol>
+<p>其中<code>layout(vertices = 4) out;</code>是定义了输出 <code>Patch</code> 的顶点数。这里必须要与你在C++中设置的<code>glPatchParameteri</code>对应，当你设置了这个的时候GPU就会启动4个thread去一一处理4个顶点</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">gl_out</span><span class="p">[</span><span class="n">gl_InvocationID</span><span class="p">].</span><span class="n">gl_Position</span> <span class="o">=</span> <span class="n">gl_in</span><span class="p">[</span><span class="n">gl_InvocationID</span><span class="p">].</span><span class="n">gl_Position</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里是逐顶点任务，把从顶点着色器传来的坐标原封不动地交给输出，以便后续的 TES 使用。而 gl_InvocationID 就对应上述提到的 thread id</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">gl_InvocationID</span> <span class="o">==</span> <span class="mo">0</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">        <span class="n">gl_TessLevelOuter</span><span class="p">[</span><span class="mo">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl">        <span class="n">gl_TessLevelOuter</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">u_TessLevel</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>这里是最重要，这里就是逐面片设置，这里的<code>gl_InvocationID == 0</code>是判断thread id 是不是 0 号thread 如果是则设置如何细分。为什么需要 <code>if (gl_InvocationID == 0) </code> 因为如果不这么设置，那么所有的thread (这里是4个) 就会都去设置，导致性能浪费和数据竞争。并且这是一个全局设置，不需要所有的thread都去设置。由于上述以及介绍过了<code>gl_TessLevelOuter</code>所以这里你应该明白了这是什么意思。</p>
+<p>具体的代码可以去https://github.com/Yang-Junjie/GraphicsLab中的<code>BezierCurveScene.cpp</code>查看以及<code>shaders\BezierSurfaceScene</code></p>
+<p>其中示例不仅有Bezier曲线，还有Bezier曲面</p>
+<p><img alt="beziercurve" loading="lazy" src="/images/opengl/beziercurve.png">
+<img alt="beziersurface" loading="lazy" src="/images/opengl/beziersurface.png"></p>
+]]></content:encoded>
+    </item>
     <item>
       <title>Hugo 功能测试文章</title>
       <link>http://localhost:1313/posts/my-first-post/</link>
