@@ -1,0 +1,153 @@
+# ==========================================
+# 基础站点设置
+# ==========================================
+baseURL: "https://Yang-Junjie.github.io/" # 网站的域名，部署到 GitHub Pages 必须修改此项
+title: "CGLab" # 浏览器标签栏显示的网站标题
+theme: "PaperMod" # 使用的主题名称
+
+# 语言设置
+languageCode: "zh-cn" # 网站语言代码
+defaultContentLanguage: "zh-cn" # 默认内容语言
+hasCJKLanguage: true # 开启中日韩文字支持（用于字数统计和搜索优化）
+
+# 构建与 SEO
+enableRobotsTXT: true # 生成 robots.txt，允许搜索引擎抓取
+buildDrafts: false # 构建时不包含草稿文件
+buildFuture: false # 构建时不包含发布日期在未来的文章
+
+# 输出格式配置
+outputs:
+  home:
+    - HTML # 生成首页 HTML
+    - RSS # 生成 RSS 订阅源
+    - JSON # 生成 JSON 文件（PaperMod 搜索功能必备）
+
+# ==========================================
+# PaperMod 主题参数 (params)
+# ==========================================
+params:
+  env: production # 环境设置：production (生产) 或 development (开发)
+
+  # 站点元数据
+  title: "CGLab" # 网站标志文字（左上角）
+  description: "探索渲染、数学与几何的奥秘" # 网站描述，用于 SEO 和首页
+  author: "氧均竭" # 全局作者名
+
+  # 主题视觉
+  defaultTheme: auto # 默认模式：dark (暗黑), light (明亮), auto (随系统)
+  disableThemeToggle: false # 是否禁用亮暗模式切换按钮（false 为不禁用）
+
+  # 文章页面功能
+  ShowCodeCopyButtons: true # 是否在代码块显示复制按钮
+  ShowReadingTime: true # 是否显示预计阅读时间
+  ShowBreadCrumbs: true # 是否显示面包屑导航
+  ShowShareButtons: false # 是否显示社交分享按钮
+  ShowPostNavLinks: true # 是否在文章底部显示“上一篇/下一篇”
+  ShowFullTextinRSS: true # RSS 订阅中是否显示全文
+
+  # 目录设置
+  ShowToc: true # 是否显示文章目录
+  TocOpen: false # 目录是否默认展开（false 为折叠）
+
+  # 其他
+  ShowWordCount: true # 是否显示文章字数
+  ShowRssButtonInSectionTermList: true # 是否在分类/标签页显示 RSS 按钮
+  comments: false # 是否开启评论（需配合第三方插件如 Giscus）
+
+  # 文章封面图设置
+  cover:
+    hidden: false # 文章页内是否隐藏封面
+    hiddenInList: false # 文章列表页是否隐藏封面
+    hiddenInSingle: false # 单独页面是否隐藏封面
+    responsiveImages: true # 是否启用响应式图片（自动缩放）
+    linkFullImages: true # 点击封面图是否跳转到原图
+
+  math: true # 是否开启数学公式支持 (KaTeX/MathJax)
+
+  # 首页大卡片 (Home Info Mode)
+  homeInfoParams:
+    Title: "欢迎来到CGLab"
+    Content: >
+      这里记录我学习 **Computer Graphics / Rendering / Math** 的过程。
+
+  # 社交媒体图标 (出现在首页大卡片下方)
+  socialIcons:
+    - name: github
+      url: "https://github.com/Yang-Junjie"
+    - name: email
+      url: "mailto:beisent.oxygen@gmail.com"
+
+  # 搜索功能详细配置 (Fuse.js)
+  fuseOpts:
+    isCaseSensitive: false # 是否区分大小写
+    shouldSort: true # 是否排序
+    threshold: 0.3 # 搜索匹配阈值（越低越精准）
+    location: 0
+    distance: 100
+    minMatchCharLength: 1 # 最小匹配字符长度
+    keys: # 搜索索引覆盖的内容范围
+      - title
+      - permalink
+      - summary
+      - content
+
+# ==========================================
+# Markdown 渲染与插件配置 (markup)
+# ==========================================
+markup:
+  # Markdown 解析器设置
+  goldmark:
+    extensions:
+      passthrough: # 允许 LaTeX 公式直接通过解析
+        enable: true
+        delimiters:
+          block:
+            - ["$$", "$$"] # 行间公式
+          inline:
+            - ["$", "$"] # 行内公式
+    renderer:
+      unsafe: true # 允许在 Markdown 中直接书写 HTML 标签
+
+  # 代码高亮设置
+  highlight:
+    style: "dracula" # 代码块配色方案
+    lineNos: true # 是否显示行号
+    lineNumbersInTable: false # 是否在表格中显示行号
+    tabWidth: 4 # 制表符宽度
+    noClasses: false # 是否使用 CSS 类控制颜色
+
+  # 自动生成目录的层级控制
+  tableOfContents:
+    startLevel: 2 # 目录从 <h2> 开始抓取
+    endLevel: 4 # 目录抓取到 <h4> 结束
+    ordered: false # 目录是否显示数字编号
+
+# ==========================================
+# 导航栏菜单 (menu)
+# ==========================================
+menu:
+  main:
+    - identifier: home
+      name: "🏠 首页"
+      url: /
+      weight: 1 # 权重：越小越靠左
+
+    - identifier: search
+      name: "🔍 搜索"
+      url: /search/
+      weight: 5
+
+    - identifier: archives
+      name: "📦 归档"
+      url: /archives/
+      weight: 10
+
+    - identifier: tags
+      name: "🏷️ 标签"
+      url: /tags/
+      weight: 20
+
+    - identifier: about
+      name: "👨‍💻 关于"
+      url: /about/
+      weight: 30

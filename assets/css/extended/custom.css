@@ -1,0 +1,129 @@
+/* ========== 1. 磨砂玻璃导航栏 ========== */
+
+.header {
+    background: rgba(var(--theme), 0.75);
+    backdrop-filter: blur(14px);
+    position: sticky;
+    top: 0;
+    z-index: 999;
+}
+
+
+/* ========== 2. 页面整体宽度优化 ========== */
+
+.main {
+    max-width: 900px;
+}
+
+
+/* ========== 3. 文章卡片（更现代） ========== */
+
+.post-entry {
+    border-radius: 14px;
+    transition: all 0.25s ease;
+}
+
+.post-entry:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ========== 4. 标题优化（科研博客风格） ========== */
+
+.post-title {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+
+/* ========== 5. 代码块优化 ========== */
+
+.post-content pre {
+    border-radius: 14px;
+    padding: 1.6em;
+    border: 1px solid #2a2a2a;
+    background: #1e1e1e !important;
+    position: relative;
+}
+
+
+/* macOS 风格窗口按钮 */
+
+.post-content pre::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    left: 12px;
+
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+    background: #ff5f56;
+
+    box-shadow:
+        20px 0 0 #ffbd2e,
+        40px 0 0 #27c93f;
+}
+
+
+/* 代码字体 */
+
+code {
+    font-family:
+        "JetBrains Mono",
+        "Fira Code",
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace !important;
+
+    font-size: 0.95em;
+}
+
+
+/* ========== 6. 数学公式优化 ========== */
+
+.katex-display {
+    overflow-x: auto;
+    padding: 1rem 0;
+}
+
+.katex {
+    font-size: 1.15em !important;
+}
+
+
+/* ========== 7. 图片优化 ========== */
+
+.post-content img {
+    border-radius: 10px;
+    margin: 1.5rem auto;
+}
+
+
+/* ========== 8. 引用块优化 ========== */
+
+blockquote {
+    border-left: 4px solid #5a67d8;
+    background: rgba(90, 103, 216, 0.05);
+    padding: 1rem 1.2rem;
+    border-radius: 8px;
+}
+
+
+/* ========== 9. 表格优化 ========== */
+
+.post-content table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+
+/* ========== 10. TOC 目录优化 ========== */
+
+.toc {
+    border-left: 3px solid #888;
+    padding-left: 1rem;
+}
