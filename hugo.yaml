@@ -1,7 +1,7 @@
 # ==========================================
 # 基础站点设置
 # ==========================================
-baseURL: "https://Yang-Junjie.github.io/" # 网站的域名，部署到 GitHub Pages 必须修改此项
+baseURL: "https://blog.cglab.top/" # 网站的域名，部署到 GitHub Pages 必须修改此项
 title: "CGLab" # 浏览器标签栏显示的网站标题
 theme: "PaperMod" # 使用的主题名称
 
