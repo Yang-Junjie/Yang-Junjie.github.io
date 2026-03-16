@@ -14,14 +14,16 @@
       <pubDate>Sun, 15 Mar 2026 22:44:41 +0800</pubDate>
       <guid>http://localhost:1313/posts/opengl-tessellation-beziercurve/</guid>
       <description>&lt;h1 id=&#34;opengl使用曲面细分着色器绘制bezier曲线&#34;&gt;【OpenGL】使用曲面细分着色器绘制Bezier曲线&lt;/h1&gt;
-&lt;p&gt;这篇文章将直接介绍**使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。&lt;/p&gt;</description>
+&lt;p&gt;这篇文章将直接介绍&lt;strong&gt;使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线&lt;/strong&gt;，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。&lt;/p&gt;
+&lt;h2 id=&#34;介绍&#34;&gt;介绍&lt;/h2&gt;
+&lt;p&gt;&lt;strong&gt;曲面细分着色器（Tessellation Shaders）&lt;/strong&gt; 是在 OpenGL4.0 版本引入的。在这之前，有一些私有扩展可以使用，但是直到 4.0 曲面细分才正式成为 OpenGL 的一部分。&lt;/p&gt;</description>
       <content:encoded><![CDATA[<h1 id="opengl使用曲面细分着色器绘制bezier曲线">【OpenGL】使用曲面细分着色器绘制Bezier曲线</h1>
-<p>这篇文章将直接介绍**使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。</p>
+<p>这篇文章将直接介绍<strong>使用曲面细分着色器绘制Bezier曲线，而不会介绍Bezier曲线</strong>，但是会介绍 OpenGL 的曲面细分着色器的简单用法以及相关内容。</p>
 <h2 id="介绍">介绍</h2>
-<p>**曲面细分着色器（Tessellation Shaders）**是在 OpenGL4.0 版本引入的。在这之前，有一些私有扩展可以使用，但是直到 4.0 曲面细分才正式成为 OpenGL 的一部分。</p>
+<p><strong>曲面细分着色器（Tessellation Shaders）</strong> 是在 OpenGL4.0 版本引入的。在这之前，有一些私有扩展可以使用，但是直到 4.0 曲面细分才正式成为 OpenGL 的一部分。</p>
 <hr>
 <p>在没有曲面细分之前，想在 OpenGL 里画 Bezier 曲线和曲面需要在 CPU 将所有的点计算出来再通过总线（带宽相对于现代GPU极小的 PCIE 接口）上传至 GPU ，而从 CPU 到 GPU 的数据交换及其耗时，所以曲面细分着色器的作用就是将细分任务直接交给 GPU 不仅减少了大量数据的传递也大大加快了计算速度。</p>
-<p>除了绘制 Bezier 曲线和曲面，曲面细分着色器还能实现**位移贴图（Displacement Mapping）**和 <strong>动态细节级别（Dynamic LOD）</strong>。</p>
+<p>除了绘制 Bezier 曲线和曲面，曲面细分着色器还能实现 <strong>位移贴图（Displacement Mapping）</strong> 和 <strong>动态细节级别（Dynamic LOD）</strong> 。</p>
 <ul>
 <li>
 <p><strong>位移贴图</strong></p>
@@ -33,9 +35,9 @@
 </li>
 </ul>
 <hr>
-<p>这时有人可能就要问了：“主播主播，曲面细分着色器这么厉害，但是我记得**几何着色器（Geometry Shader）<strong>和</strong>计算着色器（Compute Shader）**也能干相关的任务，为什么不直接使用几何着色器和计算着色器，非要整出个曲面细分着色器呢“？？</p>
+<p>这时有人可能就要问了：“主播主播，曲面细分着色器这么厉害，但是我记得 <strong>几何着色器（Geometry Shader）</strong> 和 <strong>计算着色器（Compute Shader</strong> 也能干相关的任务，为什么不直接使用几何着色器和计算着色器，非要整出个曲面细分着色器呢“？？</p>
 <ul>
-<li>不使用 Geometry Shader 是因为它在执行细分任务的时候太慢了，GS 必须等到顶点着色器（Vertex Shader）把整个**图元（Primitive）**处理完成后了才能开始工作，而 TS 可以直接并行处理多个顶点，并且 TS 还有专门的硬件处理。</li>
+<li>不使用 Geometry Shader 是因为它在执行细分任务的时候太慢了，GS 必须等到顶点着色器（Vertex Shader）把整个 <strong>图元（Primitive）</strong> 处理完成后了才能开始工作，而 TS 可以直接并行处理多个顶点，并且 TS 还有专门的硬件处理。</li>
 <li>不使用 Compute Shader 是因它也太慢了，CS 是脱渲染离管线的，而 TS 是渲染管线的一部分，你需要将数据传入 CS 计算再将 CS 写入缓冲区，并且还需要使用 CPU 进行同步，并且 TS 还有专门的硬件处理。</li>
 </ul>
 <hr>
@@ -50,7 +52,7 @@
 <p>输出 <strong>Tessellation Levels</strong>（细分因子）。它告诉下一步：边缘要切几段，内部要切几份。</p>
 </li>
 <li>
-<p>**Tessellation Engine ** <strong>根据TCS的定义执行切割操作生成新的顶点（固定的不可编程）</strong></p>
+<p><strong>Tessellation Engine 根据TCS的定义执行切割操作生成新的顶点（固定的不可编程）</strong></p>
 </li>
 <li>
 <p><strong>Tessellation Evaluation Shader 根据 TE 生成出来的点计算出该点的位置</strong></p>
