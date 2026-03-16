@@ -291,6 +291,9 @@
 </span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="p">}</span>
 </span></span></code></pre></div><p>这里是最重要，这里就是逐面片设置，这里的<code>gl_InvocationID == 0</code>是判断thread id 是不是 0 号thread 如果是则设置如何细分。为什么需要 <code>if (gl_InvocationID == 0) </code> 因为如果不这么设置，那么所有的thread (这里是4个) 就会都去设置，导致性能浪费和数据竞争。并且这是一个全局设置，不需要所有的thread都去设置。由于上述以及介绍过了<code>gl_TessLevelOuter</code>所以这里你应该明白了这是什么意思。</p>
 <p>具体的代码可以去https://github.com/Yang-Junjie/GraphicsLab中的<code>BezierCurveScene.cpp</code>查看以及<code>shaders\BezierSurfaceScene</code></p>
+<p>其中示例不仅有Bezier曲线，还有Bezier曲面</p>
+<p><img alt="beziercurve" loading="lazy" src="/images/opengl/beziercurve.png">
+<img alt="beziersurface" loading="lazy" src="/images/opengl/beziersurface.png"></p>
 ]]></content:encoded>
     </item>
   </channel>
