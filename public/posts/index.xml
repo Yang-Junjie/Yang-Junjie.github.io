@@ -270,6 +270,8 @@
 </span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="k">float</span> <span class="n">shadow</span> <span class="o">=</span> <span class="n">currentDepth</span> <span class="o">-</span> <span class="n">bias</span> <span class="o">&gt;</span> <span class="n">closestDepth</span> <span class="o">?</span> <span class="mf">1.0</span> <span class="o">:</span> <span class="mf">0.0</span><span class="p">;</span>
 </span></span></code></pre></div><p><img alt="图4" loading="lazy" src="/images/opengl/shadowmapping.png"></p>
 <p>此时阴影失真现象消失了</p>
+<h2 id="pcf">PCF</h2>
+<p><img alt="图5" loading="lazy" src="/images/opengl/shadowmapping4.png"></p>
 ]]></content:encoded>
     </item>
     <item>

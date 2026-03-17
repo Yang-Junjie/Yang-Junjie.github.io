@@ -312,5 +312,68 @@ void main()
 
 此时阴影失真现象消失了
 
+## PCF 
+我们离近阴影看可以看到很多锯齿，这是由于我们的Shadow Mapping 的分辨率不够，多个片段被同一个Shadow Mapping 的深度值进行计算，导致片段之间的深度值差异较大，导致锯齿。所以我们可以使用一种名为 PCF 的滤波算法来解决这个问题。
+![图5](images/opengl/shadowmapping4.png)
 
+PCF 的原理是，将阴影贴图进行区域采样，对每个采样点进行 shadow test, 并将 shadow test 的结果进行加权平均，最后的到shadow值。  
+这里我们使用一个 3x3 的区域采样，对每个采样点进行 shadow test, 并加权平均，最终得到 shadow 值。
+
+```glsl
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+```
+
+这里 `textureSize` 返回的是 shadow map 的宽度和高度，我们用 1 去除以它就可以得到每个 texel 的偏移值了。
+最后的 shader 代码如下：
+```glsl
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // 将片段位置从齐次裁剪空间转换到纹理坐标空间
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+
+    // 将范围从 [-1, 1] 转换到 [0, 1]
+    projCoords = projCoords * 0.5 + 0.5;
+
+    // 处理光锥体外的区域
+    if (projCoords.z > 1.0)
+        return 0.0;
+
+    // 获取阴影贴图中存储的最近深度
+    float closestDepth = texture(u_ShadowMap, projCoords.xy).r; 
+
+    // 获取当前像素的深度
+    float currentDepth = projCoords.z;
+
+    // 计算阴影偏移，防止阴影 acne
+    float bias =  max(0.05 * (1.0 - dot(normalize(v_Normal), normalize(u_LightPos - v_FragPos))), 0.005);
+
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(u_ShadowMap, 0);
+    for(int x = -u_PCFregionSize/2; x <= u_PCFregionSize/2; ++x)
+    {
+        for(int y = -u_PCFregionSize/2; y <= u_PCFregionSize/2; ++y)
+        {
+            float pcfDepth = texture(u_ShadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
+            // shadow test
+            shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= u_PCFregionSize * u_PCFregionSize; // 平均阴影值
+
+    return shadow;
+}
+```
+
+运行后，阴影不再有锯齿，并且阴影更平滑。
+![](images/opengl/shadowmapping5.png)
 

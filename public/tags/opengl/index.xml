@@ -6,8 +6,274 @@
     <description>Recent content in Opengl on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 15 Mar 2026 22:44:41 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 16 Mar 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/opengl/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Shadow Mapping 使用OpenGL实现</title>
+      <link>http://localhost:1313/posts/opengl-shadow-mapping-1/</link>
+      <pubDate>Mon, 16 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/opengl-shadow-mapping-1/</guid>
+      <description>&lt;p&gt;如果你玩过现代 3D 游戏那么其中大多数的的动态物体阴影都是 **阴影映射（Shadow Mapping）**这个算法的变种。&lt;/p&gt;
+&lt;p&gt;所以为了研究其他的现代的实时动态阴影我们必须先学习一下 Shadow Mapping 的原理，以及如何使用OpenGL去实现。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>如果你玩过现代 3D 游戏那么其中大多数的的动态物体阴影都是 **阴影映射（Shadow Mapping）**这个算法的变种。</p>
+<p>所以为了研究其他的现代的实时动态阴影我们必须先学习一下 Shadow Mapping 的原理，以及如何使用OpenGL去实现。</p>
+<h2 id="原理">原理</h2>
+<p>他的思想原理非常简单，如果一个点能被光源看到（直射）并且也能被摄像机看到，那么这个点就在光照下（不在阴影中），反之如果一个点只能被摄像机看到，而不能被光源看到，那么他就在阴影中。</p>
+<p>详细的实现是：</p>
+<ul>
+<li>对于 <strong>平行光（Directional Light）</strong>：由于平行光的位置我们假设是无限远的，但是我们需要从光源位置看向场景 $(0,0,0)$ 点，所以我们为了简便直接假设光源位置在 从 $(0,0,0)$ 点沿着光照方向的反方向位移一段距离得到一个新的点  $\mathbf P$ ，以这个 $\mathbf P$ 点作为我们的光源位置（事实上这个方案非常不严谨，因为如果位移的距离不够，但是摄像机的视锥体包含了更多的场景，就会导致某些场景区域计算不到阴影位置。一般可以根据视锥体动态计算，并且光源的<code> LookAt</code> 目标通常应该是 <strong>“视锥体中心”</strong> ）。
+<ul>
+<li>Pass one：有了 $\mathbf P$点，我们从该点使用正交投影并定义 <code>lookAt</code>，走一遍渲染管线，不需要计算着色，将深度信息保存到<code>TexImage2D</code>上</li>
+<li>Pass two：再从摄像机走一遍正常的管线，在 Fragment Shader中结合保存的深度信息实现该点是否在阴影中的逻辑。</li>
+</ul>
+</li>
+<li>对于 <strong>聚光灯（Spot Light）</strong>:因为聚光灯都有一个明确的方向、张角和位置，所以我们不需要做那么多假设在平行光中的问题在这里都没有。
+<ul>
+<li>Pass one：我们只需要在聚光灯的位置看向它的<strong>照射方向</strong>，并且使用透视投影<code>FOV</code>应该与聚光灯的参数一致，并定义<code>lookAt</code>，走一遍渲染管线，不需要计算着色，将深度信息保存到<code>TexImage2D</code>上</li>
+<li>Pass two：再从摄像机走一遍正常的管线，在 Fragment Shader中结合保存的深度信息实现该点是否在阴影中的逻辑就行了。</li>
+</ul>
+</li>
+<li>对于 <strong>点光源（Point Light）</strong>：点光源，有具体的位置，但是点光源四面八方都有光照，所以我们需要特殊处理。
+<ul>
+<li>Pass one：我们通过在点光源的位置向上下左右前后六个方向都计算一次深度信息，存入一张 <strong>Cube Map</strong></li>
+<li>Pass two：再从摄像机走一遍正常的管线，在 Fragment Shader中结合保存的Cube Map实现该点是否在阴影中的逻辑就行了。</li>
+</ul>
+</li>
+</ul>
+<h2 id="实现">实现</h2>
+<p>这里只实现平行光的Shadow Mapping。</p>
+<p>首先我们定义 Pass one 中要使用的 FBO 和 TexImage2D，和Shader</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">std</span><span class="o">::</span><span class="n">unique_ptr</span><span class="o">&lt;</span><span class="n">gl</span><span class="o">::</span><span class="n">Shader</span><span class="o">&gt;</span> <span class="n">depth_shader_</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">GLuint</span> <span class="n">depth_map_fbo_</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">GLuint</span> <span class="n">depth_map_texture_</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="c1">// TexImage2D的大小
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="k">const</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">shadow_width_</span> <span class="o">=</span> <span class="mi">1&#39;024</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="k">const</span> <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">shadow_height_</span> <span class="o">=</span> <span class="mi">1&#39;024</span><span class="p">;</span>
+</span></span></code></pre></div><p>并且初始化</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="n">depth_shader_</span> <span class="o">=</span> <span class="n">std</span><span class="o">::</span><span class="n">make_unique</span><span class="o">&lt;</span><span class="n">gl</span><span class="o">::</span><span class="n">Shader</span><span class="o">&gt;</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">depth_shader_</span><span class="o">-&gt;</span><span class="n">CompileFromFile</span><span class="p">(</span><span class="s">&#34;shaders/AdvanceLighting/shadow_mapping.vert&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">                                   <span class="s">&#34;shaders/AdvanceLighting/shadow_mapping.frag&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c1">// Depth map texture for shadow mapping
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="n">glCreateTextures</span><span class="p">(</span><span class="n">GL_TEXTURE_2D</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">depth_map_texture_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">glTextureStorage2D</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_DEPTH_COMPONENT24</span><span class="p">,</span> <span class="n">shadow_width_</span><span class="p">,</span> <span class="n">shadow_height_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="n">GL_TEXTURE_MIN_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="n">GL_TEXTURE_MAG_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_S</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_BORDER</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_T</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_BORDER</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="kt">float</span> <span class="n">border_color</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span><span class="mf">1.0f</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">,</span> <span class="mf">1.0f</span><span class="p">};</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="n">glTextureParameterfv</span><span class="p">(</span><span class="n">depth_map_texture_</span><span class="p">,</span> <span class="n">GL_TEXTURE_BORDER_COLOR</span><span class="p">,</span> <span class="n">border_color</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="c1">// Depth map framebuffer
+</span></span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="n">glCreateFramebuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">depth_map_fbo_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="n">glNamedFramebufferTexture</span><span class="p">(</span><span class="n">depth_map_fbo_</span><span class="p">,</span> <span class="n">GL_DEPTH_ATTACHMENT</span><span class="p">,</span> <span class="n">depth_map_texture_</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">glNamedFramebufferDrawBuffer</span><span class="p">(</span><span class="n">depth_map_fbo_</span><span class="p">,</span> <span class="n">GL_NONE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="n">glNamedFramebufferReadBuffer</span><span class="p">(</span><span class="n">depth_map_fbo_</span><span class="p">,</span> <span class="n">GL_NONE</span><span class="p">);</span>
+</span></span></code></pre></div><p>再写一个Pass one使用的Shader</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// vertex shader</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec3</span> <span class="n">a_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_model</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_LightSpaceMatrix</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="n">gl_Position</span> <span class="o">=</span> <span class="n">u_LightSpaceMatrix</span> <span class="o">*</span> <span class="n">u_model</span> <span class="o">*</span> <span class="k">vec4</span><span class="p">(</span><span class="n">a_Position</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="c1">// fragment shader</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>再执行pass one</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// ====== Pass 1: Render depth map from light&#39;s perspective ======
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="n">glEnable</span><span class="p">(</span><span class="n">GL_DEPTH_TEST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">glViewport</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">shadow_width_</span><span class="p">,</span> <span class="n">shadow_height_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">glBindFramebuffer</span><span class="p">(</span><span class="n">GL_FRAMEBUFFER</span><span class="p">,</span> <span class="n">depth_map_fbo_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">glClear</span><span class="p">(</span><span class="n">GL_DEPTH_BUFFER_BIT</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">depth_shader_</span><span class="o">-&gt;</span><span class="n">Bind</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">glUniformMatrix4fv</span><span class="p">(</span><span class="n">depth_shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_LightSpaceMatrix&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">                       <span class="mi">1</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">                       <span class="n">GL_FALSE</span><span class="p">,</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">                       <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">light_space_matrix</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="n">RenderScene</span><span class="p">(</span><span class="o">*</span><span class="n">depth_shader_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="n">depth_shader_</span><span class="o">-&gt;</span><span class="n">Unbind</span><span class="p">();</span>
+</span></span></code></pre></div><p>最后将<code>depth_map_texture_</code>和<code>u_LightSpaceMatrix</code>传入shader以实现“该点是否在阴影中的逻辑”</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c++" data-lang="c++"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c1">// ====== Pass 2: Render scene with shadow mapping ======
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="c1">// Restore app&#39;s FBO and viewport
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">glBindFramebuffer</span><span class="p">(</span><span class="n">GL_FRAMEBUFFER</span><span class="p">,</span> <span class="n">prev_fbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">glViewport</span><span class="p">(</span><span class="n">prev_viewport</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">prev_viewport</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">prev_viewport</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">prev_viewport</span><span class="p">[</span><span class="mi">3</span><span class="p">]);</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">glClear</span><span class="p">(</span><span class="n">GL_COLOR_BUFFER_BIT</span> <span class="o">|</span> <span class="n">GL_DEPTH_BUFFER_BIT</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">selected_gamma_correction_</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">glEnable</span><span class="p">(</span><span class="n">GL_FRAMEBUFFER_SRGB</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">glDisable</span><span class="p">(</span><span class="n">GL_FRAMEBUFFER_SRGB</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="n">glm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">view</span> <span class="o">=</span> <span class="n">camera_3d_</span><span class="o">-&gt;</span><span class="n">GetViewMatrix</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="n">glm</span><span class="o">::</span><span class="n">mat4</span> <span class="n">projection</span> <span class="o">=</span> <span class="n">camera_3d_</span><span class="o">-&gt;</span><span class="n">GetProjectionMatrix</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Bind</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="n">glUniformMatrix4fv</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_view&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_FALSE</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">view</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="n">glUniformMatrix4fv</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_projection&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_FALSE</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">projection</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="n">glUniformMatrix4fv</span><span class="p">(</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_LightSpaceMatrix&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_FALSE</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">light_space_matrix</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">
+</span></span><span class="line"><span class="ln">22</span><span class="cl"><span class="n">glUniform3fv</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_LightPos&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">light_pos_</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="n">glUniform3fv</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_ViewPos&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">camera_pos_</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl"><span class="n">glUniform3fv</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_LightColor&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">glm</span><span class="o">::</span><span class="n">value_ptr</span><span class="p">(</span><span class="n">light_color_</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl"><span class="n">glUniform1f</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_Shininess&#34;</span><span class="p">),</span> <span class="n">shininess_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl"><span class="n">glUniform1f</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_AmbientStrength&#34;</span><span class="p">),</span> <span class="n">ambient_strength_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="n">glUniform1f</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_SpecularStrength&#34;</span><span class="p">),</span> <span class="n">specular_strength_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_BlinnPhong&#34;</span><span class="p">),</span> <span class="n">use_blinn_phong_</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_UseGammaCorrection&#34;</span><span class="p">),</span> <span class="n">selected_gamma_correction_</span> <span class="o">==</span> <span class="mi">2</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_EnableShadows&#34;</span><span class="p">),</span> <span class="n">enable_shadows_</span> <span class="o">?</span> <span class="mi">1</span> <span class="o">:</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">
+</span></span><span class="line"><span class="ln">32</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">floor_texture_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_FloorTexture&#34;</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">34</span><span class="cl">
+</span></span><span class="line"><span class="ln">35</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">depth_map_texture_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">36</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_ShadowMap&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">
+</span></span><span class="line"><span class="ln">38</span><span class="cl"><span class="n">RenderScene</span><span class="p">(</span><span class="o">*</span><span class="n">shader_</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl"><span class="n">shader_</span><span class="o">-&gt;</span><span class="n">Unbind</span><span class="p">();</span>
+</span></span></code></pre></div><p>更新Pass two 的Shader</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec3</span> <span class="n">a_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec3</span> <span class="n">a_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec2</span> <span class="n">a_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_model</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_view</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_projection</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_LightSpaceMatrix</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">out</span> <span class="k">vec3</span> <span class="n">v_FragPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="k">out</span> <span class="k">vec3</span> <span class="n">v_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="k">out</span> <span class="k">vec2</span> <span class="n">v_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="k">out</span> <span class="k">vec4</span> <span class="n">v_FragPosLightSpace</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="k">vec4</span> <span class="n">world_pos</span> <span class="o">=</span> <span class="n">u_model</span> <span class="o">*</span> <span class="k">vec4</span><span class="p">(</span><span class="n">a_Position</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="n">v_FragPos</span> <span class="o">=</span> <span class="n">world_pos</span><span class="p">.</span><span class="n">xyz</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="n">v_Normal</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">(</span><span class="n">transpose</span><span class="p">(</span><span class="n">inverse</span><span class="p">(</span><span class="n">u_model</span><span class="p">)))</span> <span class="o">*</span> <span class="n">a_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">v_TexCoord</span> <span class="o">=</span> <span class="n">a_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="c1">// 将世界坐标系下的位置转换到光源空间</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="n">v_FragPosLightSpace</span> <span class="o">=</span> <span class="n">u_LightSpaceMatrix</span> <span class="o">*</span> <span class="n">world_pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">gl_Position</span> <span class="o">=</span> <span class="n">u_projection</span> <span class="o">*</span> <span class="n">u_view</span> <span class="o">*</span> <span class="n">world_pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="k">in</span> <span class="k">vec3</span> <span class="n">v_FragPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="k">in</span> <span class="k">vec3</span> <span class="n">v_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="k">in</span> <span class="k">vec2</span> <span class="n">v_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">in</span> <span class="k">vec4</span> <span class="n">v_FragPosLightSpace</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="k">out</span> <span class="k">vec4</span> <span class="n">FragColor</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_FloorTexture</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_ShadowMap</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">u_LightPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">u_ViewPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="k">uniform</span> <span class="k">vec3</span> <span class="n">u_LightColor</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">u_Shininess</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">u_AmbientStrength</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl"><span class="k">uniform</span> <span class="k">float</span> <span class="n">u_SpecularStrength</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="k">uniform</span> <span class="k">int</span> <span class="n">u_BlinnPhong</span><span class="p">;</span> <span class="c1">// 0 = Phong, 1 = Blinn-Phong</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="k">uniform</span> <span class="k">int</span> <span class="n">u_UseGammaCorrection</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl"><span class="k">uniform</span> <span class="k">int</span> <span class="n">u_EnableShadows</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">
+</span></span><span class="line"><span class="ln">22</span><span class="cl"><span class="k">float</span> <span class="n">ShadowCalculation</span><span class="p">(</span><span class="k">vec4</span> <span class="n">fragPosLightSpace</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">    <span class="c1">// 将片段位置从齐次裁剪空间转换到纹理坐标空间</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">    <span class="k">vec3</span> <span class="n">projCoords</span> <span class="o">=</span> <span class="n">fragPosLightSpace</span><span class="p">.</span><span class="n">xyz</span> <span class="o">/</span> <span class="n">fragPosLightSpace</span><span class="p">.</span><span class="n">w</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="c1">// 将范围从 [-1, 1] 转换到 [0, 1]</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="n">projCoords</span> <span class="o">=</span> <span class="n">projCoords</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="c1">// 处理光锥体外的区域</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">projCoords</span><span class="p">.</span><span class="n">z</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">        <span class="k">return</span> <span class="mf">0.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">
+</span></span><span class="line"><span class="ln">34</span><span class="cl">    <span class="c1">// 获取阴影贴图中存储的最近深度</span>
+</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="k">float</span> <span class="n">closestDepth</span> <span class="o">=</span> <span class="n">texture</span><span class="p">(</span><span class="n">u_ShadowMap</span><span class="p">,</span> <span class="n">projCoords</span><span class="p">.</span><span class="n">xy</span><span class="p">).</span><span class="n">r</span><span class="p">;</span> 
+</span></span><span class="line"><span class="ln">36</span><span class="cl">
+</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="c1">// 获取当前像素的深度</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">    <span class="k">float</span> <span class="n">currentDepth</span> <span class="o">=</span> <span class="n">projCoords</span><span class="p">.</span><span class="n">z</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl">
+</span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="c1">// 如果当前深度大于贴图中的最近深度，则该点在阴影中 (1.0)，否则在光照下 (0.0)</span>
+</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="k">float</span> <span class="n">shadow</span> <span class="o">=</span> <span class="n">currentDepth</span> <span class="o">&gt;</span> <span class="n">closestDepth</span> <span class="o">?</span> <span class="mf">1.0</span> <span class="o">:</span> <span class="mf">0.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">42</span><span class="cl">
+</span></span><span class="line"><span class="ln">43</span><span class="cl">    <span class="k">return</span> <span class="n">shadow</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">44</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">45</span><span class="cl">
+</span></span><span class="line"><span class="ln">46</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">47</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">48</span><span class="cl">    <span class="k">vec3</span> <span class="n">color</span> <span class="o">=</span> <span class="n">texture</span><span class="p">(</span><span class="n">u_FloorTexture</span><span class="p">,</span> <span class="n">v_TexCoord</span><span class="p">).</span><span class="n">rgb</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">49</span><span class="cl">    <span class="k">vec3</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">v_Normal</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">50</span><span class="cl">    <span class="k">vec3</span> <span class="n">light_dir</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">u_LightPos</span> <span class="o">-</span> <span class="n">v_FragPos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">51</span><span class="cl">    <span class="k">vec3</span> <span class="n">view_dir</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">u_ViewPos</span> <span class="o">-</span> <span class="n">v_FragPos</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">52</span><span class="cl">
+</span></span><span class="line"><span class="ln">53</span><span class="cl">    <span class="c1">// ambient</span>
+</span></span><span class="line"><span class="ln">54</span><span class="cl">    <span class="k">vec3</span> <span class="n">ambient</span> <span class="o">=</span> <span class="n">u_AmbientStrength</span> <span class="o">*</span> <span class="n">color</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">55</span><span class="cl">
+</span></span><span class="line"><span class="ln">56</span><span class="cl">    <span class="c1">// diffuse</span>
+</span></span><span class="line"><span class="ln">57</span><span class="cl">    <span class="k">float</span> <span class="n">diff</span> <span class="o">=</span> <span class="n">max</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">light_dir</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">58</span><span class="cl">    <span class="k">vec3</span> <span class="n">diffuse</span> <span class="o">=</span> <span class="n">diff</span> <span class="o">*</span> <span class="n">u_LightColor</span> <span class="o">*</span> <span class="n">color</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">59</span><span class="cl">
+</span></span><span class="line"><span class="ln">60</span><span class="cl">    <span class="c1">// specular</span>
+</span></span><span class="line"><span class="ln">61</span><span class="cl">    <span class="k">float</span> <span class="n">spec</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">62</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">u_BlinnPhong</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">63</span><span class="cl">        <span class="c1">// Blinn-Phong: use halfway vector</span>
+</span></span><span class="line"><span class="ln">64</span><span class="cl">        <span class="k">vec3</span> <span class="n">halfway_dir</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">light_dir</span> <span class="o">+</span> <span class="n">view_dir</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">65</span><span class="cl">        <span class="n">spec</span> <span class="o">=</span> <span class="n">pow</span><span class="p">(</span><span class="n">max</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">halfway_dir</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">u_Shininess</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">66</span><span class="cl">    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">67</span><span class="cl">        <span class="c1">// Phong: use reflect direction</span>
+</span></span><span class="line"><span class="ln">68</span><span class="cl">        <span class="k">vec3</span> <span class="n">reflect_dir</span> <span class="o">=</span> <span class="n">reflect</span><span class="p">(</span><span class="o">-</span><span class="n">light_dir</span><span class="p">,</span> <span class="n">normal</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">69</span><span class="cl">        <span class="n">spec</span> <span class="o">=</span> <span class="n">pow</span><span class="p">(</span><span class="n">max</span><span class="p">(</span><span class="n">dot</span><span class="p">(</span><span class="n">view_dir</span><span class="p">,</span> <span class="n">reflect_dir</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">),</span> <span class="n">u_Shininess</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">70</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">71</span><span class="cl">    <span class="k">vec3</span> <span class="n">specular</span> <span class="o">=</span> <span class="n">u_SpecularStrength</span> <span class="o">*</span> <span class="n">spec</span> <span class="o">*</span> <span class="n">u_LightColor</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">72</span><span class="cl">
+</span></span><span class="line"><span class="ln">73</span><span class="cl">    <span class="c1">// shadow</span>
+</span></span><span class="line"><span class="ln">74</span><span class="cl">    <span class="k">float</span> <span class="n">shadow</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">75</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">u_EnableShadows</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">76</span><span class="cl">        <span class="n">shadow</span> <span class="o">=</span> <span class="n">ShadowCalculation</span><span class="p">(</span><span class="n">v_FragPosLightSpace</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">77</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">78</span><span class="cl">
+</span></span><span class="line"><span class="ln">79</span><span class="cl">    <span class="k">vec4</span> <span class="n">final_color</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="n">ambient</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">shadow</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">diffuse</span> <span class="o">+</span> <span class="n">specular</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">80</span><span class="cl">    <span class="k">if</span> <span class="p">(</span><span class="n">u_UseGammaCorrection</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">81</span><span class="cl">        <span class="n">final_color</span><span class="p">.</span><span class="n">rgb</span> <span class="o">=</span> <span class="n">pow</span><span class="p">(</span><span class="n">final_color</span><span class="p">.</span><span class="n">rgb</span><span class="p">,</span> <span class="k">vec3</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="mf">2.2</span><span class="p">));</span>
+</span></span><span class="line"><span class="ln">82</span><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="ln">83</span><span class="cl">    <span class="n">FragColor</span> <span class="o">=</span> <span class="n">final_color</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">84</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><h2 id="阴影失真">阴影失真</h2>
+<p>运行后你会发现阴影有是有了但是出现了好多类似摩尔纹的条纹, 如图1</p>
+<p><img alt="图1" loading="lazy" src="/images/opengl/shadowmapping1.png"></p>
+<p>这是一种叫做阴影失真的现象，这是由于 Shadow Mapping 的分辨率不足导致的，导致过远的片段使用同一个 Shadow Mapping 的深度值进行计算，如图2所示，片段2的深度大于Shadow mapping的深度所以是黑色，片段1和片段2采样同一个Shadow Mapping</p>
+<p><img alt="图2" loading="lazy" src="/images/opengl/shadowmapping3.png"></p>
+<h2 id="阴影偏移">阴影偏移</h2>
+<p>为了解决这个问题，我们使用阴影偏移来解决这个问题。我们简单的对表面深度贴图应用一个偏移量，这样片段就不会被错误地认为在表面之下了。</p>
+<p><img alt="图3" loading="lazy" src="https://learnopengl-cn.github.io/img/05/03/01/shadow_mapping_acne_bias.png"></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl">    <span class="k">float</span> <span class="n">bias</span> <span class="o">=</span>  <span class="n">max</span><span class="p">(</span><span class="mf">0.05</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">dot</span><span class="p">(</span><span class="n">normalize</span><span class="p">(</span><span class="n">v_Normal</span><span class="p">),</span> <span class="n">normalize</span><span class="p">(</span><span class="n">u_LightPos</span> <span class="o">-</span> <span class="n">v_FragPos</span><span class="p">))),</span> <span class="mf">0.005</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="k">float</span> <span class="n">shadow</span> <span class="o">=</span> <span class="n">currentDepth</span> <span class="o">-</span> <span class="n">bias</span> <span class="o">&gt;</span> <span class="n">closestDepth</span> <span class="o">?</span> <span class="mf">1.0</span> <span class="o">:</span> <span class="mf">0.0</span><span class="p">;</span>
+</span></span></code></pre></div><p><img alt="图4" loading="lazy" src="/images/opengl/shadowmapping.png"></p>
+<p>此时阴影失真现象消失了</p>
+<h2 id="pcf">PCF</h2>
+<p><img alt="图5" loading="lazy" src="/images/opengl/shadowmapping4.png"></p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【OpenGL】使用曲面细分着色器绘制Bezier曲线</title>
       <link>http://localhost:1313/posts/opengl-tessellation-beziercurve/</link>
