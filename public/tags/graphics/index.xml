@@ -43,7 +43,7 @@ $$L_{out} = \frac{L_{in}}{1 + L_{in}}$$<ul>
 <hr>
 <h2 id="exposure-tone-mapping">Exposure tone mapping</h2>
 <p>Exposure tone mapping 模仿的是真实摄像机的工作原理</p>
-$$L_{out} = \frac{L_{in}}{1 + \text{exposure} \times L_{in}}$$<ul>
+$$L_{out} = 1 - \exp(-exposure * L_{in})$$<ul>
 <li>$ L_{in} $ 表示输入的 HDR 颜色值</li>
 <li>$ L_{out} $ 输出的 LDR 颜色值</li>
 <li>$exposure$ 表示曝光度</li>

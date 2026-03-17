@@ -54,7 +54,7 @@ $$L_{out} = \frac{L_{in}}{1 + L_{in}}$$
 ## Exposure tone mapping
 Exposure tone mapping 模仿的是真实摄像机的工作原理
 
-$$L_{out} = \frac{L_{in}}{1 + \text{exposure} \times L_{in}}$$
+$$L_{out} = 1 - \exp(-exposure * L_{in})$$
 
 - $ L_{in} $ 表示输入的 HDR 颜色值
 - $ L_{out} $ 输出的 LDR 颜色值
