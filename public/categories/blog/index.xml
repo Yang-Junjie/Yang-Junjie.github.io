@@ -6,8 +6,107 @@
     <description>Recent content in Blog on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 17 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 18 Mar 2026 22:14:42 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/categories/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】辐射度量学在图形学中基础应用</title>
+      <link>http://localhost:1313/posts/cg-radiometry/</link>
+      <pubDate>Wed, 18 Mar 2026 22:14:42 +0800</pubDate>
+      <guid>http://localhost:1313/posts/cg-radiometry/</guid>
+      <description>&lt;p&gt;在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数的像做出非常精美的效果非常困难。&lt;br&gt;
+而且Phong和Blinn-Phong模型都是经验模型，它们都没办法表示真实的物理效果。因此我们引入了辐射度量学来以科学的角度定量地、物理正确地描述光。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数的像做出非常精美的效果非常困难。<br>
+而且Phong和Blinn-Phong模型都是经验模型，它们都没办法表示真实的物理效果。因此我们引入了辐射度量学来以科学的角度定量地、物理正确地描述光。</p>
+<h1 id="辐射度量学">辐射度量学</h1>
+<h2 id="辐射能radiant-energy">辐射能（Radiant Energy）</h2>
+<p>光本质上是电磁波，而只要是波就能携带能量。我们将光所携带的能量称为辐射能。<br>
+符号：$Q$， 单位：焦耳 $J$</p>
+<h2 id="辐射通量-radiant-flux">辐射通量 （Radiant Flux）</h2>
+<p>在图形学中我们通常不会使用<strong>辐射能</strong>来计算光照，因为如果一个光源一直发光那么它释放的能量是无限变大的。
+而在图形学中，我们更关注一帧画面中的能量。即<strong>辐射通量（Radiant Flux）</strong></p>
+<ul>
+<li>定义：单位时间内 <strong>Radiant Energy</strong> 的变化量</li>
+<li>符号：$\Phi$</li>
+<li>单位：瓦特 $W$，或者焦耳每秒 $J/s$<br>
+公式：
+
+$$\Phi = \frac{dQ}{dt}$$</li>
+</ul>
+<h2 id="立体角-solid-angle">立体角 （Solid Angle）</h2>
+<p>在介绍其他的物理量之前先介绍一下<strong>立体角</strong>，因为这些物理量需要使用到立体角。<br>
+立体角是一个数学中的概念，类似于二维平面上，我们使用弧度表示来表示一个二维角度 $\theta = \frac{s}{r} $。 <br>
+类似的，在三维空间中，我们使用类似的定义来表示立体角。<br>
+（除以半径的平方对应了物理中的平方反比定律）<br>
+</p>
+$$ \Omega = \frac{A}{r^2} $$<ul>
+<li>单位: 球面度 (Steradian, sr)
+<img loading="lazy" src="/images/cg/solid_angle.png"></li>
+</ul>
+<p>例1：<br>
+计算整个球体和半球的立体角：<br>
+根据球体面积公式: $A = 4\pi r^2$</p>
+$$ \Omega_1 = \frac{A}{r^2}  = \frac{4\pi r^2}{r^2} = 4\pi$$<p><br>
+</p>
+$$ \Omega_2 = \frac{\Omega_1}{2}= 2\pi$$<h3 id="微分立体角">微分立体角</h3>
+<p>在球体上我们通常使用经纬度来表示一个点的位置</p>
+<ul>
+<li>极角 $\theta$ ：与 $z$ 轴的夹角 $[0, \pi]$</li>
+<li>方位角 $\phi$ ：在 $xy$ 平面上的投影与 $x$ 轴的夹角，范围 $[0, 2\pi]$。</li>
+<li>定义
+
+$$ d\omega = \frac{dA}{r^2} $$
+其中</li>
+</ul>
+$$ dA = (rd\theta)(rsin\theta d\phi) = r^2sin\theta d\theta d\phi $$<p>
+<img loading="lazy" src="/images/cg/differential_solid_angle.png">
+所以原公式可以化简为
+</p>
+$$ d\omega = sin\theta d\theta d\phi  $$<p>例2 <br>
+使用微分立体角计算半个球体的立体角：<br>
+</p>
+$$ \Omega = \int_{S^2} d\omega=\int_{0}^{\pi} \int_{0}^{\pi} sin\theta d\theta d\phi  = \int_{0}^{\pi}sin\theta d\theta \int_{0}^{\pi} d\phi  = -cos\theta |^{\pi}_{0}\pi = 2\pi  $$<p>
+(积分区域是矩形且被积函数是可分离的，所以可以化为两个独立定积分)</p>
+<h2 id="辐射强度radiant-intensity">辐射强度（Radiant Intensity）</h2>
+<p>Radiant Flux描述的是光源向所有方向发射的总功率，但光源在不同方向发出的能量是不同的。辐射强度用于描述光源在特定方向上的发光能力。</p>
+<ul>
+<li>定义：单位立体角内的 Radiant Flux 的变化率</li>
+<li>符号：$I$</li>
+<li>单位：瓦特每米平方 $W/sr$</li>
+<li>公式：
+
+$$ I(\omega) =\lim_{\Delta\omega \to 0}\frac{\Delta \Phi}{\Delta \omega}= \frac{d\Phi}{d\omega} $$
+如果一个光源是各项同性的，那么它的 Radiant Intensity 是 $I = \frac{\Phi}{4\pi}$（$4\pi$ 是整个球的立体角）
+<img loading="lazy" src="/images/cg/intensity.png"></li>
+</ul>
+<h2 id="辐照度irradiance">辐照度（irradiance）</h2>
+<p>Irradiance 描述了某一个表面上接受的 Radiant Flux。</p>
+<ul>
+<li>定义: 单位面积内的接受的 Radiant Flux 的变化率</li>
+<li>符号：$E$</li>
+<li>单位：瓦特每平方米 $W/m^2$</li>
+<li>公式：
+
+$$ E(p) =\lim_{\Delta A \to 0}\frac{\Delta \Phi(p)}{\Delta A}= \frac{d\Phi(p)}{ dA} $$</li>
+</ul>
+<p><img loading="lazy" src="/images/cg/irradiance.png"></p>
+<h2 id="辐射亮度-radiance">辐射亮度 (Radiance)</h2>
+<p>它结合了方向和面积，描述了<strong>光线在空间中沿一条射线的强度</strong></p>
+<ul>
+<li>定义： 单位立体角、单位投影面积上的辐射通量。</li>
+<li>符号：$L$</li>
+<li>单位：$\frac{W}{sr\cdot m^2}$</li>
+<li>公式：
+
+$$L(p, \omega)= \lim_{\Delta\omega \to 0}\frac{\Delta E_{\omega}(p)}{\Delta \omega}=\frac{d E_{\omega}(p)}{d\omega}= \frac{d^2\Phi}{d\omega dA }$$
+（其中 $p$ 是表面上的点，$\omega$ 是光线方向，$\theta$ 是光线方向与表面法线的夹角）。</li>
+</ul>
+<p><img loading="lazy" src="/images/cg/radiance.png"></p>
+<p>实际上 $ dA cos\theta $才是radiance中所定义的面积
+<img loading="lazy" src="/images/cg/radiance_area.png">
+所以原方程为
+</p>
+$$ L(p, \omega)= \lim_{\Delta\omega \to 0}\frac{\Delta E_{\omega}(p)}{\Delta \omega}=\frac{d E_{\omega}(p)}{d\omega}= \frac{d^2\Phi}{d\omega dA }=\frac{d^2\Phi}{d\omega dA cos\theta} $$]]></content:encoded>
+    </item>
     <item>
       <title>【CG】HDR &amp; Tone Mapping</title>
       <link>http://localhost:1313/posts/cg-hdr-tone-mapping/</link>
