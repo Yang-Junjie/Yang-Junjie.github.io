@@ -6,8 +6,25 @@
     <description>Recent content in Opengl on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 17 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 19 Mar 2026 21:15:53 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/opengl/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【Rendering】延迟渲染基于OpenGL</title>
+      <link>http://localhost:1313/posts/rendering-deffered-rendering/</link>
+      <pubDate>Thu, 19 Mar 2026 21:15:53 +0800</pubDate>
+      <guid>http://localhost:1313/posts/rendering-deffered-rendering/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;延迟渲染（Deferred Rendering）&lt;/strong&gt; 是一种专为高效处理海量光源而设计的渲染技术，旨在解决传统&lt;strong&gt;前向渲染（Forward Rendering）&lt;/strong&gt; 在多光源场景下的性能瓶颈。在前向渲染中，每个物体在绘制时都必须遍历场景内的所有光源并逐一计算光照。这意味着，若场景中有 $n$ 个几何片段和 $m$ 个光源，计算复杂度将达到 $O(n \times m)$。当光源数量增加时，渲染开销会呈线性爆发式增长。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p><strong>延迟渲染（Deferred Rendering）</strong> 是一种专为高效处理海量光源而设计的渲染技术，旨在解决传统<strong>前向渲染（Forward Rendering）</strong> 在多光源场景下的性能瓶颈。在前向渲染中，每个物体在绘制时都必须遍历场景内的所有光源并逐一计算光照。这意味着，若场景中有 $n$ 个几何片段和 $m$ 个光源，计算复杂度将达到 $O(n \times m)$。当光源数量增加时，渲染开销会呈线性爆发式增长。</p>
+<p>为了打破这种耦合，延迟渲染将渲染流程解构为两个核心阶段：</p>
+<h4 id="1-几何处理阶段geometry-pass">1. 几何处理阶段（Geometry Pass）</h4>
+<p>在该阶段，场景仅进行一次常规渲染，但不立即执行复杂的光照计算。取而代之的是，我们将物体的各项几何与材质属性——如<strong>反射率（Albedo）</strong>、<strong>法线（Normal）</strong>、<strong>金属度（Metalic）</strong>、<strong>粗糙度（Roughness）</strong>、**自发光（Emissive）<strong>及</strong>环境光遮蔽（AO）**等——提取出来。</p>
+<p>这些数据被渲染并存储在一系列高度集成的纹理缓冲区中，即 <strong>G-Buffer</strong>。由于 G-Buffer 只记录最终通过深度测试、对摄像机可见的片段信息，这为后续阶段剔除无效计算奠定了基础。
+<img loading="lazy" src="/images/opengl/defferred_rendering.png"></p>
+<h4 id="2-光照处理阶段lighting-pass">2. 光照处理阶段（Lighting Pass）</h4>
+<p>在这一阶段，渲染器不再关注场景中有多少个复杂的模型几何体，而是直接遍历 G-Buffer 中的像素。通过读取每个像素点的几何与材质“档案”，结合场景中的光源信息进行统一的着色计算。</p>
+<p>此时，计算复杂度由原来的“物体数量 $\times$ 光源数量”优化为<strong>屏幕像素数量</strong>。这种将几何处理与光照计算分离的设计，使得在场景中实时渲染成百上千个光源成为可能。</p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】HDR &amp; Tone Mapping</title>
       <link>http://localhost:1313/posts/cg-hdr-tone-mapping/</link>

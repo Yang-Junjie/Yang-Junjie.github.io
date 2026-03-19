@@ -6,8 +6,25 @@
     <description>Recent content in Posts on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 18 Mar 2026 22:14:42 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 19 Mar 2026 21:15:53 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【Rendering】延迟渲染基于OpenGL</title>
+      <link>http://localhost:1313/posts/rendering-deffered-rendering/</link>
+      <pubDate>Thu, 19 Mar 2026 21:15:53 +0800</pubDate>
+      <guid>http://localhost:1313/posts/rendering-deffered-rendering/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;延迟渲染（Deferred Rendering）&lt;/strong&gt; 是一种专为高效处理海量光源而设计的渲染技术，旨在解决传统&lt;strong&gt;前向渲染（Forward Rendering）&lt;/strong&gt; 在多光源场景下的性能瓶颈。在前向渲染中，每个物体在绘制时都必须遍历场景内的所有光源并逐一计算光照。这意味着，若场景中有 $n$ 个几何片段和 $m$ 个光源，计算复杂度将达到 $O(n \times m)$。当光源数量增加时，渲染开销会呈线性爆发式增长。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p><strong>延迟渲染（Deferred Rendering）</strong> 是一种专为高效处理海量光源而设计的渲染技术，旨在解决传统<strong>前向渲染（Forward Rendering）</strong> 在多光源场景下的性能瓶颈。在前向渲染中，每个物体在绘制时都必须遍历场景内的所有光源并逐一计算光照。这意味着，若场景中有 $n$ 个几何片段和 $m$ 个光源，计算复杂度将达到 $O(n \times m)$。当光源数量增加时，渲染开销会呈线性爆发式增长。</p>
+<p>为了打破这种耦合，延迟渲染将渲染流程解构为两个核心阶段：</p>
+<h4 id="1-几何处理阶段geometry-pass">1. 几何处理阶段（Geometry Pass）</h4>
+<p>在该阶段，场景仅进行一次常规渲染，但不立即执行复杂的光照计算。取而代之的是，我们将物体的各项几何与材质属性——如<strong>反射率（Albedo）</strong>、<strong>法线（Normal）</strong>、<strong>金属度（Metalic）</strong>、<strong>粗糙度（Roughness）</strong>、**自发光（Emissive）<strong>及</strong>环境光遮蔽（AO）**等——提取出来。</p>
+<p>这些数据被渲染并存储在一系列高度集成的纹理缓冲区中，即 <strong>G-Buffer</strong>。由于 G-Buffer 只记录最终通过深度测试、对摄像机可见的片段信息，这为后续阶段剔除无效计算奠定了基础。
+<img loading="lazy" src="/images/opengl/defferred_rendering.png"></p>
+<h4 id="2-光照处理阶段lighting-pass">2. 光照处理阶段（Lighting Pass）</h4>
+<p>在这一阶段，渲染器不再关注场景中有多少个复杂的模型几何体，而是直接遍历 G-Buffer 中的像素。通过读取每个像素点的几何与材质“档案”，结合场景中的光源信息进行统一的着色计算。</p>
+<p>此时，计算复杂度由原来的“物体数量 $\times$ 光源数量”优化为<strong>屏幕像素数量</strong>。这种将几何处理与光照计算分离的设计，使得在场景中实时渲染成百上千个光源成为可能。</p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】辐射度量学在图形学中基础应用</title>
       <link>http://localhost:1313/posts/cg-radiometry/</link>
@@ -64,7 +81,7 @@ $$ dA = (rd\theta)(rsin\theta d\phi) = r^2sin\theta d\theta d\phi $$<p>
 $$ d\omega = sin\theta d\theta d\phi  $$<p>例2 <br>
 使用微分立体角计算半个球体的立体角：<br>
 </p>
-$$ \Omega = \int_{S^2} d\omega=\int_{0}^{\pi} \int_{0}^{\pi} sin\theta d\theta d\phi  = \int_{0}^{\pi}sin\theta d\theta \int_{0}^{\pi} d\phi  = -cos\theta |^{\pi}_{0}\pi = 2\pi  $$<p>
+$$ \Omega = \int_{S^2} d\omega=\int_{0}^{2\pi} \int_{0}^{\frac{\pi}{2}} sin\theta d\theta d\phi  = \int_{0}^{\frac{\pi}{2}}sin\theta d\theta \int_{0}^{2\pi} d\phi  = \left [ -cos\theta \right ] ^{\pi}_{0}2\pi = 2\pi  $$<p>
 (积分区域是矩形且被积函数是可分离的，所以可以化为两个独立定积分)</p>
 <h2 id="辐射强度radiant-intensity">辐射强度（Radiant Intensity）</h2>
 <p>Radiant Flux描述的是光源向所有方向发射的总功率，但光源在不同方向发出的能量是不同的。辐射强度用于描述光源在特定方向上的发光能力。</p>
@@ -146,9 +163,32 @@ $$f_r = k_d f_{lambert} + k_s f_{cook-torrance}$$<ul>
 既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？</li>
 </ul>
 <h3 id="漫反射项推导">漫反射项推导</h3>
-<p>漫反射会均匀的向每个方向反射
-<img loading="lazy" src="/images/cg/diffuse.png"></p>
-]]></content:encoded>
+<p>漫反射会均匀的向每个方向反射所以 BRDF 将会是一个常数，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，
+<img loading="lazy" src="/images/cg/diffuse.png">
+根据反射方程：
+</p>
+$$ L_r( \omega_o) = \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i $$<p>
+</p>
+$$ L_r = f_rL_i\int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}cos\theta_i d\omega_i = f_rL_i\pi  $$<p>
+设反射率为 $\rho$ 有 $L_r = \rho L_i$
+则</p>
+$$ f_r = \frac{\rho}{\pi}$$<h3 id="镜面反射项推导">镜面反射项推导</h3>
+<p>我们先给出镜面反射项的 BRDF 的公式：
+</p>
+$$f_{specular} = \frac{D \cdot F \cdot G}{4(\mathbf{n} \cdot \mathbf{l})(\mathbf{n} \cdot \mathbf{v})}$$<p>
+这里只做简单的介绍不做推导（等以后更新把）</p>
+<ul>
+<li>$D$ (Normal Distribution Function, NDF)：
+有多少微表面指向 $\mathbf{h}$？ 它是材质粗糙度的核心。如果表面很光滑，$D$ 在 $\mathbf{h}$ 方向会形成一个极高的峰值；如果很粗糙，$D$ 就会摊平。</li>
+<li>$F$ (Fresnel Term)：
+反射了多少光？ 描述光线在不同角度下的反射强度。最著名的现象就是：当你斜着看（掠射角）时，几乎所有东西都会变得像镜子一样亮</li>
+<li>$G$ (Geometry Function)：
+有多少光没被挡住？ 微观小山丘之间会互相遮挡（Shadowing）或掩盖（Masking）。粗糙度越高，被挡住的光越多</li>
+</ul>
+<h3 id="渲染方程">渲染方程</h3>
+<p>渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)
+</p>
+$$L_o( \omega_o) = L_e( \omega_o) + \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i$$]]></content:encoded>
     </item>
     <item>
       <title>【CG】HDR &amp; Tone Mapping</title>
