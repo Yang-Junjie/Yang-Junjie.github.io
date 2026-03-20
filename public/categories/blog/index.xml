@@ -256,7 +256,10 @@ $$f_r(\omega_i, \omega_o) = \frac{dL_r(\omega_o)}{dE_i(\omega_i)} = \frac{dL_r(\
 </p>
 $$ L_r( \omega_o) = \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i $$<p>
 由此我们可以根据这个方程计算出出射光了。</p>
-<h2 id="cook-torrance-brdf">Cook-Torrance BRDF</h2>
+<h3 id="渲染方程">渲染方程</h3>
+<p>渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)
+</p>
+$$L_o( \omega_o) = L_e( \omega_o) + \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i$$<h2 id="cook-torrance-brdf">Cook-Torrance BRDF</h2>
 <p>然而上面给出的是 BRDF 的定义式，我们不能使用它来计算，在工程上如果你非得使用上面那个式子进行计算的话那么你得对所有的像素进行预计算，将所有预计算的存入一个4维数组然后进行查表，这是绝对不可接受的。<br>
 所以我们需要一个解析模型从而便于我们的计算而 <strong>Cook-Torrance BRDF</strong> 就是最成功的一个，他是基于 <strong>微表面模型</strong> 的</p>
 <h3 id="微表面模型">微表面模型</h3>
@@ -325,7 +328,8 @@ $dA$ 约去得到<br>
 $$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
 这里给出一个 NDF 的计算式： <strong>GGX (Trowbridge-Reitz) 分布</strong>这是目前游戏引擎和影视特效界绝对的工业标准
 
-$$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$
+$$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$</li>
+<li>其中$\alpha$为 粗糙度（Roughness）<br>
 我们可以通过能量守恒式子验证一下（保姆式）
 
 $$I = \int_{\Omega}D_{GGX}\left(m\right)cos\theta d\omega$$
@@ -374,10 +378,58 @@ $$F_{Schlick}(v, h) = F_0 + (1 - F_0)(1 - (v \cdot h))^5$$<ul>
 <li>$v$ 观察方向</li>
 <li>$h$ 半程向量</li>
 </ul>
-<h3 id="渲染方程">渲染方程</h3>
-<p>渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)
-</p>
-$$L_o( \omega_o) = L_e( \omega_o) + \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i$$]]></content:encoded>
+<h4 id="几何函数geometry-function-">几何函数（Geometry Function，$G$ ）</h4>
+<p>微表面模型假设表面是由无数的微小高低分布不同的微元镜面组成的。当光线以很斜的角度射入，或者你以很斜的角度观察时，就会发生两种几何现象</p>
+<ol>
+<li><strong>Shadowing</strong>：光线还没打到某个微面元，就被它前面的微元面挡住了，形成微观阴影</li>
+<li><strong>Masking</strong>： 微面元反射了光线，但在飞向你眼睛的途中，被旁边其他的微面元挡住了
+<img loading="lazy" src="/images/cg/geometry_function1.png">
+如果没有几何函数，那么在物体的边缘会变得异常明亮，因为没有处理Shadowing和Masking现象。而 $G$ 项的作用就是通过一个 $0 \sim 1$ 之间的系数，把那些被挡住的光“扣掉”。<br>
+$G$ 项本质上是一个概率：它表示在给定入射方向 $l$ 和出射方向 $v$ 的情况下，法线为 $m$ 的微面元既不被遮蔽也不被掩盖的比例。
+
+$$G(l, v, h) = G_1(l) \cdot G_1(v)$$</li>
+</ol>
+<ul>
+<li>$G_1(l)$：由于入射光被Shadowing而损失的能量</li>
+<li>$G_1(v)$：由于视线被Masking而看不到的能量
+我们工业中通常使用<strong>Schlick-GGX 几何函数</strong>来计算：
+
+$$G_1(v) = \frac{n \cdot v}{(n \cdot v)(1 - k) + k}$$
+
+$$G_1(l) = \frac{n \cdot l}{(n \cdot l)(1 - k) + k}$$
+其中$k$为：<br>
+
+$$k = \frac{(Roughness + 1)^2}{8}$$
+G 项会与BRDF的分母产生非常奇妙的反应，分母中当观察角度和光照角度趋近 90 度的时候 $(n \cdot l)$ 或 $(n \cdot v)$ 会趋近于 $0$ 会导致BRDF的高光项非常的大，导致边缘处亮度爆炸亮，而 G 项的的两个分母刚好可以与分子约去从而防止这个现象。</li>
+</ul>
+<h3 id="总结">总结</h3>
+<table>
+  <thead>
+      <tr>
+          <th style="text-align: center">组件</th>
+          <th style="text-align: center">物理含义</th>
+          <th style="text-align: center">决定了什么？</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td style="text-align: center"><strong>$D$ (NDF)</strong></td>
+          <td style="text-align: center">法线分布</td>
+          <td style="text-align: center">高光的<strong>形状</strong>（锐利还是模糊）</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>$F$ (Fresnel)</strong></td>
+          <td style="text-align: center">菲涅尔反射</td>
+          <td style="text-align: center">高光的<strong>强度</strong>（金属感和角度变化）</td>
+      </tr>
+      <tr>
+          <td style="text-align: center"><strong>$G$ (Geometry)</strong></td>
+          <td style="text-align: center">几何遮挡</td>
+          <td style="text-align: center">高光的<strong>能量衰减</strong>（防止边缘过亮）</td>
+      </tr>
+  </tbody>
+</table>
+]]></content:encoded>
     </item>
     <item>
       <title>【CG】HDR &amp; Tone Mapping</title>

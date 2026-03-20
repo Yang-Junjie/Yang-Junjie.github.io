@@ -182,7 +182,10 @@ $dA$ 约去得到
 $$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
 这里给出一个 NDF 的计算式： **GGX (Trowbridge-Reitz) 分布**这是目前游戏引擎和影视特效界绝对的工业标准
 $$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$
-我们可以通过能量守恒式子验证一下（保姆式）
+- 其中$\alpha$为 粗糙度（Roughness）  
+- $n$ 为宏观法线方向
+- $m$ 为微面元法线方向  
+我们可以通过能量守恒式子验证一下（保姆式）  
 $$I = \int_{\Omega}D_{GGX}\left(m\right)cos\theta d\omega$$
 代入  
 $$I=\int_{\Omega}\frac{\alpha^2}{\pi\left ( \left( n\cdot m\right)^{2} \left( \alpha^2-1\right)+1\right )^2 }cos\theta d\omega $$
@@ -196,7 +199,7 @@ $$I=\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{2 cos\theta sin\theta}{\left (  \left(
 $$I=-\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } dcos^2\theta$$
 现在的积分变得非常简单了，继续凑微分
 $$I=-\frac{\alpha^2}{ \alpha^2-1}\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\left(\left( \alpha^2-1\right)cos^2\theta+1\right)$$
-最后的到
+最后得到
 $$I=\frac{\alpha^2}{ \alpha^2-1}\left [ \frac{1}{\left ( \alpha^2-1 \right )cos^2\theta +1} \right ]_{0}^{\frac{\pi}{2}}=\frac{\alpha^2}{ \alpha^2-1}\left [ 1-\frac{1}{\alpha^2} \right ] =1$$
 
 #### 菲涅尔方程（Fresnel Equation，$F$ ）
