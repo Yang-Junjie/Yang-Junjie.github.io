@@ -17,12 +17,130 @@
       <content:encoded><![CDATA[<p><strong>延迟渲染（Deferred Rendering）</strong> 是一种专为高效处理海量光源而设计的渲染技术，旨在解决传统<strong>前向渲染（Forward Rendering）</strong> 在多光源场景下的性能瓶颈。在前向渲染中，每个物体在绘制时都必须遍历场景内的所有光源并逐一计算光照。这意味着，若场景中有 $n$ 个几何片段和 $m$ 个光源，计算复杂度将达到 $O(n \times m)$。当光源数量增加时，渲染开销会呈线性爆发式增长。</p>
 <p>为了打破这种耦合，延迟渲染将渲染流程解构为两个核心阶段：</p>
 <h4 id="1-几何处理阶段geometry-pass">1. 几何处理阶段（Geometry Pass）</h4>
-<p>在该阶段，场景仅进行一次常规渲染，但不立即执行复杂的光照计算。取而代之的是，我们将物体的各项几何与材质属性——如<strong>反射率（Albedo）</strong>、<strong>法线（Normal）</strong>、<strong>金属度（Metalic）</strong>、<strong>粗糙度（Roughness）</strong>、**自发光（Emissive）<strong>及</strong>环境光遮蔽（AO）**等——提取出来。</p>
-<p>这些数据被渲染并存储在一系列高度集成的纹理缓冲区中，即 <strong>G-Buffer</strong>。由于 G-Buffer 只记录最终通过深度测试、对摄像机可见的片段信息，这为后续阶段剔除无效计算奠定了基础。
+<p>在该阶段，场景仅进行一次常规渲染，但不立即执行复杂的光照计算。取而代之的是，我们将物体的各项几何与材质属性——如 <strong>反射率（Albedo</strong>、<strong>法线（Normal）</strong>、<strong>金属度（Metalic）</strong>、<strong>粗糙度（Roughness）</strong>、<strong>自发光（Emissive）</strong>、 <strong>环境光遮蔽（AO）</strong> 等——提取出来。</p>
+<p>这些数据被渲染并存储在一系列高度集成的纹理缓冲区中，即 <strong>G-Buffer</strong>。由于 G-Buffer 只记录最终通过深度测试、对摄像机可见的片段信息，这为后续阶段剔除无效计算奠定了基础。下图展示了部分G-Buffer
 <img loading="lazy" src="/images/opengl/defferred_rendering.png"></p>
 <h4 id="2-光照处理阶段lighting-pass">2. 光照处理阶段（Lighting Pass）</h4>
 <p>在这一阶段，渲染器不再关注场景中有多少个复杂的模型几何体，而是直接遍历 G-Buffer 中的像素。通过读取每个像素点的几何与材质“档案”，结合场景中的光源信息进行统一的着色计算。</p>
 <p>此时，计算复杂度由原来的“物体数量 $\times$ 光源数量”优化为<strong>屏幕像素数量</strong>。这种将几何处理与光照计算分离的设计，使得在场景中实时渲染成百上千个光源成为可能。</p>
+<p>下面这幅图片很好地展示了延迟着色法的整个过程：</p>
+<p><img loading="lazy" src="/images/opengl/defferred_rendering1.png"></p>
+<h2 id="opengl-实现">OpenGL 实现</h2>
+<p>由于G-Buffer是由多个纹理组成的，所以我们需要使用多渲染目标(Multiple Render Targets)来在一个阶段（Pass）之内渲染多个颜色缓冲</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C++" data-lang="C++"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="kt">void</span> <span class="n">AdvanceLightingState</span><span class="o">::</span><span class="n">CreateGBuffer</span><span class="p">(</span><span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="kt">int</span> <span class="n">height</span><span class="p">)</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_width</span> <span class="o">=</span> <span class="n">width</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl">    <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_height</span> <span class="o">=</span> <span class="n">height</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">    <span class="n">glCreateFramebuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">    <span class="n">glCreateTextures</span><span class="p">(</span><span class="n">GL_TEXTURE_2D</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">glTextureStorage2D</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_RGBA16F</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MIN_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MAG_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_S</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_T</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">glNamedFramebufferTexture</span><span class="p">(</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">        <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">,</span> <span class="n">GL_COLOR_ATTACHMENT0</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span><span class="c1">// 将g_position_texture绑定到g_buffer_fbo的GL_COLOR_ATTACHMENT0纹理槽
+</span></span></span><span class="line"><span class="ln">16</span><span class="cl">
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">glCreateTextures</span><span class="p">(</span><span class="n">GL_TEXTURE_2D</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">glTextureStorage2D</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_RGBA16F</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MIN_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MAG_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_S</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_T</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">    <span class="n">glNamedFramebufferTexture</span><span class="p">(</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">        <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">,</span> <span class="n">GL_COLOR_ATTACHMENT1</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span> <span class="c1">// 将法向量纹理绑定到g_buffer_fbo的COLOR_ATTACHMENT1纹理槽
+</span></span></span><span class="line"><span class="ln">25</span><span class="cl">
+</span></span><span class="line"><span class="ln">26</span><span class="cl">    <span class="n">glCreateTextures</span><span class="p">(</span><span class="n">GL_TEXTURE_2D</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">    <span class="n">glTextureStorage2D</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">GL_RGBA8</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MIN_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">29</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_MAG_FILTER</span><span class="p">,</span> <span class="n">GL_NEAREST</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_S</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">    <span class="n">glTextureParameteri</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="n">GL_TEXTURE_WRAP_T</span><span class="p">,</span> <span class="n">GL_CLAMP_TO_EDGE</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">    <span class="n">glNamedFramebufferTexture</span><span class="p">(</span>
+</span></span><span class="line"><span class="ln">33</span><span class="cl">        <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">,</span> <span class="n">GL_COLOR_ATTACHMENT2</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span> <span class="c1">// 将反射率和高光纹理绑定到g_buffer_fbo的GL_COLOR_ATTACHMENT2纹理槽
+</span></span></span><span class="line"><span class="ln">34</span><span class="cl">
+</span></span><span class="line"><span class="ln">35</span><span class="cl">    <span class="n">glCreateRenderbuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_depth_rbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">36</span><span class="cl">    <span class="n">glNamedRenderbufferStorage</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_depth_rbo</span><span class="p">,</span> <span class="n">GL_DEPTH_COMPONENT24</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">    <span class="n">glNamedFramebufferRenderbuffer</span><span class="p">(</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">        <span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">,</span> <span class="n">GL_DEPTH_ATTACHMENT</span><span class="p">,</span> <span class="n">GL_RENDERBUFFER</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_depth_rbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl">
+</span></span><span class="line"><span class="ln">40</span><span class="cl">    <span class="n">GLenum</span> <span class="n">attachments</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">GL_COLOR_ATTACHMENT0</span><span class="p">,</span> <span class="n">GL_COLOR_ATTACHMENT1</span><span class="p">,</span> <span class="n">GL_COLOR_ATTACHMENT2</span><span class="p">};</span>
+</span></span><span class="line"><span class="ln">41</span><span class="cl">    <span class="n">glNamedFramebufferDrawBuffers</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">g_buffer_fbo</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">attachments</span><span class="p">);</span> <span class="c1">//out 0 = GL_COLOR_ATTACHMENT0 , out  1 = GL_COLOR_ATTACHMENT1, out  2 = GL_COLOR_ATTACHMENT2
+</span></span></span><span class="line"><span class="ln">42</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>在 Fragment Shader 中，我们需要将不同的数据输出到对应的 layout(location = n) 中。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec3</span> <span class="n">a_Position</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec3</span> <span class="n">a_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">in</span> <span class="k">vec2</span> <span class="n">a_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_model</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_view</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="k">uniform</span> <span class="n">mat4</span> <span class="n">u_projection</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="k">out</span> <span class="k">vec3</span> <span class="n">v_FragPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">out</span> <span class="k">vec3</span> <span class="n">v_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="k">out</span> <span class="k">vec2</span> <span class="n">v_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="k">vec4</span> <span class="n">world_pos</span> <span class="o">=</span> <span class="n">u_model</span> <span class="o">*</span> <span class="k">vec4</span><span class="p">(</span><span class="n">a_Position</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">v_FragPos</span> <span class="o">=</span> <span class="n">world_pos</span><span class="p">.</span><span class="n">xyz</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">    <span class="n">v_Normal</span> <span class="o">=</span> <span class="n">mat3</span><span class="p">(</span><span class="n">transpose</span><span class="p">(</span><span class="n">inverse</span><span class="p">(</span><span class="n">u_model</span><span class="p">)))</span> <span class="o">*</span> <span class="n">a_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">20</span><span class="cl">    <span class="n">v_TexCoord</span> <span class="o">=</span> <span class="n">a_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">
+</span></span><span class="line"><span class="ln">22</span><span class="cl">    <span class="n">gl_Position</span> <span class="o">=</span> <span class="n">u_projection</span> <span class="o">*</span> <span class="n">u_view</span> <span class="o">*</span> <span class="n">world_pos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="k">in</span> <span class="k">vec3</span> <span class="n">v_FragPos</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="k">in</span> <span class="k">vec3</span> <span class="n">v_Normal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="k">in</span> <span class="k">vec2</span> <span class="n">v_TexCoord</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="k">out</span> <span class="k">vec4</span> <span class="n">g_Position</span><span class="p">;</span> <span class="c1">// 输出到0号纹理槽</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">out</span> <span class="k">vec4</span> <span class="n">g_Normal</span><span class="p">;</span> <span class="c1">//  输出到1号纹理槽</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="n">layout</span><span class="p">(</span><span class="n">location</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span> <span class="k">out</span> <span class="k">vec4</span> <span class="n">g_AlbedoSpec</span><span class="p">;</span> <span class="c1">//  输出到2号纹理槽</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_AlbedoTexture</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">    <span class="n">g_Position</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="n">v_FragPos</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="n">g_Normal</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="n">normalize</span><span class="p">(</span><span class="n">v_Normal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">g_AlbedoSpec</span><span class="p">.</span><span class="n">rgb</span> <span class="o">=</span> <span class="n">texture</span><span class="p">(</span><span class="n">u_AlbedoTexture</span><span class="p">,</span> <span class="n">v_TexCoord</span><span class="p">).</span><span class="n">rgb</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl">    <span class="n">g_AlbedoSpec</span><span class="p">.</span><span class="n">a</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>G-Buffer Pass 就结束了接下来是光照处理 Pass
+在光照阶段，我们渲染一个全屏四边形（Screen-filling Quad），并从 G-Buffer 纹理中重构光照所需的所有变量。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-C++" data-lang="C++"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_position_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">lighting_shader</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_GPosition&#34;</span><span class="p">),</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_normal_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">lighting_shader</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_GNormal&#34;</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">g_albedo_spec_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">lighting_shader</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_GAlbedoSpec&#34;</span><span class="p">),</span> <span class="mi">2</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">glBindTextureUnit</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="n">resources_</span><span class="p">.</span><span class="n">depth_map_texture</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">8</span><span class="cl"><span class="n">glUniform1i</span><span class="p">(</span><span class="n">resources_</span><span class="p">.</span><span class="n">lighting_shader</span><span class="o">-&gt;</span><span class="n">Uniform</span><span class="p">(</span><span class="s">&#34;u_ShadowMap&#34;</span><span class="p">),</span> <span class="mi">3</span><span class="p">);</span>
+</span></span></code></pre></div><p>使用G-Buffer中的数据来获取光照所需的信息</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_GPosition</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_GNormal</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_GAlbedoSpec</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="k">uniform</span> <span class="k">sampler2D</span> <span class="n">u_ShadowMap</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="p">...</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="k">vec3</span> <span class="n">frag_pos</span> <span class="o">=</span> <span class="n">texture</span><span class="p">(</span><span class="n">u_GPosition</span><span class="p">,</span> <span class="n">v_TexCoord</span><span class="p">).</span><span class="n">xyz</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="k">vec4</span> <span class="n">albedo_spec</span> <span class="o">=</span> <span class="n">texture</span><span class="p">(</span><span class="n">u_GAlbedoSpec</span><span class="p">,</span> <span class="n">v_TexCoord</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="k">if</span> <span class="p">(</span><span class="n">albedo_spec</span><span class="p">.</span><span class="n">a</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="n">FragColor</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">    <span class="n">BrightColor</span> <span class="o">=</span> <span class="k">vec4</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">    <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="k">vec3</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">texture</span><span class="p">(</span><span class="n">u_GNormal</span><span class="p">,</span> <span class="n">v_TexCoord</span><span class="p">).</span><span class="n">xyz</span> <span class="o">*</span> <span class="mf">2.0</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="k">vec3</span> <span class="n">albedo</span> <span class="o">=</span> <span class="n">albedo_spec</span><span class="p">.</span><span class="n">rgb</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="k">float</span> <span class="n">specular_mask</span> <span class="o">=</span> <span class="n">albedo_spec</span><span class="p">.</span><span class="n">a</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl"><span class="k">vec3</span> <span class="n">view_dir</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">u_ViewPos</span> <span class="o">-</span> <span class="n">frag_pos</span><span class="p">);</span>
+</span></span></code></pre></div><h2 id="总结">总结</h2>
+<p>延迟渲染是现代游戏引擎的基石。但它对处理半透明物体不太友好需要结合前向渲染实现混合渲染，但其在处理复杂动态光照场景时的性能优势是无可替代的。</p>
 ]]></content:encoded>
     </item>
     <item>
@@ -159,11 +277,11 @@ $$f_r = k_d f_{lambert} + k_s f_{cook-torrance}$$<ul>
 <li>$k_s$有多少比例发生了镜面反射</li>
 <li>并且由能量守恒 $k_d + k_s \leq 1.0$</li>
 <li>$f_{lambert}$：漫反射 BRDF</li>
-<li>$f_{cook-torrance}$：镜面反射 BRDF
+<li>$f_{cook-torrance}$：镜面反射 BRDF<br>
 既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？</li>
 </ul>
 <h3 id="漫反射项推导">漫反射项推导</h3>
-<p>漫反射会均匀的向每个方向反射所以 BRDF 将会是一个常数，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，
+<p>漫反射会均匀的向每个方向反射，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，所以 BRDF 将会是一个常数，
 <img loading="lazy" src="/images/cg/diffuse.png">
 根据反射方程：
 </p>
@@ -175,15 +293,86 @@ $$ L_r = f_rL_i\int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}cos\theta_i d\omega_i = f_
 $$ f_r = \frac{\rho}{\pi}$$<h3 id="镜面反射项推导">镜面反射项推导</h3>
 <p>我们先给出镜面反射项的 BRDF 的公式：
 </p>
-$$f_{specular} = \frac{D \cdot F \cdot G}{4(\mathbf{n} \cdot \mathbf{l})(\mathbf{n} \cdot \mathbf{v})}$$<p>
-这里只做简单的介绍不做推导（等以后更新把）</p>
+$$f_{specular} = \frac{D \cdot F \cdot G}{4(\mathbf{n} \cdot \mathbf{l})(\mathbf{n} \cdot \mathbf{v})}$$<h4 id="法线分布函数--normal-distribution-function-ndf">法线分布函数 $D$ (Normal Distribution Function, NDF)</h4>
+<p>法线分布函数 $D$ 的物理意义是描述微面元法线的统计分布，它表示在微观表面上，有多少比例的微面元的法线 $m$ 是与半程向量 $h$ 一致的。</p>
 <ul>
-<li>$D$ (Normal Distribution Function, NDF)：
-有多少微表面指向 $\mathbf{h}$？ 它是材质粗糙度的核心。如果表面很光滑，$D$ 在 $\mathbf{h}$ 方向会形成一个极高的峰值；如果很粗糙，$D$ 就会摊平。</li>
-<li>$F$ (Fresnel Term)：
-反射了多少光？ 描述光线在不同角度下的反射强度。最著名的现象就是：当你斜着看（掠射角）时，几乎所有东西都会变得像镜子一样亮</li>
-<li>$G$ (Geometry Function)：
-有多少光没被挡住？ 微观小山丘之间会互相遮挡（Shadowing）或掩盖（Masking）。粗糙度越高，被挡住的光越多</li>
+<li>如果表面很光滑：绝大多数微面元的法线都集中在宏观表面法线 $n$ 的附近。这会导致 NDF 在 $h$ 接近 $n$ 时给出一个极高的值，从而产生非常小且非常明亮的高光。</li>
+<li>如果表面很粗糙：微面元的法线分布非常杂乱、广泛。这意味着在任何给定的 $h$ 方向上，都有一定数量的微面元。这会导致 NDF 的值比较平缓，从而产生面积大且相对暗淡的高光。<br>
+$D(m)$ 的严格定义是：<strong>单位立体角内、单位宏观面积上，法线朝向 $m$ 的微面元的真实面积</strong>
+即
+
+$$ D(m) = \frac{dA_m}{dAd\omega_m}$$</li>
+<li>$A_m$: 微面元微观面积</li>
+<li>$A$：微面元宏观面积</li>
+<li>$\omega_m$ ：立体角<br>
+然而这个是 NDF 的定义式，我们无法直接计算。
+为了保证物理上的能量守恒，任何合格的 NDF 都必须满足微面元投影面积等于宏观表面投影面积的条件<br>
+即
+
+$$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
+如果不满足这个条件，例如：如果微面元投影面积大于宏面投影面积，意味着微面元无中生有地多出了一部分面积去接收和反射光线。这会导致表面反射出的光线数量，多于光源打在宏观表面上的光线数量——这就如同表面自带了发电机，违反了能量守恒定律。<br>
+推导：<br>
+
+$$一个微元的投影面积 = dA_m \cdot (n \cdot m) = D(m) \cdot dA \cdot (n \cdot m) \cdot d\omega_m$$
+这是一个微元的投影面积，我们对它在半球上积分<br>
+
+$$所有微元的投影面积 = \int_{\Omega} D(m) \cdot dA \cdot (n \cdot m) d\omega_m$$
+我们让它等于宏观面积<br>
+
+$$\int_{\Omega} D(m) \cdot dA \cdot (n \cdot m) d\omega_m = dA$$
+$dA$ 约去得到<br>
+
+$$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
+这里给出一个 NDF 的计算式： <strong>GGX (Trowbridge-Reitz) 分布</strong>这是目前游戏引擎和影视特效界绝对的工业标准
+
+$$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$
+我们可以通过能量守恒式子验证一下（保姆式）
+
+$$I = \int_{\Omega}D_{GGX}\left(m\right)cos\theta d\omega$$
+代入<br>
+
+$$I=\int_{\Omega}\frac{\alpha^2}{\pi\left ( \left( n\cdot m\right)^{2} \left( \alpha^2-1\right)+1\right )^2 }cos\theta d\omega $$
+展开<br>
+
+$$I=\int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}\frac{\alpha^2cos\theta sin\theta}{\pi\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta d\phi$$
+积分区域是矩形且被积函数是可分离的，拆分积分，并将常数项提出
+
+$$I=\frac{\alpha^2}{\pi}\int_{0}^{2\pi}d\phi\int_{0}^{\frac{\pi}{2}}\frac{ cos\theta sin\theta}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta$$
+对 $d\phi$ 的积分为$2\pi$ 我们将 2 在放入积分中$\pi$约掉
+
+$$I=\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{2 cos\theta sin\theta}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta$$
+分母有一个 $cos^2\theta$，注意到 $cos^2\theta$ 的导数是 $-2cos\theta sin\theta$，所以我们可以凑微分
+
+$$I=-\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } dcos^2\theta$$
+现在的积分变得非常简单了，继续凑微分
+
+$$I=-\frac{\alpha^2}{ \alpha^2-1}\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\left(\left( \alpha^2-1\right)cos^2\theta+1\right)$$
+最后的到
+
+$$I=\frac{\alpha^2}{ \alpha^2-1}\left [ \frac{1}{\left ( \alpha^2-1 \right )cos^2\theta +1} \right ]_{0}^{\frac{\pi}{2}}=\frac{\alpha^2}{ \alpha^2-1}\left [ 1-\frac{1}{\alpha^2} \right ] =1$$</li>
+</ul>
+<h4 id="菲涅尔方程fresnel-equation-">菲涅尔方程（Fresnel Equation，$F$ ）</h4>
+<p>菲涅尔反射：你可以做个实验感受一下这个现象，如果你垂直于一块玻璃看向外面，那么你可以很轻松地看到外面的景色，如果你接近于平行的角度去看，则大概率你能看到你那张帅气/美丽的脸，这种反射强度随观察角度（入射角）变化的现象，就是菲涅尔效应。
+<img loading="lazy" src="/images/cg/Fresnel.png">
+从物理学上讲，菲涅尔方程描述了光在两种不同折射率（$n_1, n_2$）的介质交界面上的反射比例。完整的物理公式非常复杂，涉及光的横电波和横磁波等非常复杂的概念，这里只做简单的介绍，不需要掌握。<br>
+横电波<br>
+</p>
+$$R_s = \left| \frac{n_1\cos\theta_i - n_2\cos\theta_t}{n_1\cos\theta_i + n_2\cos\theta_t} \right|^2$$<p>
+横磁波
+</p>
+$$R_p = \left| \frac{n_1\cos\theta_t - n_2\cos\theta_i}{n_1\cos\theta_t + n_2\cos\theta_i} \right|^2$$<p>
+菲涅尔方程 <br>
+</p>
+$$F = \frac{R_s + R_p}{2}$$<p>
+<img loading="lazy" src="/images/cg/Fresnel_2.png">
+这个式子太复杂了不适合在计算机图形学中用于实时计算（也许离线渲染中可以使用，暂未了解）。<br>
+所以在实时渲染中，我们一般使用 <strong>Schlick 近似</strong>公式来计算菲涅尔项
+1994 年，Christophe Schlick 提出了一个极其经典的近似公式，它用一个简单的插值函数取代了复杂的三角函数和折射率计算
+</p>
+$$F_{Schlick}(v, h) = F_0 + (1 - F_0)(1 - (v \cdot h))^5$$<ul>
+<li>$F_0$ 基础反射率，当观察方向垂直于表面时的反射能量。这是材质的固有属性</li>
+<li>$v$ 观察方向</li>
+<li>$h$ 半程向量</li>
 </ul>
 <h3 id="渲染方程">渲染方程</h3>
 <p>渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)

@@ -119,7 +119,9 @@ $$f_r(\omega_i, \omega_o) = \frac{dL_r(\omega_o)}{dE_i(\omega_i)} = \frac{dL_r(\
 有了 BRDF 那么我们就可以定义出反射方程了。很显然观察者接受到的物体的反射光是由不同方向上照射到物体表面经过材质反射的入射光贡献而来的。对 BRDF 方程两边同时乘以分子再对整个半球做积分就得到了：  
 $$ L_r( \omega_o) = \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i $$
 由此我们可以根据这个方程计算出出射光了。
-
+### 渲染方程
+渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)
+$$L_o( \omega_o) = L_e( \omega_o) + \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i$$
 ## Cook-Torrance BRDF
 然而上面给出的是 BRDF 的定义式，我们不能使用它来计算，在工程上如果你非得使用上面那个式子进行计算的话那么你得对所有的像素进行预计算，将所有预计算的存入一个4维数组然后进行查表，这是绝对不可接受的。  
 所以我们需要一个解析模型从而便于我们的计算而 **Cook-Torrance BRDF** 就是最成功的一个，他是基于 **微表面模型** 的
@@ -140,10 +142,10 @@ Cook-Torrance BRDF正是考虑了这两种情形的BRDF，它的定义如下：
 - $k_s$有多少比例发生了镜面反射
 - 并且由能量守恒 $k_d + k_s \leq 1.0$
 - $f_{lambert}$：漫反射 BRDF
-- $f_{cook-torrance}$：镜面反射 BRDF
+- $f_{cook-torrance}$：镜面反射 BRDF  
 既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？
 ### 漫反射项推导
-漫反射会均匀的向每个方向反射所以 BRDF 将会是一个常数，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，
+漫反射会均匀的向每个方向反射，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，所以 BRDF 将会是一个常数，
 ![](images/cg/diffuse.png)
 根据反射方程：
 $$ L_r( \omega_o) = \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i $$
@@ -155,14 +157,87 @@ $$ f_r = \frac{\rho}{\pi}$$
 ###  镜面反射项推导
 我们先给出镜面反射项的 BRDF 的公式：
 $$f_{specular} = \frac{D \cdot F \cdot G}{4(\mathbf{n} \cdot \mathbf{l})(\mathbf{n} \cdot \mathbf{v})}$$
-这里只做简单的介绍不做推导（等以后更新把）
-- $D$ (Normal Distribution Function, NDF)：
-有多少微表面指向 $\mathbf{h}$？ 它是材质粗糙度的核心。如果表面很光滑，$D$ 在 $\mathbf{h}$ 方向会形成一个极高的峰值；如果很粗糙，$D$ 就会摊平。
-- $F$ (Fresnel Term)：
-反射了多少光？ 描述光线在不同角度下的反射强度。最著名的现象就是：当你斜着看（掠射角）时，几乎所有东西都会变得像镜子一样亮
-- $G$ (Geometry Function)：
-有多少光没被挡住？ 微观小山丘之间会互相遮挡（Shadowing）或掩盖（Masking）。粗糙度越高，被挡住的光越多
+#### 法线分布函数 $D$ (Normal Distribution Function, NDF)
+法线分布函数 $D$ 的物理意义是描述微面元法线的统计分布，它表示在微观表面上，有多少比例的微面元的法线 $m$ 是与半程向量 $h$ 一致的。
+- 如果表面很光滑：绝大多数微面元的法线都集中在宏观表面法线 $n$ 的附近。这会导致 NDF 在 $h$ 接近 $n$ 时给出一个极高的值，从而产生非常小且非常明亮的高光。
+- 如果表面很粗糙：微面元的法线分布非常杂乱、广泛。这意味着在任何给定的 $h$ 方向上，都有一定数量的微面元。这会导致 NDF 的值比较平缓，从而产生面积大且相对暗淡的高光。  
+$D(m)$ 的严格定义是：**单位立体角内、单位宏观面积上，法线朝向 $m$ 的微面元的真实面积**
+即
+$$ D(m) = \frac{dA_m}{dAd\omega_m}$$
+- $A_m$: 微面元微观面积
+- $A$：微面元宏观面积 
+- $\omega_m$ ：立体角  
+然而这个是 NDF 的定义式，我们无法直接计算。
+为了保证物理上的能量守恒，任何合格的 NDF 都必须满足微面元投影面积等于宏观表面投影面积的条件  
+即
+$$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
+如果不满足这个条件，例如：如果微面元投影面积大于宏面投影面积，意味着微面元无中生有地多出了一部分面积去接收和反射光线。这会导致表面反射出的光线数量，多于光源打在宏观表面上的光线数量——这就如同表面自带了发电机，违反了能量守恒定律。  
+推导：  
+$$一个微元的投影面积 = dA_m \cdot (n \cdot m) = D(m) \cdot dA \cdot (n \cdot m) \cdot d\omega_m$$
+这是一个微元的投影面积，我们对它在半球上积分  
+$$所有微元的投影面积 = \int_{\Omega} D(m) \cdot dA \cdot (n \cdot m) d\omega_m$$
+我们让它等于宏观面积  
+$$\int_{\Omega} D(m) \cdot dA \cdot (n \cdot m) d\omega_m = dA$$
+$dA$ 约去得到  
+$$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
+这里给出一个 NDF 的计算式： **GGX (Trowbridge-Reitz) 分布**这是目前游戏引擎和影视特效界绝对的工业标准
+$$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$
+我们可以通过能量守恒式子验证一下（保姆式）
+$$I = \int_{\Omega}D_{GGX}\left(m\right)cos\theta d\omega$$
+代入  
+$$I=\int_{\Omega}\frac{\alpha^2}{\pi\left ( \left( n\cdot m\right)^{2} \left( \alpha^2-1\right)+1\right )^2 }cos\theta d\omega $$
+展开  
+$$I=\int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}\frac{\alpha^2cos\theta sin\theta}{\pi\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta d\phi$$
+积分区域是矩形且被积函数是可分离的，拆分积分，并将常数项提出
+$$I=\frac{\alpha^2}{\pi}\int_{0}^{2\pi}d\phi\int_{0}^{\frac{\pi}{2}}\frac{ cos\theta sin\theta}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta$$
+对 $d\phi$ 的积分为$2\pi$ 我们将 2 在放入积分中$\pi$约掉
+$$I=\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{2 cos\theta sin\theta}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\theta$$
+分母有一个 $cos^2\theta$，注意到 $cos^2\theta$ 的导数是 $-2cos\theta sin\theta$，所以我们可以凑微分
+$$I=-\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } dcos^2\theta$$
+现在的积分变得非常简单了，继续凑微分
+$$I=-\frac{\alpha^2}{ \alpha^2-1}\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\left(\left( \alpha^2-1\right)cos^2\theta+1\right)$$
+最后的到
+$$I=\frac{\alpha^2}{ \alpha^2-1}\left [ \frac{1}{\left ( \alpha^2-1 \right )cos^2\theta +1} \right ]_{0}^{\frac{\pi}{2}}=\frac{\alpha^2}{ \alpha^2-1}\left [ 1-\frac{1}{\alpha^2} \right ] =1$$
 
-### 渲染方程
-渲染方程知识在反射方程的基础之上添加了一个自发光项(Emission term)
-$$L_o( \omega_o) = L_e( \omega_o) + \int_{S^2} f_r(\omega_i, \omega_o) L_i(\omega_i) \cos\theta_i  d\omega_i$$
+#### 菲涅尔方程（Fresnel Equation，$F$ ）
+菲涅尔反射：你可以做个实验感受一下这个现象，如果你垂直于一块玻璃看向外面，那么你可以很轻松地看到外面的景色，如果你接近于平行的角度去看，则大概率你能看到你那张帅气/美丽的脸，这种反射强度随观察角度（入射角）变化的现象，就是菲涅尔效应。
+![](images/cg/Fresnel.png)
+从物理学上讲，菲涅尔方程描述了光在两种不同折射率（$n_1, n_2$）的介质交界面上的反射比例。完整的物理公式非常复杂，涉及光的横电波和横磁波等非常复杂的概念，这里只做简单的介绍，不需要掌握。  
+横电波  
+$$R_s = \left| \frac{n_1\cos\theta_i - n_2\cos\theta_t}{n_1\cos\theta_i + n_2\cos\theta_t} \right|^2$$
+横磁波
+$$R_p = \left| \frac{n_1\cos\theta_t - n_2\cos\theta_i}{n_1\cos\theta_t + n_2\cos\theta_i} \right|^2$$
+菲涅尔方程    
+$$F = \frac{R_s + R_p}{2}$$
+![](images/cg/Fresnel_2.png)
+这个式子太复杂了不适合在计算机图形学中用于实时计算（也许离线渲染中可以使用，暂未了解）。  
+所以在实时渲染中，我们一般使用 **Schlick 近似**公式来计算菲涅尔项
+1994 年，Christophe Schlick 提出了一个极其经典的近似公式，它用一个简单的插值函数取代了复杂的三角函数和折射率计算
+$$F_{Schlick}(v, h) = F_0 + (1 - F_0)(1 - (v \cdot h))^5$$
+- $F_0$ 基础反射率，当观察方向垂直于表面时的反射能量。这是材质的固有属性
+- $v$ 观察方向
+- $h$ 半程向量
+
+#### 几何函数（Geometry Function，$G$ ）
+微表面模型假设表面是由无数的微小高低分布不同的微元镜面组成的。当光线以很斜的角度射入，或者你以很斜的角度观察时，就会发生两种几何现象
+1. **Shadowing**：光线还没打到某个微面元，就被它前面的微元面挡住了，形成微观阴影
+2. **Masking**： 微面元反射了光线，但在飞向你眼睛的途中，被旁边其他的微面元挡住了
+![](images/cg/geometry_function1.png)
+如果没有几何函数，那么在物体的边缘会变得异常明亮，因为没有处理Shadowing和Masking现象。而 $G$ 项的作用就是通过一个 $0 \sim 1$ 之间的系数，把那些被挡住的光“扣掉”。  
+$G$ 项本质上是一个概率：它表示在给定入射方向 $l$ 和出射方向 $v$ 的情况下，法线为 $m$ 的微面元既不被遮蔽也不被掩盖的比例。
+$$G(l, v, h) = G_1(l) \cdot G_1(v)$$
+- $G_1(l)$：由于入射光被Shadowing而损失的能量
+- $G_1(v)$：由于视线被Masking而看不到的能量
+我们工业中通常使用**Schlick-GGX 几何函数**来计算：
+$$G_1(v) = \frac{n \cdot v}{(n \cdot v)(1 - k) + k}$$
+$$G_1(l) = \frac{n \cdot l}{(n \cdot l)(1 - k) + k}$$
+其中$k$为：  
+$$k = \frac{(Roughness + 1)^2}{8}$$
+G 项会与BRDF的分母产生非常奇妙的反应，分母中当观察角度和光照角度趋近 90 度的时候 $(n \cdot l)$ 或 $(n \cdot v)$ 会趋近于 $0$ 会导致BRDF的高光项非常的大，导致边缘处亮度爆炸亮，而 G 项的的两个分母刚好可以与分子约去从而防止这个现象。  
+###  总结
+| 组件 | 物理含义 | 决定了什么？ |
+| :--: | :--: | :--: |
+| **$D$ (NDF)** | 法线分布 | 高光的**形状**（锐利还是模糊） |
+| **$F$ (Fresnel)** | 菲涅尔反射 | 高光的**强度**（金属感和角度变化） |
+| **$G$ (Geometry)** | 几何遮挡 | 高光的**能量衰减**（防止边缘过亮） |
+
