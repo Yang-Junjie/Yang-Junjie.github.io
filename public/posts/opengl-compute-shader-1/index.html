@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>【OpenGL】计算着色器入门 | CGLab</title>
+<meta name="keywords" content="graphics, opengl">
+<meta name="description" content="摘要
+OpenGL4.3 引入了 计算着色器（Compute Shader） 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力
+这篇文章将会以例子的角度来介绍如何使用 Compute Shader">
+<meta name="author" content="氧均竭">
+<link rel="canonical" href="http://localhost:1313/posts/opengl-compute-shader-1/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed1639a41234d0b785243363057ccffc5be9cd9e7ca9a8ff21a7c55a2c0edd47.css" integrity="sha256-7RY5pBI00LeFJDNjBXzP/FvpzZ58qaj/IafFWiwO3Uc=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/opengl-compute-shader-1/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false,
+            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        });
+    });
+</script><meta property="og:url" content="http://localhost:1313/posts/opengl-compute-shader-1/">
+  <meta property="og:site_name" content="CGLab">
+  <meta property="og:title" content="【OpenGL】计算着色器入门">
+  <meta property="og:description" content="摘要 OpenGL4.3 引入了 计算着色器（Compute Shader） 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力 这篇文章将会以例子的角度来介绍如何使用 Compute Shader">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-21T14:13:19+08:00">
+    <meta property="article:modified_time" content="2026-03-21T14:13:19+08:00">
+    <meta property="article:tag" content="Graphics">
+    <meta property="article:tag" content="Opengl">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="【OpenGL】计算着色器入门">
+  <meta name="twitter:description" content="摘要 OpenGL4.3 引入了 计算着色器（Compute Shader） 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力 这篇文章将会以例子的角度来介绍如何使用 Compute Shader">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "【OpenGL】计算着色器入门",
+      "item": "http://localhost:1313/posts/opengl-compute-shader-1/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "【OpenGL】计算着色器入门",
+  "name": "【OpenGL】计算着色器入门",
+  "description": "摘要 OpenGL4.3 引入了 计算着色器（Compute Shader） 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力 这篇文章将会以例子的角度来介绍如何使用 Compute Shader\n",
+  "keywords": [
+    "graphics", "opengl"
+  ],
+  "articleBody": "摘要 OpenGL4.3 引入了 计算着色器（Compute Shader） 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力 这篇文章将会以例子的角度来介绍如何使用 Compute Shader\n第一个Compute Shader 在这个例子中，我们将使用 Compute Shader 来将大小为1024的数组中所有的元素乘以2\n1. 编写 compute shader 1#version 460 core 2 3// 定义本地工作组大小 (Local Work Group Size) 4// 这里我们让每个小组处理 64 个元素 5layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in; 6 7// 定义SSBO 8layout (std430, binding = 0) buffer DataBuffer { 9 float data[]; 10}; 11 12void main() { 13 // 获取当前线程在全局任务中的索引 14 uint index = gl_GlobalInvocationID.x; 15 16 // 简单地将数组中的每个值乘以 2 17 data[index] = data[index] * 2.0; 18} 这涉及了非常多的概念，我们先从第二行代码开始：\n1layout (local_size_x = 64, local_size_y = 1, local_size_z = 1) in; 先介绍两个概念：\n全局工作组(Global Work Groups)：它直接对应了 NVIDA GPU 中的 SM （Streaming Multiprocessor）,一个 SM 中可以有多个 Warp。而 Warp 是什么请看本地工作组，而 SM 是什么呢？我们后续再介绍。 本地工作组(Local Work Groups)：它直接对应了 GPU 中的线程，在 NVIDIA 架构中通常将 32 个线程组成一个线程块称为 Warp ,在同一个 Warp 中，所有的线程会执行相同的指令，这种运行模式叫做 SIMT(Single Instruction, Multiple Threads),例如当执行 加法指令的时候，一个 warp 中的指令解码器会调度该 warp 中的所有线程执行加法指令。 这行代码定义了 本地工作组 的大小，它指定了在一个 SM 中使用多少线程来处理数据，这里将使用 64 个线程也就是 2 个 Warp 来处理一批数据，我们计划使用16个全局工作组，每个全局工作组中使用64个本地工作组进行计算，也就是使用 $16\\times64=1024$ 个线程来处理数据, 这样我们每个数据都会被映射到一个线程上去。 而 local_size_x = 64, local_size_y = 1, local_size_z = 1指定了如何映射数据，这是纯软件上的概念，GPU 本身都是一堆并行执行的线程，这样做的好处是方便你处理不同维度的数据，让你省去复杂的下标转换计算。\n1D (x=64, y=1, z=1): 适合处理线性数据。比如数组运算、顶点缓冲区修改、简单的粒子列表。 2D (x=16, y=16, z=1): 适合处理平面数据。比如图像处理、高斯模糊、地形高度图。 3D (x=8, y=8, z=4): 适合处理空间数据。比如 3D 纹理、体素（Voxel）计算、流体模拟。 内线程的总数是 $x \\times y \\times z$ ，这里是 $$64 \\times 1 \\times 1 = 64$$个线程 1layout (std430, binding = 0) buffer DataBuffer { 2 float data[]; 3}; 这里我们定义了一个 SSBO 用于与 CPU 进行数据交换，这不是 compute shader 中的概念这里不做过多介绍。\n1uint index = gl_GlobalInvocationID.x; 这里我们获取线程在整个任务中的唯一绝对的索引，gl_GlobalInvocationID是 opengl4.3 中新增的一个内建变量, 还有其他的内建变量\ngl_LocalInvocationID : 线程在当前“本地组”内的坐标。(sm中的哪个线程) gl_WorkGroupID:当前“本地组”在“全局范围”内的索引。(哪个sm) gl_WorkGroupSize: 当前“本地组”的大小。(sm中的线程数) gl_GlobalInvocationID:当前线程在“全局范围”内的索引。(全局中的哪个线程) 他们之间有如下关系 $$GlobalID = WorkGroupID \\times WorkGroupSize + LocalInvocationID$$ 1data[index] = data[index] * 2.0; 这里我们将当前线程中的数据乘以2，因为我们的数据大小为1024，线程数量也是1024，每个线程都会被分配到一个数据，所以一个全局线程id就对应了一个数据，将这个数据乘以2\n2. 创建 compute shader 创建一个 compute shader 的方式和创建普通 shader 的方式非常类似，但是不需要将其 link 到渲染管线上的 shader program 中去，将着色器类型改为GL_COMPUTE_SHADER\n1GLuint computeShader = glCreateShader(GL_COMPUTE_SHADER); 2glShaderSource(computeShader, 1, \u0026shaderCode, NULL); 3glCompileShader(computeShader); 4 5GLuint computeProgram = glCreateProgram(); 6glAttachShader(computeProgram, computeShader); 7glLinkProgram(computeProgram); 3. 创建数据 1float myData[1024]; 2for(int i = 0; i \u003c 1024; i++) myData[i] = (float)i; 4. 创建 SSBO 1GLuint ssbo; 2glGenBuffers(1, \u0026ssbo); 3glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo); 4// 将数据传给 GPU 5glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(myData), myData, GL_DYNAMIC_DRAW); 6// 绑定到 binding = 0，与着色器中的声明对应 7glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo); 5. 启动计算 这是最关键的一步，你需要决定全局工作组的数量。我们的本地工作组是一组64个线程，所以我们为了让每个线程只处理一次数据，全局工作组数量应该为 $\\frac{1024}{64}=16$\n1glUseProgram(computeProgram); 2// 启动 16 个小组，每组 64 个线程，总计 1024 个线程 3glDispatchCompute(16, 1, 1); 4 5// 强制同步：确保 GPU 计算完成，且结果已写回显存，才允许后续读取 6glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT); 其中glDispatchCompute 是启动计算，参数为全局工作组(sm)的数量，它也有三个维度，他们的关系也是乘法关系总的线程数等于全局工作组不同分量的数量乘以本地工作组不同分量的数量，也是便于程序员使用。 glMemoryBarrier 是一个同步函数，用于等待 GPU 计算完成，并确保结果已写回显存，才允许后续读取。因为 GPU 和 CPU 是异步的，如果你不等待 GPU 计算完把数据写回，CPU就会读取到错误的数据。 glMemoryBarrier 函数的参数是一个位掩码，用于指定等待的资源类型。在这里，我们传入GL_SHADER_STORAGE_BARRIER_BIT，表示等待 SSBO 的数据写入完成。\n6. 读取数据 最后我们等待 GPU 计算完成，读取数据就行了\n1for (int i = 0; i \u003c N_; i++) { 2 ImGui::Text(\"%f\", myData[i]); 3} ",
+  "wordCount" : "1844",
+  "inLanguage": "zh-cn",
+  "datePublished": "2026-03-21T14:13:19+08:00",
+  "dateModified": "2026-03-21T14:13:19+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "氧均竭"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/opengl-compute-shader-1/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "CGLab",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="CGLab (Alt + H)">CGLab</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="🏠 首页">
+                    <span>🏠 首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/search/" title="🔍 搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍 搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="📦 归档">
+                    <span>📦 归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="🏷️ 标签">
+                    <span>🏷️ 标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="👨‍💻 关于">
+                    <span>👨‍💻 关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      【OpenGL】计算着色器入门
+    </h1>
+    <div class="post-meta"><span title='2026-03-21 14:13:19 +0800 CST'>March 21, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>1844 words</span>&nbsp;·&nbsp;<span>氧均竭</span>
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e6%91%98%e8%a6%81" aria-label="摘要">摘要</a></li>
+                <li>
+                    <a href="#%e7%ac%ac%e4%b8%80%e4%b8%aacompute-shader" aria-label="第一个Compute Shader">第一个Compute Shader</a><ul>
+                        
+                <li>
+                    <a href="#1-%e7%bc%96%e5%86%99-compute-shader" aria-label="1. 编写 compute shader">1. 编写 compute shader</a></li>
+                <li>
+                    <a href="#2-%e5%88%9b%e5%bb%ba-compute-shader" aria-label="2. 创建 compute shader">2. 创建 compute shader</a></li>
+                <li>
+                    <a href="#3-%e5%88%9b%e5%bb%ba%e6%95%b0%e6%8d%ae" aria-label="3. 创建数据">3. 创建数据</a></li>
+                <li>
+                    <a href="#4-%e5%88%9b%e5%bb%ba-ssbo" aria-label="4. 创建 SSBO">4. 创建 SSBO</a></li>
+                <li>
+                    <a href="#5-%e5%90%af%e5%8a%a8%e8%ae%a1%e7%ae%97" aria-label="5. 启动计算">5. 启动计算</a></li>
+                <li>
+                    <a href="#6-%e8%af%bb%e5%8f%96%e6%95%b0%e6%8d%ae" aria-label="6. 读取数据">6. 读取数据</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h2 id="摘要">摘要<a hidden class="anchor" aria-hidden="true" href="#摘要">#</a></h2>
+<p>OpenGL4.3 引入了 <strong>计算着色器（Compute Shader）</strong> 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力
+这篇文章将会以例子的角度来介绍如何使用 Compute Shader</p>
+<h2 id="第一个compute-shader">第一个Compute Shader<a hidden class="anchor" aria-hidden="true" href="#第一个compute-shader">#</a></h2>
+<p>在这个例子中，我们将使用 Compute Shader 来将大小为1024的数组中所有的元素乘以2</p>
+<h3 id="1-编写-compute-shader">1. 编写 compute shader<a hidden class="anchor" aria-hidden="true" href="#1-编写-compute-shader">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="c1">// 定义本地工作组大小 (Local Work Group Size)</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="c1">// 这里我们让每个小组处理 64 个元素</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">local_size_x</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">local_size_y</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">local_size_z</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="c1">// 定义SSBO</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">std430</span><span class="p">,</span> <span class="n">binding</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="n">buffer</span> <span class="n">DataBuffer</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">float</span> <span class="n">data</span><span class="p">[];</span> 
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="c1">// 获取当前线程在全局任务中的索引</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">uint</span> <span class="n">index</span> <span class="o">=</span> <span class="n">gl_GlobalInvocationID</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="c1">// 简单地将数组中的每个值乘以 2</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>这涉及了非常多的概念，我们先从第二行代码开始：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">local_size_x</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">local_size_y</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">local_size_z</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span></code></pre></div><p>先介绍两个概念：</p>
+<ul>
+<li><strong>全局工作组(Global Work Groups)</strong>：它直接对应了 NVIDA GPU 中的 SM （Streaming Multiprocessor）,一个 SM 中可以有多个 Warp。而 Warp 是什么请看本地工作组，而 SM 是什么呢？我们后续再介绍。</li>
+<li><strong>本地工作组(Local Work Groups)</strong>：它直接对应了 GPU 中的线程，在 NVIDIA 架构中通常将 32 个线程组成一个线程块称为 Warp ,在同一个 Warp 中，所有的线程会执行相同的指令，这种运行模式叫做 SIMT(Single Instruction, Multiple Threads),例如当执行 加法指令的时候，一个 warp 中的指令解码器会调度该 warp 中的所有线程执行加法指令。</li>
+</ul>
+<p>这行代码定义了 <strong>本地工作组</strong> 的大小，它指定了在一个 SM 中使用多少线程来处理数据，这里将使用 64 个线程也就是 2 个 Warp 来处理一批数据，我们计划使用16个全局工作组，每个全局工作组中使用64个本地工作组进行计算，也就是使用 $16\times64=1024$ 个线程来处理数据, 这样我们每个数据都会被映射到一个线程上去。
+而 <code>local_size_x = 64, local_size_y = 1, local_size_z = 1</code>指定了如何映射数据，这是纯软件上的概念，GPU 本身都是一堆并行执行的线程，这样做的好处是方便你处理不同维度的数据，让你省去复杂的下标转换计算。</p>
+<ul>
+<li>1D (x=64, y=1, z=1): 适合处理线性数据。比如数组运算、顶点缓冲区修改、简单的粒子列表。</li>
+<li>2D (x=16, y=16, z=1): 适合处理平面数据。比如图像处理、高斯模糊、地形高度图。</li>
+<li>3D (x=8, y=8, z=4): 适合处理空间数据。比如 3D 纹理、体素（Voxel）计算、流体模拟。
+内线程的总数是 $x \times y \times z$ ，这里是
+$$64 \times 1 \times 1 = 64$$个线程</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">std430</span><span class="p">,</span> <span class="n">binding</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="n">buffer</span> <span class="n">DataBuffer</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="k">float</span> <span class="n">data</span><span class="p">[];</span> 
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p>这里我们定义了一个 SSBO 用于与 CPU 进行数据交换，这不是 compute shader 中的概念这里不做过多介绍。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">uint</span> <span class="n">index</span> <span class="o">=</span> <span class="n">gl_GlobalInvocationID</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里我们获取线程在整个任务中的唯一绝对的索引，<code>gl_GlobalInvocationID</code>是 opengl4.3 中新增的一个内建变量, 还有其他的内建变量</p>
+<ul>
+<li><code>gl_LocalInvocationID </code>: 线程在当前“本地组”内的坐标。(sm中的哪个线程)</li>
+<li><code>gl_WorkGroupID</code>:当前“本地组”在“全局范围”内的索引。(哪个sm)</li>
+<li><code>gl_WorkGroupSize</code>: 当前“本地组”的大小。(sm中的线程数)</li>
+<li><code>gl_GlobalInvocationID</code>:当前线程在“全局范围”内的索引。(全局中的哪个线程)
+他们之间有如下关系
+
+$$GlobalID = WorkGroupID \times WorkGroupSize + LocalInvocationID$$</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里我们将当前线程中的数据乘以2，因为我们的数据大小为1024，线程数量也是1024，每个线程都会被分配到一个数据，所以一个全局线程id就对应了一个数据，将这个数据乘以2</p>
+<h3 id="2-创建-compute-shader">2. 创建 compute shader<a hidden class="anchor" aria-hidden="true" href="#2-创建-compute-shader">#</a></h3>
+<p>创建一个 compute shader 的方式和创建普通 shader 的方式非常类似，但是不需要将其 link 到渲染管线上的 shader program 中去，将着色器类型改为<code>GL_COMPUTE_SHADER</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">GLuint</span> <span class="n">computeShader</span> <span class="o">=</span> <span class="n">glCreateShader</span><span class="p">(</span><span class="n">GL_COMPUTE_SHADER</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glShaderSource</span><span class="p">(</span><span class="n">computeShader</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">shaderCode</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glCompileShader</span><span class="p">(</span><span class="n">computeShader</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">GLuint</span> <span class="n">computeProgram</span> <span class="o">=</span> <span class="n">glCreateProgram</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glAttachShader</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">,</span> <span class="n">computeShader</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">glLinkProgram</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="3-创建数据">3. 创建数据<a hidden class="anchor" aria-hidden="true" href="#3-创建数据">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="kt">float</span> <span class="n">myData</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">myData</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+</span></span></code></pre></div><h3 id="4-创建-ssbo">4. 创建 SSBO<a hidden class="anchor" aria-hidden="true" href="#4-创建-ssbo">#</a></h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">GLuint</span> <span class="n">ssbo</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glGenBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ssbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glBindBuffer</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="n">ssbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="c1">// 将数据传给 GPU
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">glBufferData</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">myData</span><span class="p">),</span> <span class="n">myData</span><span class="p">,</span> <span class="n">GL_DYNAMIC_DRAW</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="c1">// 绑定到 binding = 0，与着色器中的声明对应
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">glBindBufferBase</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ssbo</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="5-启动计算">5. 启动计算<a hidden class="anchor" aria-hidden="true" href="#5-启动计算">#</a></h3>
+<p>这是最关键的一步，你需要决定全局工作组的数量。我们的本地工作组是一组64个线程，所以我们为了让每个线程只处理一次数据，全局工作组数量应该为 $\frac{1024}{64}=16$</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glUseProgram</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="c1">// 启动 16 个小组，每组 64 个线程，总计 1024 个线程
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glDispatchCompute</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span> 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="c1">// 强制同步：确保 GPU 计算完成，且结果已写回显存，才允许后续读取
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glMemoryBarrier</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BARRIER_BIT</span><span class="p">);</span>
+</span></span></code></pre></div><p>其中<code>glDispatchCompute</code> 是启动计算，参数为全局工作组(sm)的数量，它也有三个维度，他们的关系也是乘法关系总的线程数等于全局工作组不同分量的数量乘以本地工作组不同分量的数量，也是便于程序员使用。
+<code>glMemoryBarrier</code> 是一个同步函数，用于等待 GPU 计算完成，并确保结果已写回显存，才允许后续读取。因为 GPU 和 CPU 是异步的，如果你不等待 GPU 计算完把数据写回，CPU就会读取到错误的数据。
+<code>glMemoryBarrier</code> 函数的参数是一个位掩码，用于指定等待的资源类型。在这里，我们传入<code>GL_SHADER_STORAGE_BARRIER_BIT</code>，表示等待 SSBO 的数据写入完成。</p>
+<h3 id="6-读取数据">6. 读取数据<a hidden class="anchor" aria-hidden="true" href="#6-读取数据">#</a></h3>
+<p>最后我们等待 GPU 计算完成，读取数据就行了</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N_</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">        <span class="n">ImGui</span><span class="o">::</span><span class="n">Text</span><span class="p">(</span><span class="s">&#34;%f&#34;</span><span class="p">,</span> <span class="n">myData</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/graphics/">Graphics</a></li>
+      <li><a href="http://localhost:1313/tags/opengl/">Opengl</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:1313/posts/rendering-deffered-rendering/">
+    <span class="title"> »</span>
+    <br>
+    <span>【Rendering】延迟渲染基于OpenGL</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">CGLab</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

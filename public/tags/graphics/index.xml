@@ -6,8 +6,111 @@
     <description>Recent content in Graphics on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 19 Mar 2026 21:15:53 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 21 Mar 2026 14:13:19 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/graphics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【OpenGL】计算着色器入门</title>
+      <link>http://localhost:1313/posts/opengl-compute-shader-1/</link>
+      <pubDate>Sat, 21 Mar 2026 14:13:19 +0800</pubDate>
+      <guid>http://localhost:1313/posts/opengl-compute-shader-1/</guid>
+      <description>&lt;h2 id=&#34;摘要&#34;&gt;摘要&lt;/h2&gt;
+&lt;p&gt;OpenGL4.3 引入了 &lt;strong&gt;计算着色器（Compute Shader）&lt;/strong&gt; 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力
+这篇文章将会以例子的角度来介绍如何使用 Compute Shader&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h2 id="摘要">摘要</h2>
+<p>OpenGL4.3 引入了 <strong>计算着色器（Compute Shader）</strong> 这使得我们可以在 GPU 上直接利用 GPU 的并行计算能力来处理非图形任务，标志着 OpenGL正式具备了 GPGPU（通用图形处理器计算）的能力
+这篇文章将会以例子的角度来介绍如何使用 Compute Shader</p>
+<h2 id="第一个compute-shader">第一个Compute Shader</h2>
+<p>在这个例子中，我们将使用 Compute Shader 来将大小为1024的数组中所有的元素乘以2</p>
+<h3 id="1-编写-compute-shader">1. 编写 compute shader</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#version 460 core</span>
+</span></span><span class="line"><span class="ln"> 2</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="c1">// 定义本地工作组大小 (Local Work Group Size)</span>
+</span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="c1">// 这里我们让每个小组处理 64 个元素</span>
+</span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">local_size_x</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">local_size_y</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">local_size_z</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="c1">// 定义SSBO</span>
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">std430</span><span class="p">,</span> <span class="n">binding</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="n">buffer</span> <span class="n">DataBuffer</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">    <span class="k">float</span> <span class="n">data</span><span class="p">[];</span> 
+</span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="p">};</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">
+</span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="k">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">    <span class="c1">// 获取当前线程在全局任务中的索引</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">    <span class="n">uint</span> <span class="n">index</span> <span class="o">=</span> <span class="n">gl_GlobalInvocationID</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">
+</span></span><span class="line"><span class="ln">16</span><span class="cl">    <span class="c1">// 简单地将数组中的每个值乘以 2</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">    <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">18</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>这涉及了非常多的概念，我们先从第二行代码开始：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">local_size_x</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span> <span class="n">local_size_y</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">local_size_z</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="k">in</span><span class="p">;</span>
+</span></span></code></pre></div><p>先介绍两个概念：</p>
+<ul>
+<li><strong>全局工作组(Global Work Groups)</strong>：它直接对应了 NVIDA GPU 中的 SM （Streaming Multiprocessor）,一个 SM 中可以有多个 Warp。而 Warp 是什么请看本地工作组，而 SM 是什么呢？我们后续再介绍。</li>
+<li><strong>本地工作组(Local Work Groups)</strong>：它直接对应了 GPU 中的线程，在 NVIDIA 架构中通常将 32 个线程组成一个线程块称为 Warp ,在同一个 Warp 中，所有的线程会执行相同的指令，这种运行模式叫做 SIMT(Single Instruction, Multiple Threads),例如当执行 加法指令的时候，一个 warp 中的指令解码器会调度该 warp 中的所有线程执行加法指令。</li>
+</ul>
+<p>这行代码定义了 <strong>本地工作组</strong> 的大小，它指定了在一个 SM 中使用多少线程来处理数据，这里将使用 64 个线程也就是 2 个 Warp 来处理一批数据，我们计划使用16个全局工作组，每个全局工作组中使用64个本地工作组进行计算，也就是使用 $16\times64=1024$ 个线程来处理数据, 这样我们每个数据都会被映射到一个线程上去。
+而 <code>local_size_x = 64, local_size_y = 1, local_size_z = 1</code>指定了如何映射数据，这是纯软件上的概念，GPU 本身都是一堆并行执行的线程，这样做的好处是方便你处理不同维度的数据，让你省去复杂的下标转换计算。</p>
+<ul>
+<li>1D (x=64, y=1, z=1): 适合处理线性数据。比如数组运算、顶点缓冲区修改、简单的粒子列表。</li>
+<li>2D (x=16, y=16, z=1): 适合处理平面数据。比如图像处理、高斯模糊、地形高度图。</li>
+<li>3D (x=8, y=8, z=4): 适合处理空间数据。比如 3D 纹理、体素（Voxel）计算、流体模拟。
+内线程的总数是 $x \times y \times z$ ，这里是
+$$64 \times 1 \times 1 = 64$$个线程</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">layout</span> <span class="p">(</span><span class="n">std430</span><span class="p">,</span> <span class="n">binding</span> <span class="o">=</span> <span class="mo">0</span><span class="p">)</span> <span class="n">buffer</span> <span class="n">DataBuffer</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">    <span class="k">float</span> <span class="n">data</span><span class="p">[];</span> 
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="p">};</span>
+</span></span></code></pre></div><p>这里我们定义了一个 SSBO 用于与 CPU 进行数据交换，这不是 compute shader 中的概念这里不做过多介绍。</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">uint</span> <span class="n">index</span> <span class="o">=</span> <span class="n">gl_GlobalInvocationID</span><span class="p">.</span><span class="n">x</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里我们获取线程在整个任务中的唯一绝对的索引，<code>gl_GlobalInvocationID</code>是 opengl4.3 中新增的一个内建变量, 还有其他的内建变量</p>
+<ul>
+<li><code>gl_LocalInvocationID </code>: 线程在当前“本地组”内的坐标。(sm中的哪个线程)</li>
+<li><code>gl_WorkGroupID</code>:当前“本地组”在“全局范围”内的索引。(哪个sm)</li>
+<li><code>gl_WorkGroupSize</code>: 当前“本地组”的大小。(sm中的线程数)</li>
+<li><code>gl_GlobalInvocationID</code>:当前线程在“全局范围”内的索引。(全局中的哪个线程)
+他们之间有如下关系
+
+$$GlobalID = WorkGroupID \times WorkGroupSize + LocalInvocationID$$</li>
+</ul>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-glsl" data-lang="glsl"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">;</span>
+</span></span></code></pre></div><p>这里我们将当前线程中的数据乘以2，因为我们的数据大小为1024，线程数量也是1024，每个线程都会被分配到一个数据，所以一个全局线程id就对应了一个数据，将这个数据乘以2</p>
+<h3 id="2-创建-compute-shader">2. 创建 compute shader</h3>
+<p>创建一个 compute shader 的方式和创建普通 shader 的方式非常类似，但是不需要将其 link 到渲染管线上的 shader program 中去，将着色器类型改为<code>GL_COMPUTE_SHADER</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">GLuint</span> <span class="n">computeShader</span> <span class="o">=</span> <span class="n">glCreateShader</span><span class="p">(</span><span class="n">GL_COMPUTE_SHADER</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glShaderSource</span><span class="p">(</span><span class="n">computeShader</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">shaderCode</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glCompileShader</span><span class="p">(</span><span class="n">computeShader</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">GLuint</span> <span class="n">computeProgram</span> <span class="o">=</span> <span class="n">glCreateProgram</span><span class="p">();</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glAttachShader</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">,</span> <span class="n">computeShader</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">glLinkProgram</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="3-创建数据">3. 创建数据</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="kt">float</span> <span class="n">myData</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="k">for</span><span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">1024</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="n">myData</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kt">float</span><span class="p">)</span><span class="n">i</span><span class="p">;</span>
+</span></span></code></pre></div><h3 id="4-创建-ssbo">4. 创建 SSBO</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">GLuint</span> <span class="n">ssbo</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="n">glGenBuffers</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ssbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glBindBuffer</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="n">ssbo</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="c1">// 将数据传给 GPU
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="n">glBufferData</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">myData</span><span class="p">),</span> <span class="n">myData</span><span class="p">,</span> <span class="n">GL_DYNAMIC_DRAW</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="c1">// 绑定到 binding = 0，与着色器中的声明对应
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="n">glBindBufferBase</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BUFFER</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">ssbo</span><span class="p">);</span>
+</span></span></code></pre></div><h3 id="5-启动计算">5. 启动计算</h3>
+<p>这是最关键的一步，你需要决定全局工作组的数量。我们的本地工作组是一组64个线程，所以我们为了让每个线程只处理一次数据，全局工作组数量应该为 $\frac{1024}{64}=16$</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="n">glUseProgram</span><span class="p">(</span><span class="n">computeProgram</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="c1">// 启动 16 个小组，每组 64 个线程，总计 1024 个线程
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="n">glDispatchCompute</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span> 
+</span></span><span class="line"><span class="ln">4</span><span class="cl">
+</span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="c1">// 强制同步：确保 GPU 计算完成，且结果已写回显存，才允许后续读取
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="n">glMemoryBarrier</span><span class="p">(</span><span class="n">GL_SHADER_STORAGE_BARRIER_BIT</span><span class="p">);</span>
+</span></span></code></pre></div><p>其中<code>glDispatchCompute</code> 是启动计算，参数为全局工作组(sm)的数量，它也有三个维度，他们的关系也是乘法关系总的线程数等于全局工作组不同分量的数量乘以本地工作组不同分量的数量，也是便于程序员使用。
+<code>glMemoryBarrier</code> 是一个同步函数，用于等待 GPU 计算完成，并确保结果已写回显存，才允许后续读取。因为 GPU 和 CPU 是异步的，如果你不等待 GPU 计算完把数据写回，CPU就会读取到错误的数据。
+<code>glMemoryBarrier</code> 函数的参数是一个位掩码，用于指定等待的资源类型。在这里，我们传入<code>GL_SHADER_STORAGE_BARRIER_BIT</code>，表示等待 SSBO 的数据写入完成。</p>
+<h3 id="6-读取数据">6. 读取数据</h3>
+<p>最后我们等待 GPU 计算完成，读取数据就行了</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">N_</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln">2</span><span class="cl">        <span class="n">ImGui</span><span class="o">::</span><span class="n">Text</span><span class="p">(</span><span class="s">&#34;%f&#34;</span><span class="p">,</span> <span class="n">myData</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+</span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div>]]></content:encoded>
+    </item>
     <item>
       <title>【Rendering】延迟渲染基于OpenGL</title>
       <link>http://localhost:1313/posts/rendering-deffered-rendering/</link>
@@ -148,9 +251,9 @@
       <link>http://localhost:1313/posts/cg-radiometry/</link>
       <pubDate>Wed, 18 Mar 2026 22:14:42 +0800</pubDate>
       <guid>http://localhost:1313/posts/cg-radiometry/</guid>
-      <description>&lt;p&gt;在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数的像做出非常精美的效果非常困难。&lt;br&gt;
+      <description>&lt;p&gt;在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数，想做出非常精美的效果非常困难。&lt;br&gt;
 而且Phong和Blinn-Phong模型都是经验模型，它们都没办法表示真实的物理效果。因此我们引入了辐射度量学来以科学的角度定量地、物理正确地描述光。&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数的像做出非常精美的效果非常困难。<br>
+      <content:encoded><![CDATA[<p>在没有将辐射度量学引入计算机图形学中用于渲染之前程序员或者美术师们都是通过凭感觉或者经验调整Phong或者Blinn-Phong模型的参数，想做出非常精美的效果非常困难。<br>
 而且Phong和Blinn-Phong模型都是经验模型，它们都没办法表示真实的物理效果。因此我们引入了辐射度量学来以科学的角度定量地、物理正确地描述光。</p>
 <h1 id="辐射度量学">辐射度量学</h1>
 <h2 id="辐射能radiant-energy">辐射能（Radiant Energy）</h2>
@@ -329,8 +432,10 @@ $$\int_{\Omega} D(m) (n \cdot m) d\omega_m = 1$$
 这里给出一个 NDF 的计算式： <strong>GGX (Trowbridge-Reitz) 分布</strong>这是目前游戏引擎和影视特效界绝对的工业标准
 
 $$D_{GGX}(m) = \frac{\alpha^2}{\pi \left( (n \cdot m)^2 (\alpha^2 - 1) + 1 \right)^2}$$</li>
-<li>其中$\alpha$为 粗糙度（Roughness）<br>
-我们可以通过能量守恒式子验证一下（保姆式）
+<li>其中$\alpha$为 粗糙度（Roughness）</li>
+<li>$n$ 为宏观法线方向</li>
+<li>$m$ 为微面元法线方向<br>
+我们可以通过能量守恒式子验证一下（保姆式）<br>
 
 $$I = \int_{\Omega}D_{GGX}\left(m\right)cos\theta d\omega$$
 代入<br>
@@ -351,7 +456,7 @@ $$I=-\alpha^2\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)c
 现在的积分变得非常简单了，继续凑微分
 
 $$I=-\frac{\alpha^2}{ \alpha^2-1}\int_{0}^{\frac{\pi}{2}}\frac{1}{\left (  \left( \alpha^2-1\right)cos^2\theta+1\right )^2 } d\left(\left( \alpha^2-1\right)cos^2\theta+1\right)$$
-最后的到
+最后得到
 
 $$I=\frac{\alpha^2}{ \alpha^2-1}\left [ \frac{1}{\left ( \alpha^2-1 \right )cos^2\theta +1} \right ]_{0}^{\frac{\pi}{2}}=\frac{\alpha^2}{ \alpha^2-1}\left [ 1-\frac{1}{\alpha^2} \right ] =1$$</li>
 </ul>
