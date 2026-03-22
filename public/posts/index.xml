@@ -13,16 +13,112 @@
       <link>http://localhost:1313/posts/cg-image-based-lighting/</link>
       <pubDate>Sun, 22 Mar 2026 11:56:58 +0800</pubDate>
       <guid>http://localhost:1313/posts/cg-image-based-lighting/</guid>
-      <description>&lt;p&gt;在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。&lt;/p&gt;
-&lt;h1 id=&#34;基于图像的光照-image-based-lighting&#34;&gt;基于图像的光照 Image-based Lighting&lt;/h1&gt;
-&lt;p&gt;在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术，
-但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 &lt;strong&gt;基于图像的光照(IBL)&lt;/strong&gt; 则提供了一种简单的方式而提升了非常好的渲染效果。&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<p>在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。</p>
+      <description>&lt;p&gt;在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。&lt;br&gt;
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章&lt;sup id=&#34;fnref:1&#34;&gt;&lt;a href=&#34;#fn:1&#34; class=&#34;footnote-ref&#34; role=&#34;doc-noteref&#34;&gt;1&lt;/a&gt;&lt;/sup&gt;&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。<br>
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
 <h1 id="基于图像的光照-image-based-lighting">基于图像的光照 Image-based Lighting</h1>
 <p>在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术，
 但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 <strong>基于图像的光照(IBL)</strong> 则提供了一种简单的方式而提升了非常好的渲染效果。</p>
 <p>IBL 通过将一张 cube map 或者 sphere map 贴图作为光源，它的每个像素都可以代表一个入射光。而对于一个着色点来说，
-在这个着色点的法线方向的半球上，我们需要对cube map或者sphere map进行采样，并计算出该半球内的所有入射光，并求和得到该着色点的光照。</p>
+在这个着色点的法线方向的半球上，我们需要对cube map或者sphere map进行采样，我们让采样结果作为入射光 $L_i(p,\omega_i) = cubeMapSampling(p,\omega_i)$，然后计算反射方程（如果没有自发光项）。
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } f_r(p,\omega_i,\omega_o)L_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } (k_df_d+f_s)L_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+根据积分的线性性我们将积分拆成一个漫反射项和镜面反射项。<br>
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } k_df_dL_i(p,\omega_i) n\cdot \omega_i d\omega_i+\int_{\mathcal{H} } f_sL_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+简化为
+</p>
+$$L_o(p,\omega_o) = L_d(\omega_o)+L_s(\omega_o)$$<p>
+而一旦在实时渲染中涉及到采样，直接来说这个方法是不可行的，所以在实时渲染中，我们需要对这个积分做一些近似，或者进行一些预计算，
+把复杂的积分都先计算好，我们会分别预计算漫反射积分和镜面反射积分。</p>
+<h1 id="irradiance-map">Irradiance Map</h1>
+<p>慢反射项为
+</p>
+$$L_d(\omega_o) = \int_{\mathcal{H} }k_df_dL_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+将与积分无关的项提出来
+</p>
+$$L_d(\omega_o) = \frac{\rho}{\pi}\int_{\mathcal{H} }k_dL_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+其中
+</p>
+$$k_d = (1 - F) \cdot (1 - metallic)$$<p>
+其中 F 是菲涅尔项，而 $F$ 项包含了半程向量，而半程向量与入射角有关，所以不能提出到积分外部，所以我们需要对 $k_d$ 做一些简化
+</p>
+$$k_d \approx F_0+(max\left \{ 1-roughness,F_0 \right \}-F_0 )(1-(n\cdot \omega_o))^5$$<p>
+此时 $k_d$ 项与积分变量无关了
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\int_{\mathcal{H} }L_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+展开
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi} \int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}L_i(\omega_i)cos\theta \sin\theta d\theta d\phi$$<p>
+现在的积分值只取决于法向 $n$，在法线方向上的半球上决定了入射光的值。
+<img loading="lazy" src="https://learnopengl.com/img/pbr/ibl_hemisphere_sample.png"></p>
+<p>所以我们可以使用一个 cube map 以提供光照来预计算这个积分，最后得到另一个cube map，这个新的cube map我们称作irradiance map。
+<img loading="lazy" src="https://learnopengl.com/img/pbr/ibl_irradiance.png">
+要求解这个积分我们可以使用蒙特卡洛积分</p>
+<h2 id="均匀采样">均匀采样</h2>
+<p>我们可以在半球上的角度进行角度空间的均匀采样，并假设 $\phi$ 和 $\theta$ 是独立的那么
+它们在蒙特卡洛积分中的联合概率密度为
+</p>
+$$p(\theta, \phi) = p(\theta) \cdot p(\phi) = \frac{1}{\pi/2} \cdot \frac{1}{2\pi} = \frac{1}{0.5\pi \cdot 2\pi}$$<p>
+所以
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\frac{1}{N_1N_2} \sum_{i}^{N_1}\sum_{j}^{N_2}\frac{  L_i(\theta_i,\phi_j)cos\theta_i \sin\theta_i}{p(\theta_i,\phi_j)}$$<p>
+代入化简有
+</p>
+$$L_d(\omega_o) \approx k_d\rho\pi\frac{1}{N_1N_2} \sum_{i}^{N_1}\sum_{j}^{N_2}  L_i(\theta_i,\phi_j)cos\theta_i \sin\theta_i$$<h2 id="余弦权重采样">余弦权重采样</h2>
+<p>使用余弦权重采样的 PDF 是 $p(\omega) = \frac{\cos\theta}{\pi}$
+就有
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\frac{1}{N}\sum_{i}^{N}\frac{L_i(\omega_i)\cos \theta}{\frac{\cos\theta}{\pi}}=k_d\rho\frac{1}{N}\sum_{i}^{N}L(\omega_i)$$<h1 id="speular">Speular</h1>
+<p>在镜面反射部分中，镜面反射不仅取决于法线 $n$，还取决于观察方向 $v$ 以及材质的粗糙度 $\alpha$。这意味着如果你想预计算，你需要一个五维的表格（法线3D + 观察方向2D + 粗糙度1D），这在实时渲染中是不可接受的。</p>
+<p>我们参考了 games202<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> 中的描述 对于镜面反射的 BRDF 它非常满足使用下面这个近似公式的使用条件
+</p>
+$$\int_{\Omega} f(x)g(x)dx \approx \frac{\int_{\Omega_G}f(x)dx}{\int_{\Omega_G}dx}\cdot\int_{\Omega}g(x)dx$$<p>
+所以我们对积分做出一个拆分
+</p>
+$$L_o(p,\omega_o) \approx \frac{\int_{\Omega_{f_r}}L_i(p,\omega_i)d\omega_i}{\int_{\Omega_{f_r}}d\omega_i}\cdot\int_{\Omega^+}f_s(p,\omega_i,\omega_o)n\cdot \omega_i d\omega_i$$<p>
+使用蒙特卡洛积分
+</p>
+$$L_o(p,\omega_o) \approx \left( \frac{\sum_{k=1}^{N} L_i(p,\mathbf{\omega}_k)(n\cdot \omega_k)}{\sum_{k=1}^{N}(n\cdot \omega_k)} \right) \left( \frac{1}{N} \sum_{k=1}^{N} \frac{f(p,\mathbf{\omega}_k, \mathbf{\omega_o}) (n\cdot \omega_k)}{p(\mathbf{\omega}_k, \mathbf{\omega_o})} \right)$$<h2 id="预滤波环境光-pre-filtered-environment-radiance">预滤波环境光 (Pre-filtered Environment Radiance)</h2>
+<p>注意到约等号右边的第一项是对 BRDF 中的 NDF 区域中所有的入射光的积分再归一化，这个操作就相当于对IBL 这张图进行 filtering, 在图上的任何一个点上，取这个点周围的一个范围进行平均操作。这个范围由roughness 决定，我们可以通过固定的 roughness 来预计算多张 cube map 并且使用 mipmap 进行保存，根据物体不同的 roughness 在不同的 mipmap 中进行插值获取 L 值
+<img loading="lazy" src="/images/cg/ibl1.png">
+我们就是通过约等号右边的第一项进行预计算
+</p>
+$$\text{Part 1} = \frac{\sum_{k=1}^{N} L_i(p,\mathbf{\omega}_k)(n\cdot \omega_k)}{\sum_{k=1}^{N}(n\cdot \omega_k)}$$<h2 id="brdf-lut">BRDF LUT</h2>
+<p>我们处理完了第一项，还有一项我们没有处理。我们知道 $f_s = \frac{D(h)F(\omega_o, h)G(l, \omega_o)}{4(n \cdot \omega_o)(n \cdot \omega_i)}$，并且 GGX 重要性采样的标准 PDF 是 $p(h) = \frac{D(h)(n \cdot h)}{4(\omega_o \cdot h)}$ 我们将其代入第二项有
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} \frac{\frac{D(h_k)F(\omega_o, h_k)G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)}}{\frac{D(h_k)(n \cdot h_k)}{4(\omega_o \cdot h_k)}}$$<p>
+消掉 $D(h_k)$，化简得：
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} F(\omega_o, h_k) \frac{G(\omega_{i}^{(k)}, \omega_o) \cdot 4(\omega_o \cdot h_k)^2}{(n \cdot \omega_o)(n \cdot h_k)}$$<p>
+其中 $F(\omega_o, h_k) = F_0 + (1 - F_0)(1 - \omega_o \cdot h_k)^5$<br>
+我们令 $F_{base} = (1 - \omega_o \cdot h_k)^5$，则 $F = F_0(1 - F_{base}) + F_{base}$
+代入公式
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} \left[ F_0(1 - F_{base}) + F_{base} \right] \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)}$$<p>
+最后展开
+</p>
+$$I \approx F_0 \cdot \underbrace{\left( \frac{1}{N} \sum_{k=1}^{N} (1 - F_{base}) \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)} \right)}_{\text{Scale}} + \underbrace{\left( \frac{1}{N} \sum_{k=1}^{N} F_{base} \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)} \right)}_{\text{Bias}}$$<p>终于! 我们得到了最后的公式
+</p>
+$$ I \approx F_0 \times \text{Scale} + \text{Bias} $$<p>
+其中 Scale 和 Bias 我们可以通过预计算将其存储在一张只有两个通道(R,G)的纹理中，Scale存放在r通道bias存放在g通道，将 $x$ 轴（U 坐标）映射为 $\cos\theta_v$ ($n \cdot \omega_o$)， $y$ 轴（V 坐标）映射为 粗 Roughness，这张纹理我们称为 BRDF LUT</p>
+<p>最后实现后类似这种效果
+<img loading="lazy" src="/images/cg/ibl2.png"></p>
+<h1 id="参考">参考</h1>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://zhuanlan.zhihu.com/p/66518450">深入理解 PBR/基于图像照明 (IBL) </a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://www.bilibili.com/video/BV1YK4y1T7yY?spm_id_from=333.788.videopod.episodes&amp;vd_source=b60fadc84379e52fc7b933fab5a8751c&amp;p=5">games202-高质量实时渲染</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
 ]]></content:encoded>
     </item>
     <item>
@@ -400,9 +496,9 @@ $$f_r = k_d f_{lambert} + k_s f_{cook-torrance}$$<ul>
 <li>$k_s$有多少比例发生了镜面反射</li>
 <li>并且由能量守恒 $k_d + k_s \leq 1.0$</li>
 <li>$f_{lambert}$：漫反射 BRDF</li>
-<li>$f_{cook-torrance}$：镜面反射 BRDF<br>
-既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？</li>
+<li>$f_{cook-torrance}$：镜面反射 BRDF</li>
 </ul>
+<p>既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？</p>
 <h3 id="漫反射项推导">漫反射项推导</h3>
 <p>漫反射会均匀的向每个方向反射，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，所以 BRDF 将会是一个常数，
 <img loading="lazy" src="/images/cg/diffuse.png">
@@ -524,6 +620,12 @@ $$G_1(l) = \frac{n \cdot l}{(n \cdot l)(1 - k) + k}$$
 $$k = \frac{(Roughness + 1)^2}{8}$$
 G 项会与BRDF的分母产生非常奇妙的反应，分母中当观察角度和光照角度趋近 90 度的时候 $(n \cdot l)$ 或 $(n \cdot v)$ 会趋近于 $0$ 会导致BRDF的高光项非常的大，导致边缘处亮度爆炸亮，而 G 项的的两个分母刚好可以与分子约去从而防止这个现象。</li>
 </ul>
+<h3 id="再看-brdf">再看 BRDF</h3>
+$$f_r = k_d f_{lambert} + k_s f_{cook-torrance}$$<p>这个形式是理论教科书式这种写法为了强调“能量守恒”的概念，手动指定 $k_s$ 和 $k_d$。<br>
+但是在工程实践中我们通常使用下面这种形式
+</p>
+$$f_r = (1 - F) \cdot (1 - metallic)\cdot f_{lambert} + f_{specular}$$<p>
+$f_{specular}$中的 $F$ 直接充当了 $k_s$ 的角色。如果你在 $f_s$ 前面再乘一个 $k_s$，就相当于“收了两遍税”，会导致高光能量过暗。</p>
 <h3 id="总结">总结</h3>
 <table>
   <thead>
