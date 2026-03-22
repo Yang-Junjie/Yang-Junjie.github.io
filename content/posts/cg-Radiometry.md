@@ -143,6 +143,8 @@ Cook-Torrance BRDF正是考虑了这两种情形的BRDF，它的定义如下：
 - 并且由能量守恒 $k_d + k_s \leq 1.0$
 - $f_{lambert}$：漫反射 BRDF
 - $f_{cook-torrance}$：镜面反射 BRDF  
+
+
 既然我们说 Cook-Torrance BRDF 便于计算，那么$f_{lambert}$，$f_{cook-torrance}$是怎么计算的呢？
 ### 漫反射项推导
 漫反射会均匀的向每个方向反射，一个理想漫反射表面，在任何观察方向 $\omega_o$ 看到的 radiance 都是相同的，所以 BRDF 将会是一个常数，
@@ -237,6 +239,13 @@ $$G_1(l) = \frac{n \cdot l}{(n \cdot l)(1 - k) + k}$$
 其中$k$为：  
 $$k = \frac{(Roughness + 1)^2}{8}$$
 G 项会与BRDF的分母产生非常奇妙的反应，分母中当观察角度和光照角度趋近 90 度的时候 $(n \cdot l)$ 或 $(n \cdot v)$ 会趋近于 $0$ 会导致BRDF的高光项非常的大，导致边缘处亮度爆炸亮，而 G 项的的两个分母刚好可以与分子约去从而防止这个现象。  
+### 再看 BRDF
+ $$f_r = k_d f_{lambert} + k_s f_{cook-torrance}$$
+
+这个形式是理论教科书式这种写法为了强调“能量守恒”的概念，手动指定 $k_s$ 和 $k_d$。  
+但是在工程实践中我们通常使用下面这种形式
+$$f_r = (1 - F) \cdot (1 - metallic)\cdot f_{lambert} + f_{specular}$$
+$f_{specular}$中的 $F$ 直接充当了 $k_s$ 的角色。如果你在 $f_s$ 前面再乘一个 $k_s$，就相当于“收了两遍税”，会导致高光能量过暗。
 ###  总结
 | 组件 | 物理含义 | 决定了什么？ |
 | :--: | :--: | :--: |

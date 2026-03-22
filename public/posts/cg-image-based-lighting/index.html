@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>【CG】基于图像的光照 Image-based Lighting（实时渲染） | CGLab</title>
+<meta name="keywords" content="graphics">
+<meta name="description" content="在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章1">
+<meta name="author" content="氧均竭">
+<link rel="canonical" href="http://localhost:1313/posts/cg-image-based-lighting/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed1639a41234d0b785243363057ccffc5be9cd9e7ca9a8ff21a7c55a2c0edd47.css" integrity="sha256-7RY5pBI00LeFJDNjBXzP/FvpzZ58qaj/IafFWiwO3Uc=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/cg-image-based-lighting/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false,
+            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        });
+    });
+</script><meta property="og:url" content="http://localhost:1313/posts/cg-image-based-lighting/">
+  <meta property="og:site_name" content="CGLab">
+  <meta property="og:title" content="【CG】基于图像的光照 Image-based Lighting（实时渲染）">
+  <meta property="og:description" content="在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章1">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-22T11:56:58+08:00">
+    <meta property="article:modified_time" content="2026-03-22T11:56:58+08:00">
+    <meta property="article:tag" content="Graphics">
+    <meta property="og:image" content="http://localhost:1313/images/cg/ibl2.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://localhost:1313/images/cg/ibl2.png">
+  <meta name="twitter:title" content="【CG】基于图像的光照 Image-based Lighting（实时渲染）">
+  <meta name="twitter:description" content="在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章1">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "【CG】基于图像的光照 Image-based Lighting（实时渲染）",
+      "item": "http://localhost:1313/posts/cg-image-based-lighting/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "【CG】基于图像的光照 Image-based Lighting（实时渲染）",
+  "name": "【CG】基于图像的光照 Image-based Lighting（实时渲染）",
+  "description": "在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。\n这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章1\n",
+  "keywords": [
+    "graphics"
+  ],
+  "articleBody": "在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。\n这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章1\n基于图像的光照 Image-based Lighting 在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术， 但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 基于图像的光照(IBL) 则提供了一种简单的方式而提升了非常好的渲染效果。\nIBL 通过将一张 cube map 或者 sphere map 贴图作为光源，它的每个像素都可以代表一个入射光。而对于一个着色点来说， 在这个着色点的法线方向的半球上，我们需要对cube map或者sphere map进行采样，我们让采样结果作为入射光 $L_i(p,\\omega_i) = cubeMapSampling(p,\\omega_i)$，然后计算反射方程（如果没有自发光项）。 $$L_o(p,\\omega_o) = \\int_{\\mathcal{H} } f_r(p,\\omega_i,\\omega_o)L_i(p,\\omega_i) n\\cdot \\omega_i d\\omega_i$$ $$L_o(p,\\omega_o) = \\int_{\\mathcal{H} } (k_df_d+f_s)L_i(p,\\omega_i) n\\cdot \\omega_i d\\omega_i$$ 根据积分的线性性我们将积分拆成一个漫反射项和镜面反射项。\n$$L_o(p,\\omega_o) = \\int_{\\mathcal{H} } k_df_dL_i(p,\\omega_i) n\\cdot \\omega_i d\\omega_i+\\int_{\\mathcal{H} } f_sL_i(p,\\omega_i) n\\cdot \\omega_i d\\omega_i$$ 简化为 $$L_o(p,\\omega_o) = L_d(\\omega_o)+L_s(\\omega_o)$$ 而一旦在实时渲染中涉及到采样，直接来说这个方法是不可行的，所以在实时渲染中，我们需要对这个积分做一些近似，或者进行一些预计算， 把复杂的积分都先计算好，我们会分别预计算漫反射积分和镜面反射积分。\nIrradiance Map 慢反射项为 $$L_d(\\omega_o) = \\int_{\\mathcal{H} }k_df_dL_i(\\omega_i)n\\cdot \\omega_i d\\omega_i$$ 将与积分无关的项提出来 $$L_d(\\omega_o) = \\frac{\\rho}{\\pi}\\int_{\\mathcal{H} }k_dL_i(\\omega_i)n\\cdot \\omega_i d\\omega_i$$ 其中 $$k_d = (1 - F) \\cdot (1 - metallic)$$ 其中 F 是菲涅尔项，而 $F$ 项包含了半程向量，而半程向量与入射角有关，所以不能提出到积分外部，所以我们需要对 $k_d$ 做一些简化 $$k_d \\approx F_0+(max\\left \\{ 1-roughness,F_0 \\right \\}-F_0 )(1-(n\\cdot \\omega_o))^5$$ 此时 $k_d$ 项与积分变量无关了 $$L_d(\\omega_o) \\approx k_d\\frac{\\rho}{\\pi}\\int_{\\mathcal{H} }L_i(\\omega_i)n\\cdot \\omega_i d\\omega_i$$ 展开 $$L_d(\\omega_o) \\approx k_d\\frac{\\rho}{\\pi} \\int_{0}^{2\\pi}\\int_{0}^{\\frac{\\pi}{2}}L_i(\\omega_i)cos\\theta \\sin\\theta d\\theta d\\phi$$ 现在的积分值只取决于法向 $n$，在法线方向上的半球上决定了入射光的值。 所以我们可以使用一个 cube map 以提供光照来预计算这个积分，最后得到另一个cube map，这个新的cube map我们称作irradiance map。 要求解这个积分我们可以使用蒙特卡洛积分\n均匀采样 我们可以在半球上的角度进行角度空间的均匀采样，并假设 $\\phi$ 和 $\\theta$ 是独立的那么 它们在蒙特卡洛积分中的联合概率密度为 $$p(\\theta, \\phi) = p(\\theta) \\cdot p(\\phi) = \\frac{1}{\\pi/2} \\cdot \\frac{1}{2\\pi} = \\frac{1}{0.5\\pi \\cdot 2\\pi}$$ 所以 $$L_d(\\omega_o) \\approx k_d\\frac{\\rho}{\\pi}\\frac{1}{N_1N_2} \\sum_{i}^{N_1}\\sum_{j}^{N_2}\\frac{ L_i(\\theta_i,\\phi_j)cos\\theta_i \\sin\\theta_i}{p(\\theta_i,\\phi_j)}$$ 代入化简有 $$L_d(\\omega_o) \\approx k_d\\rho\\pi\\frac{1}{N_1N_2} \\sum_{i}^{N_1}\\sum_{j}^{N_2} L_i(\\theta_i,\\phi_j)cos\\theta_i \\sin\\theta_i$$余弦权重采样 使用余弦权重采样的 PDF 是 $p(\\omega) = \\frac{\\cos\\theta}{\\pi}$ 就有 $$L_d(\\omega_o) \\approx k_d\\frac{\\rho}{\\pi}\\frac{1}{N}\\sum_{i}^{N}\\frac{L_i(\\omega_i)\\cos \\theta}{\\frac{\\cos\\theta}{\\pi}}=k_d\\rho\\frac{1}{N}\\sum_{i}^{N}L(\\omega_i)$$Speular 在镜面反射部分中，镜面反射不仅取决于法线 $n$，还取决于观察方向 $v$ 以及材质的粗糙度 $\\alpha$。这意味着如果你想预计算，你需要一个五维的表格（法线3D + 观察方向2D + 粗糙度1D），这在实时渲染中是不可接受的。\n我们参考了 games2022 中的描述 对于镜面反射的 BRDF 它非常满足使用下面这个近似公式的使用条件 $$\\int_{\\Omega} f(x)g(x)dx \\approx \\frac{\\int_{\\Omega_G}f(x)dx}{\\int_{\\Omega_G}dx}\\cdot\\int_{\\Omega}g(x)dx$$ 所以我们对积分做出一个拆分 $$L_o(p,\\omega_o) \\approx \\frac{\\int_{\\Omega_{f_r}}L_i(p,\\omega_i)d\\omega_i}{\\int_{\\Omega_{f_r}}d\\omega_i}\\cdot\\int_{\\Omega^+}f_s(p,\\omega_i,\\omega_o)n\\cdot \\omega_i d\\omega_i$$ 使用蒙特卡洛积分 $$L_o(p,\\omega_o) \\approx \\left( \\frac{\\sum_{k=1}^{N} L_i(p,\\mathbf{\\omega}_k)(n\\cdot \\omega_k)}{\\sum_{k=1}^{N}(n\\cdot \\omega_k)} \\right) \\left( \\frac{1}{N} \\sum_{k=1}^{N} \\frac{f(p,\\mathbf{\\omega}_k, \\mathbf{\\omega_o}) (n\\cdot \\omega_k)}{p(\\mathbf{\\omega}_k, \\mathbf{\\omega_o})} \\right)$$预滤波环境光 (Pre-filtered Environment Radiance) 注意到约等号右边的第一项是对 BRDF 中的 NDF 区域中所有的入射光的积分再归一化，这个操作就相当于对IBL 这张图进行 filtering, 在图上的任何一个点上，取这个点周围的一个范围进行平均操作。这个范围由roughness 决定，我们可以通过固定的 roughness 来预计算多张 cube map 并且使用 mipmap 进行保存，根据物体不同的 roughness 在不同的 mipmap 中进行插值获取 L 值 我们就是通过约等号右边的第一项进行预计算 $$\\text{Part 1} = \\frac{\\sum_{k=1}^{N} L_i(p,\\mathbf{\\omega}_k)(n\\cdot \\omega_k)}{\\sum_{k=1}^{N}(n\\cdot \\omega_k)}$$BRDF LUT 我们处理完了第一项，还有一项我们没有处理。我们知道 $f_s = \\frac{D(h)F(\\omega_o, h)G(l, \\omega_o)}{4(n \\cdot \\omega_o)(n \\cdot \\omega_i)}$，并且 GGX 重要性采样的标准 PDF 是 $p(h) = \\frac{D(h)(n \\cdot h)}{4(\\omega_o \\cdot h)}$ 我们将其代入第二项有 $$I \\approx \\frac{1}{N} \\sum_{k=1}^{N} \\frac{\\frac{D(h_k)F(\\omega_o, h_k)G(\\omega_{i}^{(k)}, \\omega_o)(\\omega_o \\cdot h_k)}{(n \\cdot \\omega_o)}}{\\frac{D(h_k)(n \\cdot h_k)}{4(\\omega_o \\cdot h_k)}}$$ 消掉 $D(h_k)$，化简得： $$I \\approx \\frac{1}{N} \\sum_{k=1}^{N} F(\\omega_o, h_k) \\frac{G(\\omega_{i}^{(k)}, \\omega_o) \\cdot 4(\\omega_o \\cdot h_k)^2}{(n \\cdot \\omega_o)(n \\cdot h_k)}$$ 其中 $F(\\omega_o, h_k) = F_0 + (1 - F_0)(1 - \\omega_o \\cdot h_k)^5$\n我们令 $F_{base} = (1 - \\omega_o \\cdot h_k)^5$，则 $F = F_0(1 - F_{base}) + F_{base}$ 代入公式 $$I \\approx \\frac{1}{N} \\sum_{k=1}^{N} \\left[ F_0(1 - F_{base}) + F_{base} \\right] \\frac{G(\\omega_{i}^{(k)}, \\omega_o)(\\omega_o \\cdot h_k)}{(n \\cdot \\omega_o)(n \\cdot h_k)}$$ 最后展开 $$I \\approx F_0 \\cdot \\underbrace{\\left( \\frac{1}{N} \\sum_{k=1}^{N} (1 - F_{base}) \\frac{G(\\omega_{i}^{(k)}, \\omega_o)(\\omega_o \\cdot h_k)}{(n \\cdot \\omega_o)(n \\cdot h_k)} \\right)}_{\\text{Scale}} + \\underbrace{\\left( \\frac{1}{N} \\sum_{k=1}^{N} F_{base} \\frac{G(\\omega_{i}^{(k)}, \\omega_o)(\\omega_o \\cdot h_k)}{(n \\cdot \\omega_o)(n \\cdot h_k)} \\right)}_{\\text{Bias}}$$终于! 我们得到了最后的公式 $$ I \\approx F_0 \\times \\text{Scale} + \\text{Bias} $$ 其中 Scale 和 Bias 我们可以通过预计算将其存储在一张只有两个通道(R,G)的纹理中，Scale存放在r通道bias存放在g通道，将 $x$ 轴（U 坐标）映射为 $\\cos\\theta_v$ ($n \\cdot \\omega_o$)， $y$ 轴（V 坐标）映射为 粗 Roughness，这张纹理我们称为 BRDF LUT\n最后实现后类似这种效果 参考 深入理解 PBR/基于图像照明 (IBL) ↩︎\ngames202-高质量实时渲染 ↩︎\n",
+  "wordCount" : "1748",
+  "inLanguage": "zh-cn",
+  "image":"http://localhost:1313/images/cg/ibl2.png","datePublished": "2026-03-22T11:56:58+08:00",
+  "dateModified": "2026-03-22T11:56:58+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "氧均竭"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/cg-image-based-lighting/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "CGLab",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="CGLab (Alt + H)">CGLab</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="🏠 首页">
+                    <span>🏠 首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/search/" title="🔍 搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍 搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="📦 归档">
+                    <span>📦 归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="🏷️ 标签">
+                    <span>🏷️ 标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="👨‍💻 关于">
+                    <span>👨‍💻 关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      【CG】基于图像的光照 Image-based Lighting（实时渲染）
+    </h1>
+    <div class="post-meta"><span title='2026-03-22 11:56:58 +0800 CST'>March 22, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>1748 words</span>&nbsp;·&nbsp;<span>氧均竭</span>
+
+</div>
+  </header> 
+<figure class="entry-cover">
+        <a href="http://localhost:1313/images/cg/ibl2.png" target="_blank" rel="noopener noreferrer">
+            <img loading="eager"
+                srcset='http://localhost:1313/images/cg/ibl2_hu_3c937b11bef2d15a.png 360w,http://localhost:1313/images/cg/ibl2_hu_8fd0a6adbf45edb6.png 480w,http://localhost:1313/images/cg/ibl2_hu_e28a9ae42d5f2f45.png 720w,http://localhost:1313/images/cg/ibl2.png 982w'
+                src="http://localhost:1313/images/cg/ibl2.png"
+                sizes="(min-width: 768px) 720px, 100vw"
+                width="982" height="843"
+                alt="cover">
+        </a>
+        
+</figure><div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%9f%ba%e4%ba%8e%e5%9b%be%e5%83%8f%e7%9a%84%e5%85%89%e7%85%a7-image-based-lighting" aria-label="基于图像的光照 Image-based Lighting">基于图像的光照 Image-based Lighting</a></li>
+                <li>
+                    <a href="#irradiance-map" aria-label="Irradiance Map">Irradiance Map</a><ul>
+                        
+                <li>
+                    <a href="#%e5%9d%87%e5%8c%80%e9%87%87%e6%a0%b7" aria-label="均匀采样">均匀采样</a></li>
+                <li>
+                    <a href="#%e4%bd%99%e5%bc%a6%e6%9d%83%e9%87%8d%e9%87%87%e6%a0%b7" aria-label="余弦权重采样">余弦权重采样</a></li></ul>
+                </li>
+                <li>
+                    <a href="#speular" aria-label="Speular">Speular</a><ul>
+                        
+                <li>
+                    <a href="#%e9%a2%84%e6%bb%a4%e6%b3%a2%e7%8e%af%e5%a2%83%e5%85%89-pre-filtered-environment-radiance" aria-label="预滤波环境光 (Pre-filtered Environment Radiance)">预滤波环境光 (Pre-filtered Environment Radiance)</a></li>
+                <li>
+                    <a href="#brdf-lut" aria-label="BRDF LUT">BRDF LUT</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p>在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。<br>
+这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章<sup id="fnref:1"><a href="#fn:1" class="footnote-ref" role="doc-noteref">1</a></sup></p>
+<h1 id="基于图像的光照-image-based-lighting">基于图像的光照 Image-based Lighting<a hidden class="anchor" aria-hidden="true" href="#基于图像的光照-image-based-lighting">#</a></h1>
+<p>在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术，
+但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 <strong>基于图像的光照(IBL)</strong> 则提供了一种简单的方式而提升了非常好的渲染效果。</p>
+<p>IBL 通过将一张 cube map 或者 sphere map 贴图作为光源，它的每个像素都可以代表一个入射光。而对于一个着色点来说，
+在这个着色点的法线方向的半球上，我们需要对cube map或者sphere map进行采样，我们让采样结果作为入射光 $L_i(p,\omega_i) = cubeMapSampling(p,\omega_i)$，然后计算反射方程（如果没有自发光项）。
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } f_r(p,\omega_i,\omega_o)L_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } (k_df_d+f_s)L_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+根据积分的线性性我们将积分拆成一个漫反射项和镜面反射项。<br>
+</p>
+$$L_o(p,\omega_o) = \int_{\mathcal{H} } k_df_dL_i(p,\omega_i) n\cdot \omega_i d\omega_i+\int_{\mathcal{H} } f_sL_i(p,\omega_i) n\cdot \omega_i d\omega_i$$<p>
+简化为
+</p>
+$$L_o(p,\omega_o) = L_d(\omega_o)+L_s(\omega_o)$$<p>
+而一旦在实时渲染中涉及到采样，直接来说这个方法是不可行的，所以在实时渲染中，我们需要对这个积分做一些近似，或者进行一些预计算，
+把复杂的积分都先计算好，我们会分别预计算漫反射积分和镜面反射积分。</p>
+<h1 id="irradiance-map">Irradiance Map<a hidden class="anchor" aria-hidden="true" href="#irradiance-map">#</a></h1>
+<p>慢反射项为
+</p>
+$$L_d(\omega_o) = \int_{\mathcal{H} }k_df_dL_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+将与积分无关的项提出来
+</p>
+$$L_d(\omega_o) = \frac{\rho}{\pi}\int_{\mathcal{H} }k_dL_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+其中
+</p>
+$$k_d = (1 - F) \cdot (1 - metallic)$$<p>
+其中 F 是菲涅尔项，而 $F$ 项包含了半程向量，而半程向量与入射角有关，所以不能提出到积分外部，所以我们需要对 $k_d$ 做一些简化
+</p>
+$$k_d \approx F_0+(max\left \{ 1-roughness,F_0 \right \}-F_0 )(1-(n\cdot \omega_o))^5$$<p>
+此时 $k_d$ 项与积分变量无关了
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\int_{\mathcal{H} }L_i(\omega_i)n\cdot \omega_i d\omega_i$$<p>
+展开
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi} \int_{0}^{2\pi}\int_{0}^{\frac{\pi}{2}}L_i(\omega_i)cos\theta \sin\theta d\theta d\phi$$<p>
+现在的积分值只取决于法向 $n$，在法线方向上的半球上决定了入射光的值。
+<img loading="lazy" src="https://learnopengl.com/img/pbr/ibl_hemisphere_sample.png"></p>
+<p>所以我们可以使用一个 cube map 以提供光照来预计算这个积分，最后得到另一个cube map，这个新的cube map我们称作irradiance map。
+<img loading="lazy" src="https://learnopengl.com/img/pbr/ibl_irradiance.png">
+要求解这个积分我们可以使用蒙特卡洛积分</p>
+<h2 id="均匀采样">均匀采样<a hidden class="anchor" aria-hidden="true" href="#均匀采样">#</a></h2>
+<p>我们可以在半球上的角度进行角度空间的均匀采样，并假设 $\phi$ 和 $\theta$ 是独立的那么
+它们在蒙特卡洛积分中的联合概率密度为
+</p>
+$$p(\theta, \phi) = p(\theta) \cdot p(\phi) = \frac{1}{\pi/2} \cdot \frac{1}{2\pi} = \frac{1}{0.5\pi \cdot 2\pi}$$<p>
+所以
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\frac{1}{N_1N_2} \sum_{i}^{N_1}\sum_{j}^{N_2}\frac{  L_i(\theta_i,\phi_j)cos\theta_i \sin\theta_i}{p(\theta_i,\phi_j)}$$<p>
+代入化简有
+</p>
+$$L_d(\omega_o) \approx k_d\rho\pi\frac{1}{N_1N_2} \sum_{i}^{N_1}\sum_{j}^{N_2}  L_i(\theta_i,\phi_j)cos\theta_i \sin\theta_i$$<h2 id="余弦权重采样">余弦权重采样<a hidden class="anchor" aria-hidden="true" href="#余弦权重采样">#</a></h2>
+<p>使用余弦权重采样的 PDF 是 $p(\omega) = \frac{\cos\theta}{\pi}$
+就有
+</p>
+$$L_d(\omega_o) \approx k_d\frac{\rho}{\pi}\frac{1}{N}\sum_{i}^{N}\frac{L_i(\omega_i)\cos \theta}{\frac{\cos\theta}{\pi}}=k_d\rho\frac{1}{N}\sum_{i}^{N}L(\omega_i)$$<h1 id="speular">Speular<a hidden class="anchor" aria-hidden="true" href="#speular">#</a></h1>
+<p>在镜面反射部分中，镜面反射不仅取决于法线 $n$，还取决于观察方向 $v$ 以及材质的粗糙度 $\alpha$。这意味着如果你想预计算，你需要一个五维的表格（法线3D + 观察方向2D + 粗糙度1D），这在实时渲染中是不可接受的。</p>
+<p>我们参考了 games202<sup id="fnref:2"><a href="#fn:2" class="footnote-ref" role="doc-noteref">2</a></sup> 中的描述 对于镜面反射的 BRDF 它非常满足使用下面这个近似公式的使用条件
+</p>
+$$\int_{\Omega} f(x)g(x)dx \approx \frac{\int_{\Omega_G}f(x)dx}{\int_{\Omega_G}dx}\cdot\int_{\Omega}g(x)dx$$<p>
+所以我们对积分做出一个拆分
+</p>
+$$L_o(p,\omega_o) \approx \frac{\int_{\Omega_{f_r}}L_i(p,\omega_i)d\omega_i}{\int_{\Omega_{f_r}}d\omega_i}\cdot\int_{\Omega^+}f_s(p,\omega_i,\omega_o)n\cdot \omega_i d\omega_i$$<p>
+使用蒙特卡洛积分
+</p>
+$$L_o(p,\omega_o) \approx \left( \frac{\sum_{k=1}^{N} L_i(p,\mathbf{\omega}_k)(n\cdot \omega_k)}{\sum_{k=1}^{N}(n\cdot \omega_k)} \right) \left( \frac{1}{N} \sum_{k=1}^{N} \frac{f(p,\mathbf{\omega}_k, \mathbf{\omega_o}) (n\cdot \omega_k)}{p(\mathbf{\omega}_k, \mathbf{\omega_o})} \right)$$<h2 id="预滤波环境光-pre-filtered-environment-radiance">预滤波环境光 (Pre-filtered Environment Radiance)<a hidden class="anchor" aria-hidden="true" href="#预滤波环境光-pre-filtered-environment-radiance">#</a></h2>
+<p>注意到约等号右边的第一项是对 BRDF 中的 NDF 区域中所有的入射光的积分再归一化，这个操作就相当于对IBL 这张图进行 filtering, 在图上的任何一个点上，取这个点周围的一个范围进行平均操作。这个范围由roughness 决定，我们可以通过固定的 roughness 来预计算多张 cube map 并且使用 mipmap 进行保存，根据物体不同的 roughness 在不同的 mipmap 中进行插值获取 L 值
+<img loading="lazy" src="/images/cg/ibl1.png">
+我们就是通过约等号右边的第一项进行预计算
+</p>
+$$\text{Part 1} = \frac{\sum_{k=1}^{N} L_i(p,\mathbf{\omega}_k)(n\cdot \omega_k)}{\sum_{k=1}^{N}(n\cdot \omega_k)}$$<h2 id="brdf-lut">BRDF LUT<a hidden class="anchor" aria-hidden="true" href="#brdf-lut">#</a></h2>
+<p>我们处理完了第一项，还有一项我们没有处理。我们知道 $f_s = \frac{D(h)F(\omega_o, h)G(l, \omega_o)}{4(n \cdot \omega_o)(n \cdot \omega_i)}$，并且 GGX 重要性采样的标准 PDF 是 $p(h) = \frac{D(h)(n \cdot h)}{4(\omega_o \cdot h)}$ 我们将其代入第二项有
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} \frac{\frac{D(h_k)F(\omega_o, h_k)G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)}}{\frac{D(h_k)(n \cdot h_k)}{4(\omega_o \cdot h_k)}}$$<p>
+消掉 $D(h_k)$，化简得：
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} F(\omega_o, h_k) \frac{G(\omega_{i}^{(k)}, \omega_o) \cdot 4(\omega_o \cdot h_k)^2}{(n \cdot \omega_o)(n \cdot h_k)}$$<p>
+其中 $F(\omega_o, h_k) = F_0 + (1 - F_0)(1 - \omega_o \cdot h_k)^5$<br>
+我们令 $F_{base} = (1 - \omega_o \cdot h_k)^5$，则 $F = F_0(1 - F_{base}) + F_{base}$
+代入公式
+</p>
+$$I \approx \frac{1}{N} \sum_{k=1}^{N} \left[ F_0(1 - F_{base}) + F_{base} \right] \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)}$$<p>
+最后展开
+</p>
+$$I \approx F_0 \cdot \underbrace{\left( \frac{1}{N} \sum_{k=1}^{N} (1 - F_{base}) \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)} \right)}_{\text{Scale}} + \underbrace{\left( \frac{1}{N} \sum_{k=1}^{N} F_{base} \frac{G(\omega_{i}^{(k)}, \omega_o)(\omega_o \cdot h_k)}{(n \cdot \omega_o)(n \cdot h_k)} \right)}_{\text{Bias}}$$<p>终于! 我们得到了最后的公式
+</p>
+$$ I \approx F_0 \times \text{Scale} + \text{Bias} $$<p>
+其中 Scale 和 Bias 我们可以通过预计算将其存储在一张只有两个通道(R,G)的纹理中，Scale存放在r通道bias存放在g通道，将 $x$ 轴（U 坐标）映射为 $\cos\theta_v$ ($n \cdot \omega_o$)， $y$ 轴（V 坐标）映射为 粗 Roughness，这张纹理我们称为 BRDF LUT</p>
+<p>最后实现后类似这种效果
+<img loading="lazy" src="/images/cg/ibl2.png"></p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<div class="footnotes" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn:1">
+<p><a href="https://zhuanlan.zhihu.com/p/66518450">深入理解 PBR/基于图像照明 (IBL) </a>&#160;<a href="#fnref:1" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+<li id="fn:2">
+<p><a href="https://www.bilibili.com/video/BV1YK4y1T7yY?spm_id_from=333.788.videopod.episodes&amp;vd_source=b60fadc84379e52fc7b933fab5a8751c&amp;p=5">games202-高质量实时渲染</a>&#160;<a href="#fnref:2" class="footnote-backref" role="doc-backlink">&#x21a9;&#xfe0e;</a></p>
+</li>
+</ol>
+</div>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/graphics/">Graphics</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:1313/posts/opengl-compute-shader-1/">
+    <span class="title"> »</span>
+    <br>
+    <span>【OpenGL】计算着色器入门</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">CGLab</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

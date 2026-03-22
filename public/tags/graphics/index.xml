@@ -6,8 +6,25 @@
     <description>Recent content in Graphics on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 21 Mar 2026 14:13:19 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 22 Mar 2026 11:56:58 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/graphics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】基于图像的光照 Image-based Lighting（实时渲染）</title>
+      <link>http://localhost:1313/posts/cg-image-based-lighting/</link>
+      <pubDate>Sun, 22 Mar 2026 11:56:58 +0800</pubDate>
+      <guid>http://localhost:1313/posts/cg-image-based-lighting/</guid>
+      <description>&lt;p&gt;在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。&lt;/p&gt;
+&lt;h1 id=&#34;基于图像的光照-image-based-lighting&#34;&gt;基于图像的光照 Image-based Lighting&lt;/h1&gt;
+&lt;p&gt;在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术，
+但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 &lt;strong&gt;基于图像的光照(IBL)&lt;/strong&gt; 则提供了一种简单的方式而提升了非常好的渲染效果。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。</p>
+<h1 id="基于图像的光照-image-based-lighting">基于图像的光照 Image-based Lighting</h1>
+<p>在基于物理的渲染中，想要获得非常好的渲染效果往往需要使用光线追踪，或者全局光照技术，
+但是这些技术在实时渲染中往往非常复杂且实现起来非常困难。但如果只考虑光源的直接光照，渲染出来的效果又往往非常平淡。而 <strong>基于图像的光照(IBL)</strong> 则提供了一种简单的方式而提升了非常好的渲染效果。</p>
+<p>IBL 通过将一张 cube map 或者 sphere map 贴图作为光源，它的每个像素都可以代表一个入射光。而对于一个着色点来说，
+在这个着色点的法线方向的半球上，我们需要对cube map或者sphere map进行采样，并计算出该半球内的所有入射光，并求和得到该着色点的光照。</p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【OpenGL】计算着色器入门</title>
       <link>http://localhost:1313/posts/opengl-compute-shader-1/</link>
