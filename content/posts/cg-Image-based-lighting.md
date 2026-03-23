@@ -14,7 +14,7 @@ cover:
 math: true
 ---
 
-在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学在图形学中基础应用”。  
+在看这一篇文章之前你需要有前置知识：我的另一篇文章“【CG】辐射度量学 & PBR”。  
 这篇文章很大程度上参考了知乎上 Ubp.a大佬 的文章[^1]
 
 
@@ -98,7 +98,9 @@ $$I \approx F_0 \cdot \underbrace{\left( \frac{1}{N} \sum_{k=1}^{N} (1 - F_{base
 
 终于! 我们得到了最后的公式
 $$ I \approx F_0 \times \text{Scale} + \text{Bias} $$
-其中 Scale 和 Bias 我们可以通过预计算将其存储在一张只有两个通道(R,G)的纹理中，Scale存放在r通道bias存放在g通道，将 $x$ 轴（U 坐标）映射为 $\cos\theta_v$ ($n \cdot \omega_o$)， $y$ 轴（V 坐标）映射为 粗 Roughness，这张纹理我们称为 BRDF LUT
+其中 Scale 和 Bias 我们可以通过预计算将其存储在一张只有两个通道(R,G)的纹理中，Scale存放在r通道bias存放在g通道，将 $x$ 轴（U 坐标）映射为 $\cos\theta_v$ ($n \cdot \omega_o$)， $y$ 轴（V 坐标）映射为 粗 Roughness，这张纹理我们称为 BRDF LUT  
+下面是一张 BRDF LUT
+![](https://learnopengl-cn.github.io/img/07/03/02/ibl_brdf_lut.png)
 
 最后实现后类似这种效果
 ![](images/cg/ibl2.png)

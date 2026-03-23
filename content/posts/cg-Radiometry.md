@@ -1,7 +1,7 @@
 ---
 date : '2026-03-18T22:14:42+08:00'
 draft : false
-title : '【CG】辐射度量学在图形学中基础应用'
+title : '【CG】辐射度量学 & PBR'
 tags:
   - graphics
 
