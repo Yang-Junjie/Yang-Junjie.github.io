@@ -120,7 +120,15 @@ $$Var[F_N] = \frac{1}{N^2} \cdot (N \cdot \sigma_Y^2) = \frac{\sigma_Y^2}{N}$$<p
 </p>
 $$\sigma[F_N] = \sqrt{Var[F_N]} = \frac{\sigma_Y}{\sqrt{N}}$$<p>
 所以我们可以得到 $F_N$ 的收敛速度为$O(N^{-1/2})$ ，这意味着如果你想让渲染画面的噪点（误差）减少一半，你需要增加 4 倍的采样数。
-<img loading="lazy" src="/images/math/converRate.png"></p>
+<img loading="lazy" src="/images/math/converRate.png">
+与其他的数值积分相比，蒙特卡洛的收敛速度始终是 $O(N^{-1/2})$，这让他在高维的情况下表现得非常优秀，在图形渲染中，我们面对的往往是极高维度的积分问题，而传统的数值积分会随着维度的增加收敛速度大大增长</p>
+<h2 id="重要性采样">重要性采样</h2>
+<p>蒙特卡洛的收敛速度始终是 $\frac{\sigma_Y}{\sqrt{N}}$，但我们还想提高速度，那么我们就只能在分子上动手脚了，只需要让分子变小收敛速度就能加快<br>
+<strong>重要性采样 (Importance Sampling)</strong> 的核心思想就是：在对积分贡献更大的地方，进行更多的采样，且必须保证在 $f(x)\neq 0$ 情况下 $ p(x)> 0$
+观察蒙特卡洛公式
+</p>
+$$F_N = \frac{1}{N} \sum_{i=1}^{N} \frac{f(X_i)}{p(X_i)}$$<p>
+如果 $p(x)$，其结构与 $f(x)$ 尽可能相似，那么比值 $\frac{f(x)}{p(x)}$ 就会趋近于一个常数，如果 $p(x) = cf(x)$，那么方差就是 0</p>
 ]]></content:encoded>
     </item>
     <item>

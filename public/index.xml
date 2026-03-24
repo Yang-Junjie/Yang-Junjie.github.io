@@ -1743,7 +1743,8 @@ $$</h2>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/about/</guid>
       <description>欢迎来到我的Blog</description>
-      <content:encoded><![CDATA[<h2 id="关于我">关于我</h2>
+      <content:encoded><![CDATA[<p><img loading="lazy" src="/images/head.jpg"></p>
+<h2 id="关于我">关于我</h2>
 <ul>
 <li>我是一名双非本科计算数学在读大二学生</li>
 <li>热爱计算机图形学（包括但不限于渲染、物理模拟、几何）以及各种精妙的算法，热衷于制作出各种视觉效果，</li>
@@ -1752,10 +1753,16 @@ $$</h2>
 </ul>
 <h1 id="todo">TODO</h1>
 <ul>
+<li>最近在做
+<ul>
+<li>重新再学一边games101并且附上完整的作业解析，包括作业框架的解析，和扩展内容，尝试完成大部分感兴趣的大作业</li>
+</ul>
+</li>
+<li>重新再学一边games202并且附上完整的作业解析，包括作业框架的解析，和扩展内容，尝试完成大部分感兴趣的大作业</li>
+<li>vulkan,dx12</li>
 <li>学习godot,unreal</li>
 <li>阅读godot源码</li>
-<li>使用godot实现各种算法</li>
-<li>学习vulkan，dx12</li>
+<li>使用godot实现各种图形学算法</li>
 </ul>
 <h2 id="-关于-cglab">🚀 关于 CGLab</h2>
 <p>这里是我个人的技术空间，主要聚焦于 <strong>计算机图形学</strong>和<strong>数学专业课</strong>。
