@@ -3,7 +3,7 @@ title: "👨‍💻 关于我"
 description: "欢迎来到我的Blog"
 layout: "about" 
 ---
-![](images/head.jpg)
+![](images/head1.jpg)
 ## 关于我
 - 我是一名双非本科计算数学在读大二学生
 - 热爱计算机图形学（包括但不限于渲染、物理模拟、几何）以及各种精妙的算法，热衷于制作出各种视觉效果，

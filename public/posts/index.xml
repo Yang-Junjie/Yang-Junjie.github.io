@@ -6,8 +6,99 @@
     <description>Recent content in Posts on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 23 Mar 2026 17:53:31 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 24 Mar 2026 21:03:20 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-01学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_01/</link>
+      <pubDate>Tue, 24 Mar 2026 21:03:20 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_01/</guid>
+      <description>&lt;h1 id=&#34;写在前面&#34;&gt;写在前面&lt;/h1&gt;
+&lt;p&gt;首先这是一个系列的博客，将会详细记录我学习 &lt;strong&gt;&lt;a href=&#34;http://games-cn.org/&#34;&gt;Games（Graphics And Mixed Environment Symposium）&lt;/a&gt;&lt;/strong&gt; 系列课程的笔记，以及进行详细的作业解析.
+在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：&lt;br&gt;
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp;amp; my family），追求自己所热爱的图形学，那么你可以继续。&lt;br&gt;
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="写在前面">写在前面</h1>
+<p>首先这是一个系列的博客，将会详细记录我学习 <strong><a href="http://games-cn.org/">Games（Graphics And Mixed Environment Symposium）</a></strong> 系列课程的笔记，以及进行详细的作业解析.
+在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：<br>
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。<br>
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。</p>
+<p>这是games101-01的笔记，没什么太多可以解析的大多都是课程介绍。</p>
+<h1 id="计算机图形学的应用">计算机图形学的应用</h1>
+<p>计算机图形学 Computer Graphics 在多个领域有应用比如：</p>
+<ol>
+<li>Video Games,视频游戏领域
+<ol>
+<li>黑神话悟空</li>
+<li>赛博朋克2077</li>
+</ol>
+</li>
+<li>Moives 电影
+<ol>
+<li>星球大战系列</li>
+<li>阿凡达</li>
+<li>疯狂动物城</li>
+</ol>
+</li>
+<li>Animation 动画
+<ol>
+<li>冰雪奇缘</li>
+</ol>
+</li>
+<li>Design 设计
+<ol>
+<li>Computer Aided Design (CAD)</li>
+<li>家居场景设计</li>
+</ol>
+</li>
+<li>Visualization 可视化
+<ol>
+<li>医疗信息可视化</li>
+<li>疾病传播可视化</li>
+</ol>
+</li>
+<li>Virtual Reality (VR) 虚拟现实</li>
+<li>Digital Illustration 数字插画</li>
+<li>Simulation 模拟
+<ol>
+<li>流体模拟</li>
+<li>黑洞模拟</li>
+</ol>
+</li>
+<li>Typography 字形</li>
+</ol>
+<h1 id="为什么我们学习计算机图形学">为什么我们学习计算机图形学</h1>
+<ul>
+<li>创造可以交互的虚拟世界</li>
+<li>这需要我们理解我们物理世界的方方面面</li>
+<li>需要学习新的计算方法，显示方法，技术（例如现在与ai结合的方法，NeRF,3D Gaussian Splatting,世界模型等）<br>
+<img loading="lazy" src="https://sites.cs.ucsb.edu/~lingqi/images/research_new.jpg">
+图片来自https://sites.cs.ucsb.edu/~lingqi/<br>
+<strong>Because Computer Graphics is awesome!</strong> 好看就完事</li>
+</ul>
+<h1 id="games101的课程内容">games101的课程内容</h1>
+<ul>
+<li>Rasterization 光栅化</li>
+<li>Curves and Meshes 曲线与网格</li>
+<li>Ray Tracing 光线追踪</li>
+<li>Animation / Simulation 动画与模拟</li>
+</ul>
+<h2 id="光栅化">光栅化</h2>
+<p>光栅化是一个将三维空间中的几何形体显示在显示设备上，这是一个常常用在实时渲染中的技术，实时的定义是在每秒钟能渲染出30副画面，也就是30 Frame per Second（FPS）。与实时渲染相对的是离线渲染（offline rendering）</p>
+<h2 id="曲线与网格">曲线与网格</h2>
+<p>如何渲染一条曲线，曲面，如何使用简单的曲面去表示复杂的曲面等</p>
+<h2 id="光线追踪">光线追踪</h2>
+<p>光线追踪相对于光栅化来说非常的慢，但是它慢也有它慢的优点，因为使用光线追踪渲染出来的图像往往比光栅化出来的图像更精美，通常用在对速度要求不高的领域，比如动画，电影等。但是现在有一些新的技术能让光线追踪的速度变得非常快，比如使用硬件加速、新的算法等等。</p>
+<h2 id="动画与模拟">动画与模拟</h2>
+<p>动画与模拟或者叫做仿真是让渲染出来的物体能够拥有类似物理交互的效果，例如扔一个小球，这个小球是如何根据物理进行反弹等等
+<img loading="lazy" src="/images/cg/games_series/games101/01/animation_simulation.png"></p>
+<h1 id="什么是计算机图形学">什么是计算机图形学</h1>
+<p>个人理解：计算机图形学是一门理论学科，它研究的是如何将虚拟的3D世界映射到显示设备上，将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中。并且计算机图形学涉及到多个领域包括但不限于，渲染、物理模拟/仿真、动画、几何等。我们常说的opengl，dx12，vulkan等都是计算机图形学的应用，他们是一套&quot;渲染api&quot;，利用了计算机图形学的理论，将渲染操作封装成api，供程序员/研究人员方便的进行开发。
+我们还要区分计算机视觉和计算机图形学，简单来说计算机视觉是将现实生活空间的模型表示为计算机中的数据模型，让计算机理解这这个世界，我认为NeRF、3D Gaussian Splatting也是一种计算机视觉中的，3D场景重建。<br>
+我们还需要区分图像/模型生成和计算机图形学的区别，其实我认为这两者的边界有点模糊，图像生成是通过计算机生成一张图片，比如文生图，stable diffusion。
+最前沿的新技术的边界还是有点模糊的，但是你只需要记住计算机图形学不是api，是将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中的学科就行了。</p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【Math】图形学的数学基础-蒙特卡洛积分法</title>
       <link>http://localhost:1313/posts/math-monte-carlo-integration/</link>

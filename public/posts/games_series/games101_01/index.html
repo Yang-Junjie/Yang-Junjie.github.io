@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-cn" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>【CG】Games101-01学习笔记 &amp; 作业解析 | CGLab</title>
+<meta name="keywords" content="graphics">
+<meta name="description" content="写在前面
+首先这是一个系列的博客，将会详细记录我学习 Games（Graphics And Mixed Environment Symposium） 系列课程的笔记，以及进行详细的作业解析.
+在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。">
+<meta name="author" content="氧均竭">
+<link rel="canonical" href="http://localhost:1313/posts/games_series/games101_01/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.ed1639a41234d0b785243363057ccffc5be9cd9e7ca9a8ff21a7c55a2c0edd47.css" integrity="sha256-7RY5pBI00LeFJDNjBXzP/FvpzZ58qaj/IafFWiwO3Uc=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh-cn" href="http://localhost:1313/posts/games_series/games101_01/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        renderMathInElement(document.body, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false,
+            ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"]
+        });
+    });
+</script><meta property="og:url" content="http://localhost:1313/posts/games_series/games101_01/">
+  <meta property="og:site_name" content="CGLab">
+  <meta property="og:title" content="【CG】Games101-01学习笔记 & 作业解析">
+  <meta property="og:description" content="写在前面 首先这是一个系列的博客，将会详细记录我学习 Games（Graphics And Mixed Environment Symposium） 系列课程的笔记，以及进行详细的作业解析. 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-24T21:03:20+08:00">
+    <meta property="article:modified_time" content="2026-03-24T21:03:20+08:00">
+    <meta property="article:tag" content="Graphics">
+    <meta property="og:image" content="http://localhost:1313/images/cg/games_series/games101/01/image1.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="http://localhost:1313/images/cg/games_series/games101/01/image1.png">
+  <meta name="twitter:title" content="【CG】Games101-01学习笔记 & 作业解析">
+  <meta name="twitter:description" content="写在前面 首先这是一个系列的博客，将会详细记录我学习 Games（Graphics And Mixed Environment Symposium） 系列课程的笔记，以及进行详细的作业解析. 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "http://localhost:1313/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "【CG】Games101-01学习笔记 \u0026 作业解析",
+      "item": "http://localhost:1313/posts/games_series/games101_01/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "【CG】Games101-01学习笔记 \u0026 作业解析",
+  "name": "【CG】Games101-01学习笔记 \u0026 作业解析",
+  "description": "写在前面 首先这是一个系列的博客，将会详细记录我学习 Games（Graphics And Mixed Environment Symposium） 系列课程的笔记，以及进行详细的作业解析. 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：\n在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad \u0026amp; my family），追求自己所热爱的图形学，那么你可以继续。\n这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。\n",
+  "keywords": [
+    "graphics"
+  ],
+  "articleBody": "写在前面 首先这是一个系列的博客，将会详细记录我学习 Games（Graphics And Mixed Environment Symposium） 系列课程的笔记，以及进行详细的作业解析. 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：\n在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad \u0026 my family），追求自己所热爱的图形学，那么你可以继续。\n这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。\n这是games101-01的笔记，没什么太多可以解析的大多都是课程介绍。\n计算机图形学的应用 计算机图形学 Computer Graphics 在多个领域有应用比如：\nVideo Games,视频游戏领域 黑神话悟空 赛博朋克2077 Moives 电影 星球大战系列 阿凡达 疯狂动物城 Animation 动画 冰雪奇缘 Design 设计 Computer Aided Design (CAD) 家居场景设计 Visualization 可视化 医疗信息可视化 疾病传播可视化 Virtual Reality (VR) 虚拟现实 Digital Illustration 数字插画 Simulation 模拟 流体模拟 黑洞模拟 Typography 字形 为什么我们学习计算机图形学 创造可以交互的虚拟世界 这需要我们理解我们物理世界的方方面面 需要学习新的计算方法，显示方法，技术（例如现在与ai结合的方法，NeRF,3D Gaussian Splatting,世界模型等）\n图片来自https://sites.cs.ucsb.edu/~lingqi/\nBecause Computer Graphics is awesome! 好看就完事 games101的课程内容 Rasterization 光栅化 Curves and Meshes 曲线与网格 Ray Tracing 光线追踪 Animation / Simulation 动画与模拟 光栅化 光栅化是一个将三维空间中的几何形体显示在显示设备上，这是一个常常用在实时渲染中的技术，实时的定义是在每秒钟能渲染出30副画面，也就是30 Frame per Second（FPS）。与实时渲染相对的是离线渲染（offline rendering） 曲线与网格 如何渲染一条曲线，曲面，如何使用简单的曲面去表示复杂的曲面等 光线追踪 光线追踪相对于光栅化来说非常的慢，但是它慢也有它慢的优点，因为使用光线追踪渲染出来的图像往往比光栅化出来的图像更精美，通常用在对速度要求不高的领域，比如动画，电影等。但是现在有一些新的技术能让光线追踪的速度变得非常快，比如使用硬件加速、新的算法等等。 动画与模拟 动画与模拟或者叫做仿真是让渲染出来的物体能够拥有类似物理交互的效果，例如扔一个小球，这个小球是如何根据物理进行反弹等等 什么是计算机图形学 个人理解：计算机图形学是一门理论学科，它研究的是如何将虚拟的3D世界映射到显示设备上，将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中。并且计算机图形学涉及到多个领域包括但不限于，渲染、物理模拟/仿真、动画、几何等。我们常说的opengl，dx12，vulkan等都是计算机图形学的应用，他们是一套\"渲染api\"，利用了计算机图形学的理论，将渲染操作封装成api，供程序员/研究人员方便的进行开发。 我们还要区分计算机视觉和计算机图形学，简单来说计算机视觉是将现实生活空间的模型表示为计算机中的数据模型，让计算机理解这这个世界，我认为NeRF、3D Gaussian Splatting也是一种计算机视觉中的，3D场景重建。\n我们还需要区分图像/模型生成和计算机图形学的区别，其实我认为这两者的边界有点模糊，图像生成是通过计算机生成一张图片，比如文生图，stable diffusion。 最前沿的新技术的边界还是有点模糊的，但是你只需要记住计算机图形学不是api，是将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中的学科就行了。\n作业解析 这一节课没有作业。\n",
+  "wordCount" : "1637",
+  "inLanguage": "zh-cn",
+  "image":"http://localhost:1313/images/cg/games_series/games101/01/image1.png","datePublished": "2026-03-24T21:03:20+08:00",
+  "dateModified": "2026-03-24T21:03:20+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "氧均竭"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "http://localhost:1313/posts/games_series/games101_01/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "CGLab",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "http://localhost:1313/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="CGLab (Alt + H)">CGLab</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="🏠 首页">
+                    <span>🏠 首页</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/search/" title="🔍 搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍 搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/archives/" title="📦 归档">
+                    <span>📦 归档</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/tags/" title="🏷️ 标签">
+                    <span>🏷️ 标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="👨‍💻 关于">
+                    <span>👨‍💻 关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="http://localhost:1313/">Home</a>&nbsp;»&nbsp;<a href="http://localhost:1313/posts/">Posts</a></div>
+    <h1 class="post-title entry-hint-parent">
+      【CG】Games101-01学习笔记 &amp; 作业解析
+    </h1>
+    <div class="post-meta"><span title='2026-03-24 21:03:20 +0800 CST'>March 24, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>1637 words</span>&nbsp;·&nbsp;<span>氧均竭</span>
+
+</div>
+  </header> 
+<figure class="entry-cover">
+        <a href="http://localhost:1313/images/cg/games_series/games101/01/image1.png" target="_blank" rel="noopener noreferrer">
+            <img loading="eager"
+                srcset='http://localhost:1313/images/cg/games_series/games101/01/image1_hu_e3e16c20b77765d9.png 360w,http://localhost:1313/images/cg/games_series/games101/01/image1_hu_809f7ee84a80f743.png 480w,http://localhost:1313/images/cg/games_series/games101/01/image1_hu_946d857e293a6e61.png 720w,http://localhost:1313/images/cg/games_series/games101/01/image1_hu_4cba9c46e0eb2832.png 1080w,http://localhost:1313/images/cg/games_series/games101/01/image1.png 1422w'
+                src="http://localhost:1313/images/cg/games_series/games101/01/image1.png"
+                sizes="(min-width: 768px) 720px, 100vw"
+                width="1422" height="655"
+                alt="cover">
+        </a>
+        
+</figure><div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%86%99%e5%9c%a8%e5%89%8d%e9%9d%a2" aria-label="写在前面">写在前面</a></li>
+                <li>
+                    <a href="#%e8%ae%a1%e7%ae%97%e6%9c%ba%e5%9b%be%e5%bd%a2%e5%ad%a6%e7%9a%84%e5%ba%94%e7%94%a8" aria-label="计算机图形学的应用">计算机图形学的应用</a></li>
+                <li>
+                    <a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e6%88%91%e4%bb%ac%e5%ad%a6%e4%b9%a0%e8%ae%a1%e7%ae%97%e6%9c%ba%e5%9b%be%e5%bd%a2%e5%ad%a6" aria-label="为什么我们学习计算机图形学">为什么我们学习计算机图形学</a></li>
+                <li>
+                    <a href="#games101%e7%9a%84%e8%af%be%e7%a8%8b%e5%86%85%e5%ae%b9" aria-label="games101的课程内容">games101的课程内容</a><ul>
+                        
+                <li>
+                    <a href="#%e5%85%89%e6%a0%85%e5%8c%96" aria-label="光栅化">光栅化</a></li>
+                <li>
+                    <a href="#%e6%9b%b2%e7%ba%bf%e4%b8%8e%e7%bd%91%e6%a0%bc" aria-label="曲线与网格">曲线与网格</a></li>
+                <li>
+                    <a href="#%e5%85%89%e7%ba%bf%e8%bf%bd%e8%b8%aa" aria-label="光线追踪">光线追踪</a></li>
+                <li>
+                    <a href="#%e5%8a%a8%e7%94%bb%e4%b8%8e%e6%a8%a1%e6%8b%9f" aria-label="动画与模拟">动画与模拟</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%bb%80%e4%b9%88%e6%98%af%e8%ae%a1%e7%ae%97%e6%9c%ba%e5%9b%be%e5%bd%a2%e5%ad%a6" aria-label="什么是计算机图形学">什么是计算机图形学</a></li>
+                <li>
+                    <a href="#%e4%bd%9c%e4%b8%9a%e8%a7%a3%e6%9e%90" aria-label="作业解析">作业解析</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="写在前面">写在前面<a hidden class="anchor" aria-hidden="true" href="#写在前面">#</a></h1>
+<p>首先这是一个系列的博客，将会详细记录我学习 <strong><a href="http://games-cn.org/">Games（Graphics And Mixed Environment Symposium）</a></strong> 系列课程的笔记，以及进行详细的作业解析.
+在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：<br>
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。<br>
+这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。</p>
+<p>这是games101-01的笔记，没什么太多可以解析的大多都是课程介绍。</p>
+<h1 id="计算机图形学的应用">计算机图形学的应用<a hidden class="anchor" aria-hidden="true" href="#计算机图形学的应用">#</a></h1>
+<p>计算机图形学 Computer Graphics 在多个领域有应用比如：</p>
+<ol>
+<li>Video Games,视频游戏领域
+<ol>
+<li>黑神话悟空</li>
+<li>赛博朋克2077
+<img loading="lazy" src="/images/cg/games_series/games101/01/image6.png"></li>
+</ol>
+</li>
+<li>Moives 电影
+<ol>
+<li>星球大战系列</li>
+<li>阿凡达</li>
+<li>疯狂动物城
+<img loading="lazy" src="/images/cg/games_series/games101/01/image4.png"></li>
+</ol>
+</li>
+<li>Animation 动画
+<ol>
+<li>冰雪奇缘
+<img loading="lazy" src="/images/cg/games_series/games101/01/image3.png"></li>
+</ol>
+</li>
+<li>Design 设计
+<ol>
+<li>Computer Aided Design (CAD)
+<img loading="lazy" src="/images/cg/games_series/games101/01/image2.png"></li>
+<li>家居场景设计
+<img loading="lazy" src="/images/cg/games_series/games101/01/image1.png"></li>
+</ol>
+</li>
+<li>Visualization 可视化
+<ol>
+<li>医疗信息可视化</li>
+<li>疾病传播可视化
+<img loading="lazy" src="/images/cg/games_series/games101/01/image7.png"></li>
+</ol>
+</li>
+<li>Virtual Reality (VR) 虚拟现实</li>
+<li>Digital Illustration 数字插画</li>
+<li>Simulation 模拟
+<ol>
+<li>流体模拟</li>
+<li>黑洞模拟
+<img loading="lazy" src="/images/cg/games_series/games101/01/image5.png"></li>
+</ol>
+</li>
+<li>Typography 字形</li>
+</ol>
+<h1 id="为什么我们学习计算机图形学">为什么我们学习计算机图形学<a hidden class="anchor" aria-hidden="true" href="#为什么我们学习计算机图形学">#</a></h1>
+<ul>
+<li>创造可以交互的虚拟世界</li>
+<li>这需要我们理解我们物理世界的方方面面</li>
+<li>需要学习新的计算方法，显示方法，技术（例如现在与ai结合的方法，NeRF,3D Gaussian Splatting,世界模型等）<br>
+<img loading="lazy" src="https://sites.cs.ucsb.edu/~lingqi/images/research_new.jpg">
+图片来自https://sites.cs.ucsb.edu/~lingqi/<br>
+<strong>Because Computer Graphics is awesome!</strong> 好看就完事</li>
+</ul>
+<h1 id="games101的课程内容">games101的课程内容<a hidden class="anchor" aria-hidden="true" href="#games101的课程内容">#</a></h1>
+<ul>
+<li>Rasterization 光栅化</li>
+<li>Curves and Meshes 曲线与网格</li>
+<li>Ray Tracing 光线追踪</li>
+<li>Animation / Simulation 动画与模拟</li>
+</ul>
+<h2 id="光栅化">光栅化<a hidden class="anchor" aria-hidden="true" href="#光栅化">#</a></h2>
+<p>光栅化是一个将三维空间中的几何形体显示在显示设备上，这是一个常常用在实时渲染中的技术，实时的定义是在每秒钟能渲染出30副画面，也就是30 Frame per Second（FPS）。与实时渲染相对的是离线渲染（offline rendering）
+<img loading="lazy" src="/images/cg/games_series/games101/01/rasterization.png"></p>
+<h2 id="曲线与网格">曲线与网格<a hidden class="anchor" aria-hidden="true" href="#曲线与网格">#</a></h2>
+<p>如何渲染一条曲线，曲面，如何使用简单的曲面去表示复杂的曲面等
+<img loading="lazy" src="/images/cg/games_series/games101/01/curves_meshes.png"></p>
+<h2 id="光线追踪">光线追踪<a hidden class="anchor" aria-hidden="true" href="#光线追踪">#</a></h2>
+<p>光线追踪相对于光栅化来说非常的慢，但是它慢也有它慢的优点，因为使用光线追踪渲染出来的图像往往比光栅化出来的图像更精美，通常用在对速度要求不高的领域，比如动画，电影等。但是现在有一些新的技术能让光线追踪的速度变得非常快，比如使用硬件加速、新的算法等等。
+<img loading="lazy" src="/images/cg/games_series/games101/01/ray_tracing.png"></p>
+<h2 id="动画与模拟">动画与模拟<a hidden class="anchor" aria-hidden="true" href="#动画与模拟">#</a></h2>
+<p>动画与模拟或者叫做仿真是让渲染出来的物体能够拥有类似物理交互的效果，例如扔一个小球，这个小球是如何根据物理进行反弹等等
+<img loading="lazy" src="/images/cg/games_series/games101/01/animation_simulation.png"></p>
+<h1 id="什么是计算机图形学">什么是计算机图形学<a hidden class="anchor" aria-hidden="true" href="#什么是计算机图形学">#</a></h1>
+<p>个人理解：计算机图形学是一门理论学科，它研究的是如何将虚拟的3D世界映射到显示设备上，将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中。并且计算机图形学涉及到多个领域包括但不限于，渲染、物理模拟/仿真、动画、几何等。我们常说的opengl，dx12，vulkan等都是计算机图形学的应用，他们是一套&quot;渲染api&quot;，利用了计算机图形学的理论，将渲染操作封装成api，供程序员/研究人员方便的进行开发。
+我们还要区分计算机视觉和计算机图形学，简单来说计算机视觉是将现实生活空间的模型表示为计算机中的数据模型，让计算机理解这这个世界，我认为NeRF、3D Gaussian Splatting也是一种计算机视觉中的，3D场景重建。<br>
+我们还需要区分图像/模型生成和计算机图形学的区别，其实我认为这两者的边界有点模糊，图像生成是通过计算机生成一张图片，比如文生图，stable diffusion。
+最前沿的新技术的边界还是有点模糊的，但是你只需要记住计算机图形学不是api，是将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中的学科就行了。</p>
+<h1 id="作业解析">作业解析<a hidden class="anchor" aria-hidden="true" href="#作业解析">#</a></h1>
+<p>这一节课没有作业。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/graphics/">Graphics</a></li>
+    </ul>
+<nav class="paginav">
+  <a class="next" href="http://localhost:1313/posts/math-monte-carlo-integration/">
+    <span class="title"> »</span>
+    <br>
+    <span>【Math】图形学的数学基础-蒙特卡洛积分法</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">CGLab</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
