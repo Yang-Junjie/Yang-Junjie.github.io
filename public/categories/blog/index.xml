@@ -13,9 +13,9 @@
       <link>http://localhost:1313/posts/games_series/games101_02/</link>
       <pubDate>Wed, 25 Mar 2026 09:36:43 +0800</pubDate>
       <guid>http://localhost:1313/posts/games_series/games101_02/</guid>
-      <description>&lt;h1 id=&#34;向量与线性代数&#34;&gt;向量与线性代数&lt;/h1&gt;
-&lt;p&gt;图形学依赖于线性代数，图形学不仅仅依赖于线性代数，它还依赖微积分，概率统计，光学，力学，信号处理，数值分析，艺术等等。我们这里介绍线性代数。&lt;/p&gt;</description>
-      <content:encoded><![CDATA[<h1 id="向量与线性代数">向量与线性代数</h1>
+      <description>&lt;p&gt;这节课非常简单，没太大可以解释的，由于数学知识我会在数学专题中详细介绍，笔记中的介绍略了非常多，学过大学线性代数的对于这节课应该有很好的掌握。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>这节课非常简单，没太大可以解释的，由于数学知识我会在数学专题中详细介绍，笔记中的介绍略了非常多，学过大学线性代数的对于这节课应该有很好的掌握。</p>
+<h1 id="向量与线性代数">向量与线性代数</h1>
 <p>图形学依赖于线性代数，图形学不仅仅依赖于线性代数，它还依赖微积分，概率统计，光学，力学，信号处理，数值分析，艺术等等。我们这里介绍线性代数。</p>
 <p>线性代数可以处理物体的旋转，缩放，平移等等操作是计算机图形学中的基础操作。</p>
 <h2 id="向量">向量</h2>
@@ -76,9 +76,252 @@ $$ \vec{b}_{\bot} = ||\vec{b}|| \cos\theta$$
 <li>我们可以使用点乘判断“前”与“后”,如果一个向量与一个平面的法线向量（垂直于平面的向量）的点乘大于0 则这个向量在平面的前面，如果小于零则在平面的后面
 <img loading="lazy" src="/images/cg/games_series/games101/02/vec4.png"></li>
 <li>判断一个向量在另一个向量的左边还是右边，判断一个点在三角形内部和外部都可以使用向量叉积这个工具
-<img loading="lazy" src="/images/cg/games_series/games101/02/vec7.png"></li>
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec7.png">
+例如这幅图中，左边这幅图 $\vec{a}$和$\vec{b}$ 在 $xoy$ 平面上，我们用肉眼能看到 $\vec{b}$ 在 $\vec{a}$ 的左边，如果一个向量 $\vec{b}$ 在另一个向量 $\vec{b}$ 的左边那么 $\vec{a} \times \vec{b}$ 方向一定是正的
+右边这幅图，我们可以使用叉积判断一个点是否在三角形内部（图形学中经常需要判断这个问题），如果一个点在三角形内部，那么它依次与三角形顶点构成的向量与三角形的边向量的叉积的方向是相同的</li>
 </ul>
-]]></content:encoded>
+<h1 id="矩阵">矩阵</h1>
+<p>是一个按照矩形行列排列的数的集合<br>
+例如
+</p>
+$$
+A = \begin{pmatrix}
+1  & 3\\
+5 & 2\\
+0&4
+\end{pmatrix}
+$$<h2 id="矩阵的运算">矩阵的运算</h2>
+<ul>
+<li>矩阵的加法：$A + B = C$，把对应位置对应的元素相加</li>
+<li>矩阵的减法：$A - B = C$，把对应位置对应的元素相减</li>
+<li>矩阵的数乘：$kA = B$，把矩阵 $A$ 中所有元素都乘以数 $k$</li>
+<li>矩阵的转置：$A^T = B$，把矩阵 $A$ 的行和列对调，例如
+
+$$
+A = \begin{pmatrix}
+1  & 3\\
+5 & 2\\
+0&4
+\end{pmatrix},
+A^T = \begin{pmatrix}
+1  & 5 & 0\\
+3 & 2 & 4
+\end{pmatrix}
+$$
+<img loading="lazy" src="/images/cg/games_series/games101/02/mat3.png"></li>
+<li>矩阵的乘法：$A_{mn} \times B_{np} = C_{mp}$，矩阵的乘法，矩阵 $A$ 的列数必须等于矩阵 $B$ 的行数，一个 $m*n$ 的矩阵只能和一个 $n*p$ 的矩阵相乘，得到一个 $m*p$ 的矩阵，被定义为:有矩阵$A = a_{ij}$,矩阵$B = b_{ij}$，则矩阵 $C$
+
+$$c_{ij} = \sum_{k=1}^{n} a_{ik}b_{kj} = a_{i1}b_{1j} + a_{i2}b_{2j} + \dots + a_{in}b_{nj}$$
+<img loading="lazy" src="/images/cg/games_series/games101/02/mat1.png"></li>
+</ul>
+<h2 id="矩阵的乘法运算律">矩阵的乘法运算律</h2>
+<ul>
+<li>矩阵没有交换律 ： $A \times B \neq B \times A$</li>
+<li>矩阵的结合律： $A \times (B \times C) = (A \times B) \times C$</li>
+<li>矩阵的左分配律： $A \times (B + C) = A \times B + A \times C$</li>
+<li>矩阵的右分配律： $(A + B) \times C = A \times C + B \times C$</li>
+<li>数乘结合律： $k(A \times B) = kA \times B = A \times kB$</li>
+<li>消去律不成立： 如果 $A \times B = A \times C$，你不能简单地推导出 $B = C$（除非 $A$ 是可逆矩阵）</li>
+</ul>
+<h2 id="向量与矩阵的乘法">向量与矩阵的乘法</h2>
+<p>你把向量看成一个只有一列的矩阵就行了，这样就变为了矩阵的乘法了
+<img loading="lazy" src="/images/cg/games_series/games101/02/mat2.png">
+这个矩阵将向量变换为它关于y轴对称的向量</p>
+<h2 id="单位矩阵">单位矩阵</h2>
+<p>单位矩阵 $I$ 是一个 $n*n$ 的矩阵，它的对角线上的元素都是1，其他元素都是0，相当于实数中的 1,1 乘以任何数都等于 1，单位矩阵也类似，$I$ 乘以任何矩阵都等于这个矩阵本身</p>
+<ul>
+<li>矩阵的逆：如果一个矩阵$A$乘另一个矩阵$B$等于单位矩阵$ A\times B = I$，那么矩阵$B$就是矩阵$A$的逆矩阵，记作$B = A^{-1}$
+<img loading="lazy" src="/images/cg/games_series/games101/02/mat4.png"></li>
+</ul>
+<h1 id="矩阵在图形学中的应用">矩阵在图形学中的应用</h1>
+<p>矩阵在图形学中充满了大量的运用，最常用的场景就是相机投影，运动，模型变换，旋转，缩放等操作，这些操作都应用了矩阵变换这么一个操作，实际上就是矩阵的乘法操作</p>
+<h1 id="作业解析">作业解析</h1>
+<p>这节课的作业是环境配置，我们不使用虚拟机，而是直接在windows上配置环境，我们使用cmake来构建项目，这节课的作业只要求使用Eigen库，但是后续需要使用到opencv，所以这里一起配置了
+我们假设你已经安装了cmake，并且知道cmake的基础用法，并且安装了msvc/clangd/mingw等编译器。</p>
+<ol>
+<li>安装Eigen库
+Eigen库是一个开源的C++线性代数库，我们可以从<a href="https://gitlab.com/libeigen/eigen/-/releases/5.0.0">GitLab</a>中下载，这里给的是5.0.0版本，下载解压到你希望的位置，这里我解压到了
+<code>F:\libs\eigen</code>注意这个路径必须是你打开这个目录时必须有一个CMakeLists.txt的文件</li>
+<li>安装opencv
+去opencv官网下载<a href="https://opencv.org/releases/">opencv</a>这里下载的是4.12.0版本，如果你是windows系统，那么你会得到一个安装程序，将安装路径配置到你希望的位置，这里我选择到
+<code>F:\libs</code>这样最后你打开<code>F:\libs\opencv</code>目录时应该有一个LICENSE.txt文件</li>
+<li>修改原课程的cmake文件
+原课程的cmake文件是</li>
+</ol>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln">1</span><span class="cl"><span class="nb">cmake_minimum_required</span> <span class="p">(</span><span class="s">VERSION</span> <span class="s">2.8.11</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="nb">project</span> <span class="p">(</span><span class="s">Transformation</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="nb">find_package</span><span class="p">(</span><span class="s">Eigen3</span> <span class="s">REQUIRED</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">5</span><span class="cl"><span class="nb">include_directories</span><span class="p">(</span><span class="s">EIGEN3_INCLUDE_DIR</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">6</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">7</span><span class="cl"><span class="nb">add_executable</span> <span class="p">(</span><span class="s">Transformation</span> <span class="s">main.cpp</span><span class="p">)</span><span class="err">
+</span></span></span></code></pre></div><p>我们将其改为</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cmake" data-lang="cmake"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="c"># 原来的cmake版本太低了，可能不兼容新的eigen和opencv我们将其版本设置高一点
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="nb">cmake_minimum_required</span><span class="p">(</span><span class="s">VERSION</span> <span class="s">3.10</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="nb">project</span><span class="p">(</span><span class="s">Transformation</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl"><span class="c"># 我们使用c++17
+</span></span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD</span> <span class="s">17</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 7</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">CMAKE_CXX_STANDARD_REQUIRED</span> <span class="s">ON</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln"> 8</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl"><span class="c"># 由于Eigen是纯头文件库，所以我们指定Eigen的include目录在哪就行了
+</span></span></span><span class="line"><span class="ln">10</span><span class="cl"><span class="c"># 由于在`F:/libs/eigen`目录下Eigen文件夹中就是我们需要的头文件源码，所以这里与原作业对不上，所以需要修改cpp的头文件包含
+</span></span></span><span class="line"><span class="ln">11</span><span class="cl"><span class="nb">set</span><span class="p">(</span><span class="s">EIGEN3_INCLUDE_DIR</span> <span class="s2">&#34;F:/libs/eigen&#34;</span><span class="p">)</span> <span class="err">
+</span></span></span><span class="line"><span class="ln">12</span><span class="cl"><span class="nb">include_directories</span><span class="p">(</span><span class="o">${</span><span class="nv">EIGEN3_INCLUDE_DIR</span><span class="o">}</span><span class="p">)</span><span class="err">
+</span></span></span><span class="line"><span class="ln">13</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">14</span><span class="cl"><span class="err">
+</span></span></span><span class="line"><span class="ln">15</span><span class="cl"><span class="nb">add_executable</span> <span class="p">(</span><span class="s">Transformation</span> <span class="s">main.cpp</span><span class="p">)</span><span class="err">
+</span></span></span></code></pre></div><p>我们再将<code>main.cpp</code>的包含头文件修改为</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln">1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Core&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Dense&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cmath&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln">4</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span></span></span></code></pre></div><p>这样我们就能成功编译了
+以下就是示例中注释要求TODO的完整代码，没什么好讲的，直接用Eigen库进行运算就行了</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Core&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Dense&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cmath&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">  <span class="c1">// Basic Example of cpp
+</span></span></span><span class="line"><span class="ln"> 9</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of cpp </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">  <span class="kt">float</span> <span class="n">a</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">11</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">a</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">a</span> <span class="o">/</span> <span class="n">b</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">sqrt</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">acos</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">15</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">sin</span><span class="p">(</span><span class="mf">30.0</span> <span class="o">/</span> <span class="mf">180.0</span> <span class="o">*</span> <span class="n">acos</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">
+</span></span><span class="line"><span class="ln">17</span><span class="cl">  <span class="c1">// Example of vector
+</span></span></span><span class="line"><span class="ln">18</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of vector </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">  <span class="c1">// vector definition
+</span></span></span><span class="line"><span class="ln">20</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3f</span> <span class="n">v</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span> <span class="mf">2.0f</span><span class="p">,</span> <span class="mf">3.0f</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3f</span> <span class="n">w</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span> <span class="mf">0.0f</span><span class="p">,</span> <span class="mf">0.0f</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">  <span class="c1">// vector output
+</span></span></span><span class="line"><span class="ln">23</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of output </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">24</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">v</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">  <span class="c1">// vector add
+</span></span></span><span class="line"><span class="ln">26</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of add </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">v</span> <span class="o">+</span> <span class="n">w</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">28</span><span class="cl">  <span class="c1">// vector scalar multiply
+</span></span></span><span class="line"><span class="ln">29</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of scalar multiply </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">30</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">v</span> <span class="o">*</span> <span class="mf">3.0f</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">31</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="mf">2.0f</span> <span class="o">*</span> <span class="n">v</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">32</span><span class="cl">
+</span></span><span class="line"><span class="ln">33</span><span class="cl">  <span class="c1">// Example of matrix
+</span></span></span><span class="line"><span class="ln">34</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of matrix </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">35</span><span class="cl">  <span class="c1">// matrix definition
+</span></span></span><span class="line"><span class="ln">36</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix3f</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">37</span><span class="cl">  <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">38</span><span class="cl">  <span class="n">j</span> <span class="o">&lt;&lt;</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">39</span><span class="cl">  <span class="c1">// matrix output
+</span></span></span><span class="line"><span class="ln">40</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of output </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">41</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">42</span><span class="cl">  <span class="c1">// matrix add i + j
+</span></span></span><span class="line"><span class="ln">43</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of add </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">44</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">45</span><span class="cl">  <span class="c1">// matrix scalar multiply i * 2.0
+</span></span></span><span class="line"><span class="ln">46</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of scalar multiply </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">47</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">*</span> <span class="mf">2.0f</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">48</span><span class="cl">  <span class="c1">// matrix multiply i * j
+</span></span></span><span class="line"><span class="ln">49</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of matrix multiply </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">50</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">*</span> <span class="n">j</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">51</span><span class="cl">  <span class="c1">// matrix multiply vector i * v
+</span></span></span><span class="line"><span class="ln">52</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Example of matrix-vector multiply </span><span class="se">\n</span><span class="s">&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">53</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="n">i</span> <span class="o">*</span> <span class="n">v</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">54</span><span class="cl">
+</span></span><span class="line"><span class="ln">55</span><span class="cl">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">56</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>接下来是
+<img loading="lazy" src="/images/cg/games_series/games101/02/homework3_1.png">
+我们还没有学习齐次坐标，这是下一节课的内容，在这里布置这个作业应该是让我们提前进行预习，这里简单介绍以下齐次坐标</p>
+<h1 id="齐次坐标">齐次坐标</h1>
+<p>齐次坐标简单来说是将 $n$ 维向量用 $n+1$ 维坐标来表示的一种数学方式，这样做的好处是方便我们进行平移操作。
+在笛卡尔坐标系下，旋转和缩放操作都可以使用矩阵乘进行操作，而平移只能通过加法操作，但是我们希望只通过矩阵乘法表示这些操作，这就需要引入齐次坐标，在齐次坐标中平移也可以写成矩阵乘法的形式。这样，所有的变换都能统一成矩阵乘法，从而方便GPU进行大规模并行计算。</p>
+<p>将一个笛卡尔坐标转为齐次坐标：
+</p>
+$$(x, y) \rightarrow (x, y, 1)$$<p>
+将一个齐次坐标转为笛卡尔坐标
+</p>
+$$(x, y, w) \rightarrow \left(\frac{x}{w}, \frac{y}{w}\right)$$<p>在齐次坐标下$(1, 2, 1)$、$(2, 4, 2)$ 和 $(5, 10, 5)$ 都表示笛卡尔空间中的同一个点 $(1, 2)$。</p>
+<h2 id="平移操作">平移操作</h2>
+<p>假设我们要将点在 $x$ 轴平移 $t_x$，在 $y$ 轴平移 $t_y$，平移矩阵 $\mathbf{T}$ 如下：
+</p>
+$$\mathbf{T} = \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程
+</p>
+$$\begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} x + t_x \\ y + t_y \\ 1 \end{bmatrix}$$<h2 id="旋转操作">旋转操作</h2>
+<p>假设我们要将点绕原点逆时针旋转角度 $\theta$，旋转矩阵 $\mathbf{R}$ 在齐次坐标下表示为：
+</p>
+$$\mathbf{R} = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程：
+</p>
+$$\begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} x\cos\theta - y\sin\theta \\ x\sin\theta + y\cos\theta \\ 1 \end{bmatrix}$$<h2 id="缩放操作">缩放操作</h2>
+<p>虽然作业中没要求，但这里还是介绍一下，
+将一个点$(x,y,1)^T$在 $x$ 轴方向缩放 $s_x$ 倍，在 $y$ 轴方向缩放 $s_y$ 倍
+</p>
+$$\mathbf{S} = \begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程：
+</p>
+$$\begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} s_x \cdot x \\ s_y \cdot y \\ 1 \end{bmatrix}$$<h2 id="开始做作业">开始做作业</h2>
+<p>注意通常我们进行矩阵与向量相乘的时候，通常我们使用矩阵乘以一个向量，而不是向量乘以一个矩阵，所以如果我们进行这么一个操作 $A \times B \times C \times \vec{v}$那么对向量的操作是从右项左进行的，先对 $\vec{v}$ 近 $C$ 操作再是 $B$ 操作 $A$ 操作。<br>
+所以我们要对向量$\mathbf{P} = (2,1)$<br>
+操作的第一步是先把他化为齐次坐标 $\mathbf{P} = (2,1,1)$<br>
+然后我们对它绕原点先逆时针旋转也就是需要一个旋转矩阵<br>
+</p>
+$$\mathbf{R} = \begin{bmatrix} \cos(\frac{\pi}{4}) & -\sin(\frac{\pi}{4}) & 0 \\ \sin(\frac{\pi}{4}) & \cos(\frac{\pi}{4}) & 0 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+再平移 (1,2) 也就是需要一个平移矩阵
+</p>
+$$\mathbf{T} = \begin{bmatrix} 1 & 0 & 1 \\ 0 & 1 & 2 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+最后的公式是
+</p>
+$$\mathbf{P}_t = \mathbf{T}\times \mathbf{R} \times \mathbf{P}^{T}$$<p>
+用代码实现</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Core&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;Eigen/Dense&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 3</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;cmath&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 4</span><span class="cl"><span class="cp">#include</span> <span class="cpf">&lt;iostream&gt;</span><span class="cp">
+</span></span></span><span class="line"><span class="ln"> 5</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 6</span><span class="cl"><span class="kt">int</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+</span></span><span class="line"><span class="ln"> 7</span><span class="cl">
+</span></span><span class="line"><span class="ln"> 8</span><span class="cl">  <span class="k">const</span> <span class="kt">double</span> <span class="n">PI</span> <span class="o">=</span> <span class="n">acos</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln"> 9</span><span class="cl">  <span class="k">const</span> <span class="kt">double</span> <span class="n">angle_45</span> <span class="o">=</span> <span class="mf">45.0</span> <span class="o">/</span> <span class="mf">180.0</span> <span class="o">*</span> <span class="n">PI</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">10</span><span class="cl">
+</span></span><span class="line"><span class="ln">11</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix3d</span> <span class="n">rotation_matrix</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">12</span><span class="cl">  <span class="n">rotation_matrix</span> <span class="o">&lt;&lt;</span> <span class="n">cos</span><span class="p">(</span><span class="n">angle_45</span><span class="p">),</span> <span class="o">-</span><span class="n">sin</span><span class="p">(</span><span class="n">angle_45</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sin</span><span class="p">(</span><span class="n">angle_45</span><span class="p">),</span>
+</span></span><span class="line"><span class="ln">13</span><span class="cl">      <span class="n">cos</span><span class="p">(</span><span class="n">angle_45</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">14</span><span class="cl">
+</span></span><span class="line"><span class="ln">15</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix3d</span> <span class="n">Translation_matrix</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">16</span><span class="cl">  <span class="n">Translation_matrix</span> <span class="o">&lt;&lt;</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">17</span><span class="cl">
+</span></span><span class="line"><span class="ln">18</span><span class="cl">  <span class="n">Eigen</span><span class="o">::</span><span class="n">Vector3d</span> <span class="n">point</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+</span></span><span class="line"><span class="ln">19</span><span class="cl">
+</span></span><span class="line"><span class="ln">20</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Rotation Matrix: </span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">&lt;&lt;</span> <span class="n">rotation_matrix</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">21</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Translation Matrix: </span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">&lt;&lt;</span> <span class="n">Translation_matrix</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">22</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Point: </span><span class="se">\n</span><span class="s">&#34;</span> <span class="o">&lt;&lt;</span> <span class="n">point</span><span class="p">.</span><span class="n">transpose</span><span class="p">()</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">23</span><span class="cl">
+</span></span><span class="line"><span class="ln">24</span><span class="cl">  <span class="n">std</span><span class="o">::</span><span class="n">cout</span> <span class="o">&lt;&lt;</span> <span class="s">&#34;Rotated and Translated Point: </span><span class="se">\n</span><span class="s">&#34;</span>
+</span></span><span class="line"><span class="ln">25</span><span class="cl">            <span class="o">&lt;&lt;</span> <span class="n">Translation_matrix</span> <span class="o">*</span> <span class="n">rotation_matrix</span> <span class="o">*</span> <span class="n">point</span> <span class="o">&lt;&lt;</span> <span class="n">std</span><span class="o">::</span><span class="n">endl</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">26</span><span class="cl">  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="ln">27</span><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>最后得到结果：</p>
+<pre tabindex="0"><code>Rotation Matrix: 
+ 0.707107 -0.707107         0
+ 0.707107  0.707107         0
+        0         0         1
+Translation Matrix:
+1 0 1
+0 1 2
+0 0 1
+Point:
+2 1 1
+Rotated and Translated Point:
+1.70711
+4.12132
+      1
+</code></pre>]]></content:encoded>
     </item>
     <item>
       <title>【CG】Games101-01学习笔记 &amp; 作业解析</title>
