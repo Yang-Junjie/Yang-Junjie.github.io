@@ -2161,7 +2161,7 @@ $$</h2>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/about/</guid>
       <description>欢迎来到我的Blog</description>
-      <content:encoded><![CDATA[<p><img loading="lazy" src="/images/head1.jpg"></p>
+      <content:encoded><![CDATA[<p><img loading="lazy" src="/images/head.jpg"></p>
 <h2 id="关于我">关于我</h2>
 <ul>
 <li>我是一名双非本科计算数学在读大二学生</li>

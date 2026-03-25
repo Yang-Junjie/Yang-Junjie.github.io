@@ -13,7 +13,7 @@ categories:
   - blog
 
 cover:
-  image: "images/head.jpg"
+  image: "images/head1.jpg"
   alt: "test cover"
 
 math: true
