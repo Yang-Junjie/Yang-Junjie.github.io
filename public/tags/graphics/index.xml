@@ -6,8 +6,80 @@
     <description>Recent content in Graphics on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 24 Mar 2026 21:03:20 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 25 Mar 2026 09:36:43 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/graphics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-02学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_02/</link>
+      <pubDate>Wed, 25 Mar 2026 09:36:43 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_02/</guid>
+      <description>&lt;h1 id=&#34;向量与线性代数&#34;&gt;向量与线性代数&lt;/h1&gt;
+&lt;p&gt;图形学依赖于线性代数，图形学不仅仅依赖于线性代数，它还依赖微积分，概率统计，光学，力学，信号处理，数值分析，艺术等等。我们这里介绍线性代数。&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="向量与线性代数">向量与线性代数</h1>
+<p>图形学依赖于线性代数，图形学不仅仅依赖于线性代数，它还依赖微积分，概率统计，光学，力学，信号处理，数值分析，艺术等等。我们这里介绍线性代数。</p>
+<p>线性代数可以处理物体的旋转，缩放，平移等等操作是计算机图形学中的基础操作。</p>
+<h2 id="向量">向量</h2>
+<ul>
+<li>向量是一个有长度且有方向的量</li>
+<li>向量无论你怎么在空间中平移它表示的都是同一个向量，没有绝对的开始位置</li>
+<li>我们通常使用 $\vec{a}$ 或者粗体 $\mathbf{a}$ 来表示一个向量</li>
+<li>一个二维向量与二维空间中的点一一对应（其他维度同理）：我们通常使用一个相同维度的点来表示一个向量，例如二维向量：$\vec{a} = (x,y)$ or $\vec{a}^T = \begin{pmatrix}
+x \\
+y
+\end{pmatrix}$，其中 $T$ 是向量的转置操作</li>
+<li>它可以使用终点减去起点得到：$\vec{AB} = B - A$
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec1.png"></li>
+</ul>
+<h3 id="向量的模">向量的模</h3>
+<ul>
+<li>向量的模（长度）我们写作：$\left | \left | \vec{a} \right | \right |$</li>
+<li>向量的模我们可以这么计算：$\left | \left | \vec{a} \right | \right | = \sqrt{a_x^2 + a_y^2 }$，其中$\vec{a}= (a_x,a_y)$</li>
+<li>单位向量它的模为 1</li>
+<li>将一个向量变为单位向量（归一化）：$\hat{\vec{a}} = \frac{\vec{a}}{\left | \left | \vec{a} \right | \right |}$</li>
+<li>单位向量我们通常用来表示方向</li>
+</ul>
+<h3 id="向量的运算">向量的运算</h3>
+<ul>
+<li>我们有向量 $\vec{a} = (a_x,a_y,a_z)$ 和向量 $\vec{b} = (b_x,b_y,b_z)$</li>
+<li>向量的加法：$\vec{a} + \vec{b} = (a_x + b_x, a_y + b_y, a_z + b_z)$
+<ul>
+<li>在几何上，向量的加法遵循平行四边形法则和三角形法则
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec2.png"></li>
+</ul>
+</li>
+<li>向量的减法：$\vec{a} - \vec{b} = (a_x - b_x, a_y - b_y, a_z - b_z)$</li>
+<li>向量的点积：$\vec{a} \cdot \vec{b}= \left | \left | \vec{a} \right | \right | \left | \left | \vec{b} \right | \right | \cos \theta = a_x b_x + a_y b_y + a_z b_z $其中 $\theta$ 是两个向量的夹角
+<ul>
+<li>所以我们可以利用点积来计算两个向量的夹角余弦值
+
+$$ \cos \theta = \frac{\vec{a} \cdot \vec{b}}{\left | \left | \vec{a} \right | \right | \left | \left | \vec{b} \right | \right | } $$</li>
+<li>对于单位向量的点积，就等于它们的夹角余弦值</li>
+</ul>
+</li>
+<li>向量的叉积：$\vec{a} \times \vec{b} = (a_y b_z - a_z b_y, a_z b_x - a_x b_z, a_x b_y - a_y b_x)$叉积的方向遵循右手定则
+<ul>
+<li>伸开右手，使大拇指与其余四个手指垂直，并且都与手掌在同一个平面内</li>
+<li>让四个手指从第一个向量沿着小于 180° 的角度转向第二个向量</li>
+<li>此时，大拇指所指的方向就是 $a \times b$ 的方向</li>
+<li>$a \times b$ 始终垂直于 $a$ 和 $b$ 所在的平面</li>
+<li>如果交换顺序 $b \times a$ ，则方向完全相反</li>
+<li>如果是二维向量叉积，则 $a \times b = a_x b_y - a_y b_x$ 没有方向是个标量
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec5.png"></li>
+</ul>
+</li>
+<li>叉乘的运算律
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec6.png"></li>
+<li>向量的投影，想象一下有一束灯光平行于向量 $\vec{a}$ 从 $\vec{b}$ 的上方照射到 $\vec{b}$，然后 $\vec{b}$ 的影子在 $\vec{a}$ 上，这个影子就叫做，向量 $\vec{b}$ 在向量 $\vec{a}$ 上的投影，我们通常可以这么计算
+
+$$ \vec{b}_{\bot} = ||\vec{b}|| \cos\theta$$
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec3.png"></li>
+<li>我们可以使用点乘判断“前”与“后”,如果一个向量与一个平面的法线向量（垂直于平面的向量）的点乘大于0 则这个向量在平面的前面，如果小于零则在平面的后面
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec4.png"></li>
+<li>判断一个向量在另一个向量的左边还是右边，判断一个点在三角形内部和外部都可以使用向量叉积这个工具
+<img loading="lazy" src="/images/cg/games_series/games101/02/vec7.png"></li>
+</ul>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】Games101-01学习笔记 &amp; 作业解析</title>
       <link>http://localhost:1313/posts/games_series/games101_01/</link>
@@ -30,31 +102,37 @@
 <li>Video Games,视频游戏领域
 <ol>
 <li>黑神话悟空</li>
-<li>赛博朋克2077</li>
+<li>赛博朋克2077
+<img loading="lazy" src="/images/cg/games_series/games101/01/image6.png"></li>
 </ol>
 </li>
 <li>Moives 电影
 <ol>
 <li>星球大战系列</li>
 <li>阿凡达</li>
-<li>疯狂动物城</li>
+<li>疯狂动物城
+<img loading="lazy" src="/images/cg/games_series/games101/01/image4.png"></li>
 </ol>
 </li>
 <li>Animation 动画
 <ol>
-<li>冰雪奇缘</li>
+<li>冰雪奇缘
+<img loading="lazy" src="/images/cg/games_series/games101/01/image3.png"></li>
 </ol>
 </li>
 <li>Design 设计
 <ol>
-<li>Computer Aided Design (CAD)</li>
-<li>家居场景设计</li>
+<li>Computer Aided Design (CAD)
+<img loading="lazy" src="/images/cg/games_series/games101/01/image2.png"></li>
+<li>家居场景设计
+<img loading="lazy" src="/images/cg/games_series/games101/01/image1.png"></li>
 </ol>
 </li>
 <li>Visualization 可视化
 <ol>
 <li>医疗信息可视化</li>
-<li>疾病传播可视化</li>
+<li>疾病传播可视化
+<img loading="lazy" src="/images/cg/games_series/games101/01/image7.png"></li>
 </ol>
 </li>
 <li>Virtual Reality (VR) 虚拟现实</li>
@@ -62,7 +140,8 @@
 <li>Simulation 模拟
 <ol>
 <li>流体模拟</li>
-<li>黑洞模拟</li>
+<li>黑洞模拟
+<img loading="lazy" src="/images/cg/games_series/games101/01/image5.png"></li>
 </ol>
 </li>
 <li>Typography 字形</li>
@@ -84,11 +163,14 @@
 <li>Animation / Simulation 动画与模拟</li>
 </ul>
 <h2 id="光栅化">光栅化</h2>
-<p>光栅化是一个将三维空间中的几何形体显示在显示设备上，这是一个常常用在实时渲染中的技术，实时的定义是在每秒钟能渲染出30副画面，也就是30 Frame per Second（FPS）。与实时渲染相对的是离线渲染（offline rendering）</p>
+<p>光栅化是一个将三维空间中的几何形体显示在显示设备上，这是一个常常用在实时渲染中的技术，实时的定义是在每秒钟能渲染出30副画面，也就是30 Frame per Second（FPS）。与实时渲染相对的是离线渲染（offline rendering）
+<img loading="lazy" src="/images/cg/games_series/games101/01/rasterization.png"></p>
 <h2 id="曲线与网格">曲线与网格</h2>
-<p>如何渲染一条曲线，曲面，如何使用简单的曲面去表示复杂的曲面等</p>
+<p>如何渲染一条曲线，曲面，如何使用简单的曲面去表示复杂的曲面等
+<img loading="lazy" src="/images/cg/games_series/games101/01/curves_meshes.png"></p>
 <h2 id="光线追踪">光线追踪</h2>
-<p>光线追踪相对于光栅化来说非常的慢，但是它慢也有它慢的优点，因为使用光线追踪渲染出来的图像往往比光栅化出来的图像更精美，通常用在对速度要求不高的领域，比如动画，电影等。但是现在有一些新的技术能让光线追踪的速度变得非常快，比如使用硬件加速、新的算法等等。</p>
+<p>光线追踪相对于光栅化来说非常的慢，但是它慢也有它慢的优点，因为使用光线追踪渲染出来的图像往往比光栅化出来的图像更精美，通常用在对速度要求不高的领域，比如动画，电影等。但是现在有一些新的技术能让光线追踪的速度变得非常快，比如使用硬件加速、新的算法等等。
+<img loading="lazy" src="/images/cg/games_series/games101/01/ray_tracing.png"></p>
 <h2 id="动画与模拟">动画与模拟</h2>
 <p>动画与模拟或者叫做仿真是让渲染出来的物体能够拥有类似物理交互的效果，例如扔一个小球，这个小球是如何根据物理进行反弹等等
 <img loading="lazy" src="/images/cg/games_series/games101/01/animation_simulation.png"></p>
@@ -97,6 +179,8 @@
 我们还要区分计算机视觉和计算机图形学，简单来说计算机视觉是将现实生活空间的模型表示为计算机中的数据模型，让计算机理解这这个世界，我认为NeRF、3D Gaussian Splatting也是一种计算机视觉中的，3D场景重建。<br>
 我们还需要区分图像/模型生成和计算机图形学的区别，其实我认为这两者的边界有点模糊，图像生成是通过计算机生成一张图片，比如文生图，stable diffusion。
 最前沿的新技术的边界还是有点模糊的，但是你只需要记住计算机图形学不是api，是将抽象空间中的数学模型使用计算机表示出来，并呈现在显示设备中的学科就行了。</p>
+<h1 id="作业解析">作业解析</h1>
+<p>这一节课没有作业。</p>
 ]]></content:encoded>
     </item>
     <item>
