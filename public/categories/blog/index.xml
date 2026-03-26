@@ -6,8 +6,173 @@
     <description>Recent content in Blog on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 25 Mar 2026 09:36:43 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 25 Mar 2026 17:45:39 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/categories/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-03学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_03/</link>
+      <pubDate>Wed, 25 Mar 2026 17:45:39 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_03/</guid>
+      <description>&lt;h1 id=&#34;transform&#34;&gt;Transform&lt;/h1&gt;
+&lt;h2 id=&#34;为什么要学习-transformation&#34;&gt;为什么要学习 Transformation&lt;/h2&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;变换 (Transform) 的第一个应用场景就是移动，通过变换操作可以将空间中的物体移动（Translate）到你想要的位置。如视频中的相机的移动。
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/cg/games_series/games101/03/transform1.png&#34;&gt;&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;变换的第二个应用场景就是旋转，通过变换操作可以将空间中的物体进行旋转(Rotate)。如视频中的机器人的手臂进行旋转。
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/cg/games_series/games101/03/transform2.png&#34;&gt;&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="transform">Transform</h1>
+<h2 id="为什么要学习-transformation">为什么要学习 Transformation</h2>
+<ol>
+<li>
+<p>变换 (Transform) 的第一个应用场景就是移动，通过变换操作可以将空间中的物体移动（Translate）到你想要的位置。如视频中的相机的移动。
+<img loading="lazy" src="/images/cg/games_series/games101/03/transform1.png"></p>
+</li>
+<li>
+<p>变换的第二个应用场景就是旋转，通过变换操作可以将空间中的物体进行旋转(Rotate)。如视频中的机器人的手臂进行旋转。
+<img loading="lazy" src="/images/cg/games_series/games101/03/transform2.png"></p>
+</li>
+<li>
+<p>变换的第三个应用场景就是缩放，通过变换操作可以将空间中的物体进行缩放(Scale)。如视频中的字母 I 发生的形变。
+<img loading="lazy" src="/images/cg/games_series/games101/03/transform3.png"></p>
+</li>
+<li>
+<p>变换还有一个非常重要的应用场景，就是在光栅化的成像中使用的投影变换，我们真实世界的物体是3维的，但是通过摄像机拍摄后得到的图片是二维的，我们将3维物体到2维图片的这么一个过程叫做投影变换（Projection）
+<img loading="lazy" src="/images/cg/games_series/games101/03/transform4.png"></p>
+</li>
+</ol>
+<h2 id="2d-transformations">2D Transformations</h2>
+<h3 id="scale-matrix">Scale Matrix</h3>
+<p>缩放变换
+<img loading="lazy" src="/images/cg/games_series/games101/03/scale.png">
+经过上图的变换操作，我们将原图形中某个点$(x,y)$，我们将其x轴缩放到原来的$s_x$倍，将其x轴缩放到原来的$s_y$倍得到了新的点$(x',y')$，相当于我们进行了如下的数学操作，
+</p>
+$$x' = s_x x,y' = s_y y$$<p>
+</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+s_x  & 0\\
+ 0 &s_y
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}$$<p>
+其中矩阵运算中等号右边的第一项就是我们的缩放矩阵(scale matrix)， 实际上这是一种线性变换（至于线性变换是什么，期待我的高等代数文章吧！）</p>
+<h3 id="reflection-matrix">Reflection Matrix</h3>
+<p>对称变换或者叫反射变换可以将图形镜像翻转
+<img loading="lazy" src="/images/cg/games_series/games101/03/reflection.png">
+上图我们将原图中的某个点$(x,y)$对y轴进行对称变换得到了新的点$(x',y')$，相当于我们进行了如下的数学操作，
+</p>
+$$x' = x,y' = -y$$<p>
+</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+-1  & 0\\
+ 0 &1
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}$$<h3 id="shear-matrix">Shear Matrix</h3>
+<p>剪切变换
+<img loading="lazy" src="/images/cg/games_series/games101/03/shear.png">
+对于变换后的点它的竖直方向的左边没有发生变换，只有水平方向上的坐标发生了变换，并且当y = 0的时候水平左边也没有发生变换，所以我们知道x的变换和y有关，并且通过变换后图像中的虚线的关系我们还知道x变换和a也有关，我们可以很轻松的得到变换后图像左上角的点的坐标是(a,1)变换前的左上角的坐标是(0,1)所以我们可以推断$x' = ax + y$,也就是</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+1  & a\\
+ 0 &1
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}$$<h3 id="rotate-matrix">Rotate Matrix</h3>
+<p>旋转变换默认是绕着原点进行旋转的，也就是将原点定死，其他的点绕着原点进行旋转，并且默认是逆时针方向旋转
+<img loading="lazy" src="/images/cg/games_series/games101/03/rotate.png">
+通过上图上的点的变换与三角函数的关系我们可以得到旋转操作是(至于怎么推导的还是期待我的数学专题吧)
+</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+\cos\theta  & -\sin\theta\\
+ \sin\theta &\cos\theta
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}$$<h3 id="translation">Translation</h3>
+<p><img loading="lazy" src="/images/cg/games_series/games101/03/translation.png">
+这个变换我们想写成数学的式子非常简单
+</p>
+$$x' = x + t_x,y' = y + t_y$$<p>
+但是这不能写成一个矩阵乘以一个向量的形式了，我们只能写成
+</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+a  & b\\
+ c &d
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}+\begin{bmatrix}
+ t_x\\
+t_y
+\end{bmatrix}$$<p>
+所以为了解决这个问题，我们引入了齐次坐标</p>
+<h2 id="齐次坐标">齐次坐标</h2>
+<p>齐次坐标简单来说是将 $n$ 维向量用 $n+1$ 维坐标来表示的一种数学方式，这样做的好处是方便我们进行平移操作。
+在笛卡尔坐标系下，旋转和缩放操作都可以使用矩阵乘进行操作，而平移只能通过加法操作，但是我们希望只通过矩阵乘法表示这些操作，这就需要引入齐次坐标，在齐次坐标中平移也可以写成矩阵乘法的形式。这样，所有的变换都能统一成矩阵乘法，从而方便GPU进行大规模并行计算。</p>
+<p>将一个笛卡尔坐标转为齐次坐标：
+</p>
+$$(x, y) \rightarrow (x, y, 1)$$<p>
+将一个齐次坐标转为笛卡尔坐标
+</p>
+$$(x, y, w) \rightarrow \left(\frac{x}{w}, \frac{y}{w}\right)$$<p>而在齐次坐标下进行的变换我们称作仿射变换</p>
+<h3 id="平移操作">平移操作</h3>
+<p>在齐次坐标下$(1, 2, 1)$、$(2, 4, 2)$ 和 $(5, 10, 5)$ 都表示笛卡尔空间中的同一个点 $(1, 2)$。<br>
+通过这个方式我们可以将平移操作写成矩阵乘法，如下：
+假设我们要将点在 $x$ 轴平移 $t_x$，在 $y$ 轴平移 $t_y$，平移矩阵 $\mathbf{T}$ 如下：
+</p>
+$$\mathbf{T} = \begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程
+</p>
+$$\begin{bmatrix} 1 & 0 & t_x \\ 0 & 1 & t_y \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} x + t_x \\ y + t_y \\ 1 \end{bmatrix}$$<p>同理</p>
+<h3 id="旋转操作">旋转操作</h3>
+<p>假设我们要将点绕原点逆时针旋转角度 $\theta$，旋转矩阵 $\mathbf{R}$ 在齐次坐标下表示为：
+</p>
+$$\mathbf{R} = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程：
+</p>
+$$\begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} x\cos\theta - y\sin\theta \\ x\sin\theta + y\cos\theta \\ 1 \end{bmatrix}$$<h3 id="缩放操作">缩放操作</h3>
+<p>虽然作业中没要求，但这里还是介绍一下，
+将一个点$(x,y,1)^T$在 $x$ 轴方向缩放 $s_x$ 倍，在 $y$ 轴方向缩放 $s_y$ 倍
+</p>
+$$\mathbf{S} = \begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix}$$<p>
+计算过程：
+</p>
+$$\begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} s_x \cdot x \\ s_y \cdot y \\ 1 \end{bmatrix}$$<h3 id="齐次坐标下的点和向量">齐次坐标下的点和向量</h3>
+<ul>
+<li>在齐次坐标下,点通常表示为 $(x, y, 1)^T$</li>
+<li>向量通常表示为 $(x, y, 0)^T$。
+它们在齐次坐标下有如下的关系：
+<img loading="lazy" src="/images/cg/games_series/games101/03/homogenous.png">
+而 point + point 表示的是一个点 $(x/w, y/w, 1)$ 表示的是这两个点的中点</li>
+</ul>
+<p>注意通常我们进行矩阵与向量相乘的时候，通常我们使用矩阵乘以一个向量，而不是向量乘以一个矩阵，所以如果我们进行这么一个操作 $A \times B \times C \times \vec{v}$那么对向量的操作是从右项左进行的，先对 $\vec{v}$ 进行 $C$ 操作再是 $B$ 操作 $A$ 操作，这是因为矩阵乘法不满足交换律，先进行A和先进行B的操作是完全不同的。</p>
+<p>我们的旋转只能绕着原点进行旋转，如果我们想绕着其他的点旋转我们应该怎么做呢？我们可以先将需要绕着旋转的点平移到原点（对物体整个进行平移，让这个点与原点进行重合），再进行旋转，最后再平移到原来的位置就行了
+<img loading="lazy" src="/images/cg/games_series/games101/03/rotate2.png">、</p>
+<h2 id="3d-transformations">3D Transformations</h2>
+<p>3维变换和2维变换一样，只是3维变换的矩阵会多一个维度，我们直接类比过去就行了，增加一个z轴
+<img loading="lazy" src="/images/cg/games_series/games101/03/3d.png"></p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】Games101-02学习笔记 &amp; 作业解析</title>
       <link>http://localhost:1313/posts/games_series/games101_02/</link>
@@ -266,7 +431,7 @@ $$\mathbf{S} = \begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmat
 计算过程：
 </p>
 $$\begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} x \\ y \\ 1 \end{bmatrix} = \begin{bmatrix} s_x \cdot x \\ s_y \cdot y \\ 1 \end{bmatrix}$$<h2 id="开始做作业">开始做作业</h2>
-<p>注意通常我们进行矩阵与向量相乘的时候，通常我们使用矩阵乘以一个向量，而不是向量乘以一个矩阵，所以如果我们进行这么一个操作 $A \times B \times C \times \vec{v}$那么对向量的操作是从右项左进行的，先对 $\vec{v}$ 近 $C$ 操作再是 $B$ 操作 $A$ 操作。<br>
+<p>注意通常我们进行矩阵与向量相乘的时候，通常我们使用矩阵乘以一个向量，而不是向量乘以一个矩阵，所以如果我们进行这么一个操作 $A \times B \times C \times \vec{v}$那么对向量的操作是从右项左进行的，先对 $\vec{v}$ 进行 $C$ 操作再是 $B$ 操作 $A$ 操作。<br>
 所以我们要对向量$\mathbf{P} = (2,1)$<br>
 操作的第一步是先把他化为齐次坐标 $\mathbf{P} = (2,1,1)$<br>
 然后我们对它绕原点先逆时针旋转也就是需要一个旋转矩阵<br>
@@ -331,12 +496,12 @@ Rotated and Translated Point:
       <description>&lt;h1 id=&#34;写在前面&#34;&gt;写在前面&lt;/h1&gt;
 &lt;p&gt;首先这是一个系列的博客，将会详细记录我学习 &lt;strong&gt;&lt;a href=&#34;http://games-cn.org/&#34;&gt;Games（Graphics And Mixed Environment Symposium）&lt;/a&gt;&lt;/strong&gt; 系列课程的笔记，以及进行详细的作业解析.
 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：&lt;br&gt;
-在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp;amp; my family），追求自己所热爱的图形学，那么你可以继续。&lt;br&gt;
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T），追求自己所热爱的图形学，那么你可以继续。&lt;br&gt;
 这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。&lt;/p&gt;</description>
       <content:encoded><![CDATA[<h1 id="写在前面">写在前面</h1>
 <p>首先这是一个系列的博客，将会详细记录我学习 <strong><a href="http://games-cn.org/">Games（Graphics And Mixed Environment Symposium）</a></strong> 系列课程的笔记，以及进行详细的作业解析.
 在说一些题外话，如果你想根据我这一系列博客深入学习Games系列课程，那么我需要提醒你一些内容，你需要考虑一下：<br>
-在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T，我会找到其他的赚钱方式的mom、dad &amp; my family），追求自己所热爱的图形学，那么你可以继续。<br>
+在2026年计算机图形学可以说计算机中的天坑专业，用到的技术复杂，理论难度大，需要学习的东西多，领域很广，但是与付出不成正比的是就业面及其狭窄，根本没有什么就业岗位，如果你希望赚大钱，或者家里急需用钱，那么我建议你不要选择图形学这个方向(除非你是顶级大佬)。如果你知道了这些，但你还是像我一样是个傻福（主播家里也不是很富有，不是躺着就能生活的家庭，需要靠主播带来一些经济来源，但是我放不下她啊T^T），追求自己所热爱的图形学，那么你可以继续。<br>
 这是这个系列的第一篇文章，我们将从Games101开始，games101这是主播第三次学了，会在原课程的基础上，补充一些内容。</p>
 <p>这是games101-01的笔记，没什么太多可以解析的大多都是课程介绍。</p>
 <h1 id="计算机图形学的应用">计算机图形学的应用</h1>
