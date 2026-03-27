@@ -208,11 +208,28 @@
 
 <article class="post-entry"> 
 <figure class="entry-cover">
+        <img loading="lazy" src="http://localhost:1313/images/cg/games_series/games101/05/piexl.png" alt="cover">
+</figure>
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">【CG】Games101-05学习笔记 &amp; 作业解析
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Aspect Ratio 我们已经知道在正交投影中我们是怎么定义那个立方体了，但是在透视投影中我们应该怎么定义这个视锥体(4棱锥)呢？
+我们从摄像机出发，看向某个方向，会有一个近平面，我们给这个近平面定义一个宽高比Aspect Ratio $Aspect Ratio = \frac{width}{height}$ 这就相当于我们得显示器
+...</p>
+  </div>
+  <footer class="entry-footer"><span title='2026-03-27 15:17:30 +0800 CST'>March 27, 2026</span>&nbsp;·&nbsp;<span>7 min</span>&nbsp;·&nbsp;<span>3298 words</span>&nbsp;·&nbsp;<span>氧均竭</span></footer>
+  <a class="entry-link" aria-label="post link to 【CG】Games101-05学习笔记 & 作业解析" href="http://localhost:1313/posts/games_series/games101_05/"></a>
+</article>
+
+<article class="post-entry"> 
+<figure class="entry-cover">
             <img loading="lazy"
-                srcset='http://localhost:1313/images/cg/games_series/games101/03/scale_hu_95aea161e9d27666.png 360w,http://localhost:1313/images/cg/games_series/games101/03/scale_hu_8eb31803a4c380c9.png 480w,http://localhost:1313/images/cg/games_series/games101/03/scale_hu_f3694896653ed2b5.png 720w,http://localhost:1313/images/cg/games_series/games101/03/scale.png 849w'
-                src="http://localhost:1313/images/cg/games_series/games101/03/scale.png"
+                srcset='http://localhost:1313/images/cg/games_series/games101/04/proj2_hu_7bc65944ec9c534c.png 360w,http://localhost:1313/images/cg/games_series/games101/04/proj2_hu_67e0cd14c7308a86.png 480w,http://localhost:1313/images/cg/games_series/games101/04/proj2_hu_a9b92b102d32d6a2.png 720w,http://localhost:1313/images/cg/games_series/games101/04/proj2.png 790w'
+                src="http://localhost:1313/images/cg/games_series/games101/04/proj2.png"
                 sizes="(min-width: 768px) 720px, 100vw"
-                width="849" height="465"
+                width="790" height="480"
                 alt="cover">
 </figure>
   <header class="entry-header">
@@ -222,7 +239,7 @@
   <div class="entry-content">
     <p>补充 旋转矩阵的转置等于旋转矩阵的逆，所以我们如果要顺时针旋转，通常我们先写出它逆时针旋转对应角度的矩阵再求转置，如果一个矩阵的转置等于它的逆，那么这个是正交矩阵。 ...</p>
   </div>
-  <footer class="entry-footer"><span title='2026-03-27 10:05:20 +0800 CST'>March 27, 2026</span>&nbsp;·&nbsp;<span>4 min</span>&nbsp;·&nbsp;<span>1659 words</span>&nbsp;·&nbsp;<span>氧均竭</span></footer>
+  <footer class="entry-footer"><span title='2026-03-27 10:05:20 +0800 CST'>March 27, 2026</span>&nbsp;·&nbsp;<span>6 min</span>&nbsp;·&nbsp;<span>2957 words</span>&nbsp;·&nbsp;<span>氧均竭</span></footer>
   <a class="entry-link" aria-label="post link to 【CG】Games101-04学习笔记 & 作业解析" href="http://localhost:1313/posts/games_series/games101_04/"></a>
 </article>
 
@@ -380,27 +397,6 @@
   </div>
   <footer class="entry-footer"><span title='2026-03-18 22:14:42 +0800 CST'>March 18, 2026</span>&nbsp;·&nbsp;<span>10 min</span>&nbsp;·&nbsp;<span>4871 words</span>&nbsp;·&nbsp;<span>氧均竭</span></footer>
   <a class="entry-link" aria-label="post link to 【CG】辐射度量学 & PBR" href="http://localhost:1313/posts/cg-radiometry/"></a>
-</article>
-
-<article class="post-entry"> 
-<figure class="entry-cover">
-            <img loading="lazy"
-                srcset='http://localhost:1313/images/opengl/hdr2_hu_e0376f0dc9aa9f22.png 360w,http://localhost:1313/images/opengl/hdr2_hu_bc242ee8d29d0161.png 480w,http://localhost:1313/images/opengl/hdr2_hu_5c13dd30cbebe2eb.png 720w,http://localhost:1313/images/opengl/hdr2.png 810w'
-                src="http://localhost:1313/images/opengl/hdr2.png"
-                sizes="(min-width: 768px) 720px, 100vw"
-                width="810" height="864"
-                alt="cover">
-</figure>
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">【CG】HDR &amp; Tone Mapping
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>HDR 传统的显示设备使用的是 LDR 模式，即线性 Device-Independent-RGB 模式，它通常使用 8 位来代表一个每个颜色通道的值。 但是在 LDR 模式下所有的颜色都被限制到了 0 到 1 之间，这导致如果场景中存在一个颜色值超过 1 的物体，那么这个物体的颜色就会变成纯白。 HDR 模式则允许颜色的值超过 1，因此 HDR 模式下可以处理更丰富的场景。 如下图所示，LDR 模式下物体的纹理细节根本看不见
-...</p>
-  </div>
-  <footer class="entry-footer"><span title='2026-03-17 00:00:00 +0000 UTC'>March 17, 2026</span>&nbsp;·&nbsp;<span>2 min</span>&nbsp;·&nbsp;<span>644 words</span>&nbsp;·&nbsp;<span>氧均竭</span></footer>
-  <a class="entry-link" aria-label="post link to 【CG】HDR & Tone Mapping" href="http://localhost:1313/posts/cg-hdr-tone-mapping/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
