@@ -6,8 +6,98 @@
     <description>Recent content in Graphics on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 25 Mar 2026 17:45:39 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 27 Mar 2026 10:05:20 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/graphics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-04学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_04/</link>
+      <pubDate>Fri, 27 Mar 2026 10:05:20 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_04/</guid>
+      <description>&lt;h1 id=&#34;补充&#34;&gt;补充&lt;/h1&gt;
+&lt;p&gt;旋转矩阵的转置等于旋转矩阵的逆，所以我们如果要顺时针旋转，通常我们先写出它逆时针旋转对应角度的矩阵再求转置，如果一个矩阵的转置等于它的逆，那么这个是正交矩阵。
+&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="补充">补充</h1>
+<p>旋转矩阵的转置等于旋转矩阵的逆，所以我们如果要顺时针旋转，通常我们先写出它逆时针旋转对应角度的矩阵再求转置，如果一个矩阵的转置等于它的逆，那么这个是正交矩阵。
+</p>
+$$ R^{-1} = R^T $$<h1 id="3d-transformations">3D Transformations</h1>
+<p>Scale和Translation与2维变换类似不再赘述
+<img loading="lazy" src="/images/cg/games_series/games101/04/3dt.png"></p>
+<p>在3维中间中比较复杂的是旋转变换。下面的3个旋转矩阵分辨是绕着x轴、y轴、z轴进行旋转
+<img loading="lazy" src="/images/cg/games_series/games101/04/3dt1.png">
+对于任意的旋转，我们可以通过分别将其分解为绕z轴旋转、绕y轴旋转、绕x轴旋转得到</p>
+<p><img loading="lazy" src="/images/cg/games_series/games101/04/3dt2.png">
+其中的$\alpha、\beta、\gamma$是欧拉角，这些角我们分别叫做pitch,yaw,roll</p>
+<h1 id="viewing-transformation">Viewing Transformation</h1>
+<p>我们学习变换最重要的一个目的就是为了将3维空间中的物体变为一张2维空间的图片，而你在3维空间空不同的位置观察一个物体，看到的内容肯定不一样。</p>
+<p>思考一下我们现实生活中是怎么拍一张照片的。</p>
+<ul>
+<li>找一个好的位置让人去摆好pose，这对应了图形学中的 Model Transformation</li>
+<li>找一个好的&quot;角度&quot;放置你的相机，以及调整你相机的参数，这对应了图形学中的 View Transformation</li>
+<li>Cheese! ,这对应了图形学中的 Projection Transformation<br>
+我们将这些变换统称为MVP变换</li>
+</ul>
+<h2 id="view-transformation">View Transformation</h2>
+<p>第一步，我们要先定义一个相机</p>
+<ul>
+<li>相机的位置在哪 Position $\vec{e}$</li>
+<li>相机对着哪里拍照 Look-At $\vec{g}$</li>
+<li>相机有没有绕着拍照方向旋转(因为你可以竖着手机拍照，也可以横着拍照) Up direction $\vec{t}$</li>
+</ul>
+<p>第二步，如何进行View Transformation
+我们上过高中物理的都知道相对运动这么一回事，所以在图形学中，我们一般不直接移动一个相机，而是让相机固定不动，而让物体相对于相机移动
+<img loading="lazy" src="/images/cg/games_series/games101/04/view1.png">
+那么我们应该怎么做呢？
+我们先将相机位置 $\vec{e}$ 移动到原点，然后我们让相机 $\vec{g}$ 旋转到-z方向，向上方向旋转到y轴，然后剩下的绿色的轴就对其到x轴了
+<img loading="lazy" src="/images/cg/games_series/games101/04/view2.png">
+我们可以如下的矩阵操作完成上述任务：
+<img loading="lazy" src="/images/cg/games_series/games101/04/view3.png">
+我们先将 $\vec{e}$ 通过$T_{view}$平移到原点，然后通过$R_{view}$将对应的轴旋转到希望的轴上去，由于我们将相机定义的轴旋转到坐标轴上非常的麻烦，所以我们可以通过逆矩阵来完成，我们将坐标轴旋转到定义的相机轴上非常的简单。
+我们将这两个矩阵相乘，得到一个View Transformation矩阵。</p>
+<h2 id="projection-transformation">Projection Transformation</h2>
+<p>投影有两个种方法，一种是透视投影，一种是正交投影
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj1.png">
+而我们人眼是使用的是透视投影，透视投影会有一个近大远小的现象，而正交投影没有</p>
+<ul>
+<li>透视投影在数学上的模型就是下面这幅图的左边，他是一个4棱锥，他把场景中的物体映射到一个Near clip plane和Far clip plane之间，而相机看到的画面是Near clip plane，相机在四棱锥的最上面的顶点上</li>
+<li>正交投影在数学上的模型就是下面这幅图的右边，他一个长方体，他把场景中的物体映射到一个Near plane和Far plane之间，而相机看到的画面是Near plane，相机假设是无限远的，如果我们将透视投影的相机拿到无限远处其实也就变成了正交投影
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj2.png"></li>
+</ul>
+<h3 id="orthographic-projection">Orthographic Projection</h3>
+<p>正交投影非常的简单</p>
+<ul>
+<li>把相机摆放在原点让相机看向-z轴，y轴朝上</li>
+<li>然后我们把物体的z轴丢掉</li>
+<li>最后我们把物体的x和y轴进行缩放到一个$[-1,1]\times [-1,1]$的一个可视范围就行了
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj3.png"></li>
+</ul>
+<p>而在图形学中我们一般这么做</p>
+<ul>
+<li>我们先定义一个长方体$[l,r]\times [b,t]\times [n,f]$</li>
+<li>在将这个长方体平移到原点</li>
+<li>然后将这个长方体缩放到一个$[-1,1]\times [-1,1]\times [0,1]$的可视范围
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj4.png"></li>
+</ul>
+<p>这个操作非常的简单，我们需要一个平移矩阵和一个缩放矩阵就行了</p>
+<ul>
+<li>将长方体的中心平移到原点</li>
+<li>再将长方体的长宽高都缩放到2
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj5.png"></li>
+</ul>
+<h3 id="perspective-projection">Perspective Projection</h3>
+<p>透视投影在图形学中有着非常广泛的应用，它满足近大远小，平行线不再平行
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj6.png">
+我们先复习一下齐次坐标中的点，在齐次坐标中$(1,0,0,1)$和$(2,0,0,2)$表示的是同一个点，这个我们后面要用。<br>
+在正交投影中，我们有一个立方体，而在透视投影中我们有一个类似的4棱台(Frustum)
+可以发现他们的区别是在透视投影中原平面要大一点，那么我们怎么做透视投影呢？</p>
+<ul>
+<li>我们先把远平面&quot;挤压&quot;成立方体，近平面不变，远平面的中心点不会变，这一步我们对应了一个矩阵（$M_{persp->ortho}$）</li>
+<li>再做一次正交投影()，这一步我们对应了一个矩阵（$M_{ortho}$）
+<img loading="lazy" src="/images/cg/games_series/games101/04/proj7.png"></li>
+</ul>
+<h4 id="挤压操作">&ldquo;挤压&quot;操作</h4>
+<p><img loading="lazy" src="/images/cg/games_series/games101/04/proj8.jpg"></p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】Games101-03学习笔记 &amp; 作业解析</title>
       <link>http://localhost:1313/posts/games_series/games101_03/</link>
@@ -170,7 +260,25 @@ $$\begin{bmatrix} s_x & 0 & 0 \\ 0 & s_y & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{b
 <img loading="lazy" src="/images/cg/games_series/games101/03/rotate2.png">、</p>
 <h2 id="3d-transformations">3D Transformations</h2>
 <p>3维变换和2维变换一样，只是3维变换的矩阵会多一个维度，我们直接类比过去就行了，增加一个z轴
-<img loading="lazy" src="/images/cg/games_series/games101/03/3d.png"></p>
+<img loading="lazy" src="/images/cg/games_series/games101/03/3d.png">
+对于这个图中的变换矩阵，我们是先进行左上角3*3的变换最后再进行平移操作的，这是因为仿射变换直接对应了这么一个操作（拿2维举例子）
+</p>
+$$\begin{bmatrix}
+x' \\
+y'
+\end{bmatrix}=\begin{bmatrix}
+a  & b\\
+ c &d
+\end{bmatrix}\begin{bmatrix}
+ x\\
+y
+\end{bmatrix}+\begin{bmatrix}
+ t_x\\
+t_y
+\end{bmatrix}$$<p>
+而这个操作是先做线性变换再做平移的</p>
+<h1 id="作业解析">作业解析</h1>
+<p>不好意思，搞错了，这节的作业我们在上一节中做完了，所以作业解析在上一节的最后，这里就没作业了。</p>
 ]]></content:encoded>
     </item>
     <item>
