@@ -33,9 +33,13 @@ params:
   description: "探索渲染、数学与几何的奥秘" # 网站描述，用于 SEO 和首页
   author: "氧均竭" # 全局作者名
 
+  label:
+    text: "CGLab" # Logo 旁边的文字，如果不想要文字可以留空 ""
+    icon: "/cgl-icon.png" # Logo 图片路径（确保文件在 static 文件夹下）
+    iconHeight: 35 # 图标高度，根据你的 Logo 比例调整
   # 主题视觉
-  defaultTheme: auto # 默认模式：dark (暗黑), light (明亮), auto (随系统)
-  disableThemeToggle: false # 是否禁用亮暗模式切换按钮（false 为不禁用）
+  defaultTheme: light # 默认模式：dark (暗黑), light (明亮), auto (随系统)
+  disableThemeToggle: true # 是否禁用亮暗模式切换按钮（false 为不禁用）
 
   # 文章页面功能
   ShowCodeCopyButtons: true # 是否在代码块显示复制按钮
@@ -66,9 +70,13 @@ params:
 
   # 首页大卡片 (Home Info Mode)
   homeInfoParams:
-    Title: "欢迎来到CGLab"
+    enabled: true
     Content: >
-      这里记录我学习 **Computer Graphics / Rendering / Math** 的过程。
+      <img src="/cgl-logo.png" width="1000" style="border-radius: 500%; margin-bottom: 15px;"><br>
+      欢迎来的Computer Graphics Lab！<br>
+
+  profileMode:
+    enabled: false
 
   # 社交媒体图标 (出现在首页大卡片下方)
   socialIcons:
@@ -128,26 +136,26 @@ markup:
 menu:
   main:
     - identifier: home
-      name: "🏠 首页"
+      name: "首页"
       url: /
       weight: 1 # 权重：越小越靠左
 
     - identifier: search
-      name: "🔍 搜索"
+      name: "搜索"
       url: /search/
       weight: 5
 
     - identifier: archives
-      name: "📦 归档"
+      name: "归档"
       url: /archives/
       weight: 10
 
     - identifier: tags
-      name: "🏷️ 标签"
+      name: "标签"
       url: /tags/
       weight: 20
 
     - identifier: about
-      name: "👨‍💻 关于"
+      name: "关于"
       url: /about/
       weight: 30
