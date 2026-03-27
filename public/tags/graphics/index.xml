@@ -214,7 +214,7 @@ $$\text{inside}(t,x,y)=\left\{\begin{matrix}
 <h2 id="3-提高作业">3. 提高作业</h2>
 <p><img loading="lazy" src="/images/cg/games_series/games101/05/assignment4.png">
 要求我们构建一个可以绕绕任意过原点的轴旋转angle角度的矩阵，我们可以参考第4节中的这个公式
-<img loading="lazy" src="/images/cg/games_series/games101/04/3dt1.png"></p>
+<img loading="lazy" src="images/cg/games_series/games101/04/images.png"></p>
 <div class="highlight"><pre tabindex="0" class="chroma"><code class="language-cpp" data-lang="cpp"><span class="line"><span class="ln"> 1</span><span class="cl"><span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix4f</span> <span class="n">get_rotation</span><span class="p">(</span><span class="n">Vector3f</span> <span class="n">axis</span><span class="p">,</span> <span class="kt">float</span> <span class="n">angle</span><span class="p">)</span>
 </span></span><span class="line"><span class="ln"> 2</span><span class="cl"><span class="p">{</span>
 </span></span><span class="line"><span class="ln"> 3</span><span class="cl">    <span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix4f</span> <span class="n">rotation</span> <span class="o">=</span> <span class="n">Eigen</span><span class="o">::</span><span class="n">Matrix4f</span><span class="o">::</span><span class="n">Identity</span><span class="p">();</span>
