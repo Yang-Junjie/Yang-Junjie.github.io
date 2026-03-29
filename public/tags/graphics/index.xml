@@ -6,8 +6,88 @@
     <description>Recent content in Graphics on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 27 Mar 2026 15:17:30 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 29 Mar 2026 13:29:06 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/graphics/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-06学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_06/</link>
+      <pubDate>Sun, 29 Mar 2026 13:29:06 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_06/</guid>
+      <description>&lt;p&gt;这篇笔记我认为写的不好&lt;/p&gt;
+&lt;h1 id=&#34;antialiasing&#34;&gt;Antialiasing&lt;/h1&gt;
+&lt;h2 id=&#34;采样理论&#34;&gt;采样理论&lt;/h2&gt;
+&lt;p&gt;三角形是一种连续的函数，给定任何一个点我们可以测试这个点是否在三角形内部。然后我们可以使用屏幕上的像素的中心点来进行这个测试，最终我们会得到一个类似三角形的图案
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/cg/games_series/games101/05/raster5.png&#34;&gt;
+但是我们希望的是下面这样的
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/cg/games_series/games101/06/triangle.png&#34;&gt;
+我们看到我们得到的图形有锯齿这么一种问题，这节课我们将学习如何抗锯齿/反走样(Antialiasing)&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<p>这篇笔记我认为写的不好</p>
+<h1 id="antialiasing">Antialiasing</h1>
+<h2 id="采样理论">采样理论</h2>
+<p>三角形是一种连续的函数，给定任何一个点我们可以测试这个点是否在三角形内部。然后我们可以使用屏幕上的像素的中心点来进行这个测试，最终我们会得到一个类似三角形的图案
+<img loading="lazy" src="/images/cg/games_series/games101/05/raster5.png">
+但是我们希望的是下面这样的
+<img loading="lazy" src="/images/cg/games_series/games101/06/triangle.png">
+我们看到我们得到的图形有锯齿这么一种问题，这节课我们将学习如何抗锯齿/反走样(Antialiasing)</p>
+<h2 id="空间上走样">空间上走样</h2>
+<p>下面这张图展现出非常严重的锯齿问题
+<img loading="lazy" src="/images/cg/games_series/games101/05/raster6.png"></p>
+<h2 id="时间上走样">时间上走样</h2>
+<p>走样问题不一定是发生在空间上，也可以发生在时间上
+<img loading="lazy" src="/images/cg/games_series/games101/06/aliasing.png">
+我们的动画都是一张一张图片快速的播放产生的，可以看到上面这幅图是有一个网球击球动画的不同图片叠加到一起组成的，可以看到这个挥拍并不是连续的。
+而在图形学中我们将一切由采样带来的错误称作：Artifacts</p>
+<h3 id="摩尔纹">摩尔纹</h3>
+<p><img loading="lazy" src="/images/cg/games_series/games101/06/moirePattern.png">
+摩尔纹也是由采样带来的 Artifact, 如果我们需要压缩上面这幅图中左边的图，我们可以选择将它的奇数行和奇数列都去掉，然后再拼在一起，这就会获得右边这幅图，就导致了摩尔纹</p>
+<p>走样本质上是函数（信号）变化的速度太快了，我的采样的速度根不上导致的<br>
+解决走样的一般方式是在采样之前进行模糊或者滤波<br>
+<img loading="lazy" src="/images/cg/games_series/games101/06/image1.png">
+使用这个方法作用在原来那个图上的效果如下
+<img loading="lazy" src="/images/cg/games_series/games101/06/image2.png">
+先采样在模糊不等于先模糊再采样，这两者得到的效果是不一样的
+<img loading="lazy" src="/images/cg/games_series/games101/06/image3.png"></p>
+<h1 id="频域">频域</h1>
+<p>为什么我们的采样速度根不上信号的速度会导致走样？
+我们可以通过傅里叶级数将不用的函数转化为一系列频率函数的组合，就相当于任何一个函数都可以用频率函数表示，即傅里叶变换可以将一个函数从时域变成频域。 <br>
+看下面这个例子频率从上到下看是从低到高的，如果我们使用完全相同的采样方式对这些函数进行采样，你会发现我们采样后得到的函数与原函数的关系：当采样的频率与被采样的函数的频率相差很大的时候，就会得到非常糟糕的结果，当采样频率高于被采样函数的频率我们将会得到非常优秀的结果
+<img loading="lazy" src="/images/cg/games_series/games101/06/image4.png"></p>
+<h1 id="滤波">滤波</h1>
+<p>滤波是一种对信号进行平滑处理，通过滤波我们可以将信号的频率低于我们希望的频率的信号进行去除，从而得到我们希望的信号<br>
+我们知道傅里叶变换可以将一个函数从时域变成频域。 <br>
+如下图，通过傅里叶变换我们将左边的图像从空域映射到频域，
+<img loading="lazy" src="/images/cg/games_series/games101/06/image6.png">
+频域图的中心是最低频的信号，最外部是高频的信号，信号的多少使用亮度表示，可以看到这幅图大多是低频信息，这里有水平和垂直的信号是因为信号是周期的，在图片上就表现为将图片在其他方向又复制一份，在图片左边的信息与右边的信息变化很大，就产生了高平信号<br>
+滤波其实就是以某种方式去掉一些频率的信号,如下图我们将低频信号去掉，这叫做高通滤波器，人物的边界与环境的信息通常是高频信息
+<img loading="lazy" src="/images/cg/games_series/games101/06/image7.png">
+与其相对额是低通滤波器，低通滤波器会保留低频信号，将高频信号去掉
+<img loading="lazy" src="/images/cg/games_series/games101/06/image8.png"></p>
+<h1 id="卷积滤波">卷积滤波</h1>
+<p>卷积其实就是一种平均操作，其实就是使用一个区域，这个区域叫做卷积核（滤波器），卷积核中也有一些权重数，假如说这个卷积核是3x3的，然后我们使用这个卷积核扫描一个图像，那么每次扫描的时候就会读取到图像中3x3区域的像素，然后我们进行一次点积操作再写入到另一张图片中，直到扫描完整张图片。<br>
+下面是一个1x3的卷积核的操作
+<img loading="lazy" src="/images/cg/games_series/games101/06/image9.png">
+下面是一个3x3的卷积核的操作
+<img loading="lazy" src="/images/cg/games_series/games101/06/image10.png"></p>
+<h1 id="抗锯齿-antialiasing">抗锯齿 Antialiasing</h1>
+<p>所以在光栅化中我们先进行滤波（模糊/卷积/平均），然后再进行采样</p>
+<h2 id="msaa-多重采样">MSAA 多重采样</h2>
+<p>MSAA 通过将一个像素划分为多个像素，再使用划分出来的新像素进行判断是否在三角形内部，
+<img loading="lazy" src="/images/cg/games_series/games101/06/image11.png">
+然后我再将这个判断的结果平均起来，
+<img loading="lazy" src="/images/cg/games_series/games101/06/image13.png">
+再将这个结果乘以颜色值
+<img loading="lazy" src="/images/cg/games_series/games101/06/image12.png">
+它并没有提高图片的分辨率</p>
+<p>除了MSAA还有其他抗锯齿方法</p>
+<ul>
+<li>FXAA 快速近似抗锯齿，它是一个图像的后处理，它是先得到锯齿的图像，再通过一种方式把图像中的边界找到，再通过一种方式将边界的锯齿搞没</li>
+<li>TAA  Temporal Anti-Aliasing 用上一帧的信息来进行抗锯齿</li>
+<li>DLSS 深度学习超采样</li>
+</ul>
+<h1 id="作业">作业</h1>
+<p>这节课没有作业</p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】Games101-05学习笔记 &amp; 作业解析</title>
       <link>http://localhost:1313/posts/games_series/games101_05/</link>
@@ -28,13 +108,13 @@
 <h1 id="screen">Screen</h1>
 <p>我们掌握了 MVP 变换后把所有的物体都变换到了 NDC 中，最后我们需要将其中的物体都显示到屏幕上，什么是屏幕呢</p>
 <ul>
-<li>屏幕是一个二维数组，数组的元素是像素(piexl)</li>
+<li>屏幕是一个二维数组，数组的元素是像素(pixel)</li>
 <li>数组的大小是屏幕的分辨率</li>
 <li>屏幕是光栅成像设备</li>
 <li>像素简单来说是一个一个小方块</li>
 <li>不同的像素使用3个数 (red,green,blue) 表示颜色,(255,0,0)表示红色<br>
 在这门课中我们这么定义屏幕中像素的坐标
-<img loading="lazy" src="images/cg/games_series/games101/05/piexl.png">
+<img loading="lazy" src="/images/cg/games_series/games101/05/pixel.png">
 原点位于屏幕的左下角，像素的索引(index)坐标我们写为(x,y)，例如这幅图中蓝色的像素的索引坐标位(2,1)。如果我们屏幕大小是 $width \times height$ 那么我们屏幕的像素索引范围就是 $(0,0) to (width-1,height-1)$，我们是使用索引表示一个像素的位置的，但实际上某个像素$(x,y)$它的中心坐标是$(x+0.5,y+0.5)$</li>
 </ul>
 <p>我们需要将我们 NDC 映射到屏幕空间</p>
