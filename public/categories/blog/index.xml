@@ -6,8 +6,32 @@
     <description>Recent content in Blog on CGLab</description>
     <generator>Hugo</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 29 Mar 2026 13:29:06 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Mar 2026 18:47:30 +0800</lastBuildDate>
     <atom:link href="http://localhost:1313/categories/blog/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>【CG】Games101-06学习笔记 &amp; 作业解析</title>
+      <link>http://localhost:1313/posts/games_series/games101_07/</link>
+      <pubDate>Mon, 30 Mar 2026 18:47:30 +0800</pubDate>
+      <guid>http://localhost:1313/posts/games_series/games101_07/</guid>
+      <description>&lt;h1 id=&#34;遮挡&#34;&gt;遮挡&lt;/h1&gt;
+&lt;p&gt;我们一般需要在屏幕上绘制多个三角形，那么这样就需要考虑三角形之间的遮挡问题了，最直观的解决方法就是先将最远的三角形绘制出来，再将比这个三角形离屏幕近的三角形绘制出来，将原来的远处三角形覆盖掉，这个方式和画家们画油画的过程很类似，而这个算法我们称之为画家算法。&lt;br&gt;
+但是这个算法不能绘制如下的情况：
+&lt;img loading=&#34;lazy&#34; src=&#34;http://localhost:1313/images/cg/games_series/games101/07/image1.png&#34;&gt;&lt;br&gt;
+这三个三角形之间并没有一个固定的前后关系，他们两两之间都遮挡了对方一部分，而用画家算法就没办法绘制这种关系&lt;/p&gt;</description>
+      <content:encoded><![CDATA[<h1 id="遮挡">遮挡</h1>
+<p>我们一般需要在屏幕上绘制多个三角形，那么这样就需要考虑三角形之间的遮挡问题了，最直观的解决方法就是先将最远的三角形绘制出来，再将比这个三角形离屏幕近的三角形绘制出来，将原来的远处三角形覆盖掉，这个方式和画家们画油画的过程很类似，而这个算法我们称之为画家算法。<br>
+但是这个算法不能绘制如下的情况：
+<img loading="lazy" src="/images/cg/games_series/games101/07/image1.png"><br>
+这三个三角形之间并没有一个固定的前后关系，他们两两之间都遮挡了对方一部分，而用画家算法就没办法绘制这种关系</p>
+<h1 id="z-buffer-深度缓冲">Z-Buffer 深度缓冲</h1>
+<p>在图形学中人们为了解决这个问题引入了深度缓冲(Z-Buffer)这么一个算法，这个算法非常简单：我们不再对一个物体判断它的前后关系，而是对每个物体的像素进行判断前后关系，如果物体a的像素在物体b的像素前面，那么物体a的像素就会覆盖物体b的像素，而Z-Buffer通俗的说就是一个二维数组，这个二维数组存放着所有被绘制过的像素的深度值，如果有一个新的物体需要被绘制，那么我们需要通过Z-Buffer上面记录的深度值与这个新的物体的深度值进行比较（这个比较我们通常称为深度测试（Depth Test）），如果这个新的物体某个像素的深度值小于（或者大于）Z-Buffer中对应像素的深度值，那么Z-Buffer就会使用这个物体的深度值去更新Z-Buffer中的深度值并且将颜色值写入FrameBuffer中，否则直接丢弃这个像素（这个像素不需要被绘制了）。</p>
+<blockquote>
+<p>FrameBuffer/ColorBuffer 我们在绘制的时候会将最后的像素的颜色结果存储在FrameBuffer中，而Z-Buffer中则存储的是像素的深度值，
+最终使用FrameBuffer色进行渲染</p>
+</blockquote>
+<p><img loading="lazy" src="/images/cg/games_series/games101/07/image2.png"></p>
+]]></content:encoded>
+    </item>
     <item>
       <title>【CG】Games101-06学习笔记 &amp; 作业解析</title>
       <link>http://localhost:1313/posts/games_series/games101_06/</link>
