@@ -13,12 +13,10 @@ layout: "about"
 # TODO
 - 最近在做
   - 重新再学一边games101并且附上完整的作业解析，包括作业框架的解析，和扩展内容，尝试完成大部分感兴趣的大作业
-  - 学习 Vulkan Guide
+  - 学习 Vulkan 
+  - 重构 Fermion Renderer 某些重要架构设计同步更新Blog
 - 重新再学一边games202并且附上完整的作业解析，包括作业框架的解析，和扩展内容，尝试完成大部分感兴趣的大作业
-- dx12
-- 学习godot,unreal
-- 阅读godot源码
-- 使用godot实现各种图形学算法
+- 图形学前沿技术
 
 
 ## 🚀 关于 CGLab
