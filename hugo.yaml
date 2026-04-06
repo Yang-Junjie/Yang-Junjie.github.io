@@ -4,6 +4,7 @@
 baseURL: "https://blog.cglab.top/" # 网站的域名，部署到 GitHub Pages 必须修改此项
 title: "CGLab" # 浏览器标签栏显示的网站标题
 theme: "PaperMod" # 使用的主题名称
+paginate: 1000
 
 # 语言设置
 languageCode: "zh-cn" # 网站语言代码
