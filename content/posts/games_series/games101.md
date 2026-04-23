@@ -35,5 +35,5 @@ math: true
 [【CG】基于图像的光照 Image-based Lighting（实时渲染）]({{< relref "/posts/cg-Image-based-lighting.md" >}})
 
 # 最后
-感谢 GAMES 这个平台提供了这么多免费的高质量的学习资源
+感谢 GAMES 这个平台提供了这么多免费的高质量的学习资源  
 感谢闫令琪老师带来这么优秀的课程
