@@ -73,8 +73,8 @@ params:
   homeInfoParams:
     enabled: true
     Content: >
-      <img src="/cgl-logo.png" width="1000" style="border-radius: 500%; margin-bottom: 15px;"><br>
-      欢迎来的Computer Graphics Lab！<br>
+      <img src="/cgl-logo.png" width="1000" style="border-radius: 500%;
+      margin-bottom: 15px;"><br> 欢迎来的Computer Graphics Lab！<br>
 
   profileMode:
     enabled: false
@@ -94,7 +94,8 @@ params:
     location: 0
     distance: 100
     minMatchCharLength: 1 # 最小匹配字符长度
-    keys: # 搜索索引覆盖的内容范围
+    keys:
+      # 搜索索引覆盖的内容范围
       - title
       - permalink
       - summary
@@ -107,13 +108,14 @@ markup:
   # Markdown 解析器设置
   goldmark:
     extensions:
-      passthrough: # 允许 LaTeX 公式直接通过解析
+      passthrough:
+        # 允许 LaTeX 公式直接通过解析
         enable: true
         delimiters:
           block:
-            - ["$$", "$$"] # 行间公式
+            - [ "$$", "$$" ] # 行间公式
           inline:
-            - ["$", "$"] # 行内公式
+            - [ "$", "$" ] # 行内公式
     renderer:
       unsafe: true # 允许在 Markdown 中直接书写 HTML 标签
 
@@ -145,6 +147,11 @@ menu:
       name: "搜索"
       url: /search/
       weight: 5
+
+    - identifier: mc
+      name: "记忆回廊"
+      url: /MC/
+      weight: 8
 
     - identifier: archives
       name: "归档"

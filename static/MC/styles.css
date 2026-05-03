@@ -1,0 +1,503 @@
+:root {
+  color-scheme: light;
+  --paper: #fbfaf7;
+  --surface: #ffffff;
+  --ink: #211f1c;
+  --muted: #6f6a62;
+  --line: #ded8cf;
+  --accent: #1f6f63;
+  --accent-strong: #17564d;
+  --warm: #a6543b;
+  --focus: #d79b32;
+  --code-bg: #fffdf9;
+  --chat-self: #eef7f3;
+  --chat-other: #fffdf9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(31, 111, 99, 0.08), rgba(255, 255, 255, 0) 18rem),
+    var(--paper);
+  font-family:
+    "Noto Serif SC",
+    "Source Han Serif SC",
+    "Songti SC",
+    SimSun,
+    serif;
+  line-height: 1.7;
+  letter-spacing: 0;
+}
+
+button,
+input {
+  font: inherit;
+  letter-spacing: 0;
+}
+
+.shell {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.gallery {
+  padding: clamp(2.5rem, 8vh, 5rem) 0 4rem;
+}
+
+.gallery-header {
+  max-width: 43rem;
+  margin: 0 auto clamp(1.5rem, 5vw, 2.5rem);
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.gallery-header h1 {
+  margin: 0;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  line-height: 1.18;
+}
+
+.article-list {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 43rem;
+  margin: 0 auto;
+}
+
+.article-button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  min-height: 3.75rem;
+  width: 100%;
+  padding: 0.95rem 1rem;
+  color: var(--ink);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(47, 40, 32, 0.08);
+}
+
+.article-button:hover {
+  border-color: var(--accent);
+}
+
+.article-button::after {
+  content: ">";
+  color: var(--accent);
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-weight: 700;
+}
+
+.article-cover {
+  width: 4.4rem;
+  height: 3.1rem;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+}
+
+.article-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+}
+
+.unlock-panel {
+  width: min(100%, 32rem);
+  margin: clamp(3rem, 12vh, 7rem) auto 0;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(47, 40, 32, 0.12);
+}
+
+.brand,
+.reader-state {
+  margin: 0 0 0.45rem;
+  color: var(--warm);
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.unlock-panel h1,
+.reader-header h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4vw, 2.35rem);
+  line-height: 1.25;
+}
+
+.unlock-form {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.5rem;
+}
+
+.unlock-form label {
+  color: var(--muted);
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 0.95rem;
+}
+
+.key-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 2.75rem;
+  min-height: 2.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fffdf9;
+  overflow: hidden;
+}
+
+.key-field:focus-within {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(215, 155, 50, 0.2);
+}
+
+.key-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.65rem 0.85rem;
+  color: var(--ink);
+  background: transparent;
+  border: 0;
+  outline: 0;
+}
+
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 2.75rem;
+  min-width: 2.75rem;
+  height: 2.75rem;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  color: var(--accent);
+  background: rgba(31, 111, 99, 0.08);
+}
+
+.icon-button svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 2.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-weight: 700;
+}
+
+.primary-button {
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+.primary-button:hover {
+  background: var(--accent-strong);
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.secondary-button {
+  padding: 0 1rem;
+  color: var(--accent-strong);
+  background: #fffdf9;
+  border: 1px solid var(--line);
+}
+
+.secondary-button:hover {
+  border-color: var(--accent);
+}
+
+.text-button {
+  display: block;
+  min-height: 2.5rem;
+  margin: 0.65rem auto 0;
+  padding: 0 0.35rem;
+  color: var(--accent-strong);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-weight: 700;
+}
+
+.text-button:hover {
+  color: var(--warm);
+}
+
+.status {
+  min-height: 1.5rem;
+  margin: 0;
+  color: var(--muted);
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  font-size: 0.92rem;
+}
+
+.status.error {
+  color: #9f3028;
+}
+
+.reader {
+  padding: clamp(1rem, 3vw, 2.25rem) 0 4rem;
+}
+
+.reader-cover {
+  max-width: 52rem;
+  margin: 0 auto clamp(1.25rem, 4vw, 2rem);
+}
+
+.reader-cover img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 16px 34px rgba(47, 40, 32, 0.14);
+}
+
+.reader-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: clamp(1.5rem, 4vw, 2.4rem);
+  border-bottom: 1px solid var(--line);
+}
+
+.content {
+  font-size: clamp(1.03rem, 1.4vw, 1.15rem);
+}
+
+.content > * {
+  max-width: 43rem;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+  margin-top: 2.3em;
+  margin-bottom: 0.8em;
+  line-height: 1.35;
+}
+
+.content h1 {
+  font-size: clamp(1.9rem, 6vw, 3rem);
+  text-align: center;
+}
+
+.content h2 {
+  font-size: clamp(1.45rem, 4vw, 2rem);
+  color: var(--accent-strong);
+}
+
+.content h3 {
+  font-size: 1.25rem;
+}
+
+.content p {
+  margin-top: 0;
+  margin-bottom: 1.05em;
+  text-align: justify;
+  text-wrap: pretty;
+}
+
+.content .code-block {
+  max-width: min(100%, 52rem);
+  padding: 1rem;
+  overflow-x: hidden;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  background: var(--code-bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.content code {
+  font-family:
+    "Cascadia Code",
+    Consolas,
+    "Microsoft YaHei UI",
+    monospace;
+  font-size: 0.92em;
+}
+
+.chat-transcript {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 46rem;
+  margin: 1.35rem auto;
+}
+
+.chat-message {
+  width: min(100%, 34rem);
+  padding: 0.85rem 0.95rem;
+  background: var(--chat-other);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(47, 40, 32, 0.06);
+}
+
+.chat-message-self {
+  justify-self: end;
+  background: var(--chat-self);
+  border-color: rgba(31, 111, 99, 0.24);
+}
+
+.chat-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
+  margin-bottom: 0.35rem;
+  font-family:
+    Inter,
+    "Segoe UI",
+    "Microsoft YaHei",
+    sans-serif;
+  line-height: 1.35;
+}
+
+.chat-meta strong {
+  color: var(--accent-strong);
+  font-size: 0.92rem;
+}
+
+.chat-meta time {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.chat-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.65;
+}
+
+.content :not(pre) > code {
+  padding: 0.1rem 0.28rem;
+  color: var(--warm);
+  background: rgba(166, 84, 59, 0.08);
+  border-radius: 4px;
+}
+
+.content blockquote {
+  padding-left: 1rem;
+  color: var(--muted);
+  border-left: 3px solid var(--warm);
+}
+
+.content ul,
+.content ol {
+  padding-left: 1.4rem;
+}
+
+.content hr {
+  height: 1px;
+  margin: 2rem auto;
+  background: var(--line);
+  border: 0;
+}
+
+@media (max-width: 620px) {
+  .shell {
+    padding: 0.85rem;
+  }
+
+  .unlock-panel {
+    margin-top: 2rem;
+  }
+
+  .reader-header {
+    display: grid;
+  }
+
+  .secondary-button {
+    width: 100%;
+  }
+
+  .article-button {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .article-cover {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+  }
+
+  .content p {
+    text-align: left;
+  }
+}
