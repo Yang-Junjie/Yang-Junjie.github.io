@@ -150,7 +150,7 @@ menu:
 
     - identifier: mc
       name: "记忆回廊"
-      url: /MC/
+      url: /mc/
       weight: 8
 
     - identifier: archives
