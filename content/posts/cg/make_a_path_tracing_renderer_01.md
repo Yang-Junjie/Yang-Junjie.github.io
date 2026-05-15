@@ -1,7 +1,7 @@
 ---
 date : '2026-04-17T16:17:50+08:00'
 draft : false
-title : '【CG】Re0:从零开始搓一个路径追踪渲染器'
+title : '【CG】Re0:从零开始搓一个路径追踪渲染器[0x01一个最最简单的Path Tracing Renderer]'
 tags:
   - graphics
 
