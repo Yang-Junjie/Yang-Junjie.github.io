@@ -157,10 +157,36 @@ double pdf(const Vec3& wi, const Vec3& wo, const Vec3& normal)
   return cosThetaI / (constants::PI);
 }
 ```
+
+## Cosine-Weighted Hemisphere Sampling
+由于我们的 pdf 已经改了，但是我们在 Re0:0x01 中使用的还是均匀采样，采样得到的光线还是会在整个半球而不是我们指定 pdf 上，所以我们需要对采样进行调整  
+
+### 逆变换采样法
+在开始介绍如何采样之前我们需要了解一个方法，就是逆变换采样法，也叫概率积分变换定理 
+
+在计算机中我们通常很容易获取在 $[0,1)$ 之间均匀分布的随机数，但是我们不知道怎么获取一个指定的 pdf 的随机数，所以我们通常需要一种方法，将$[0,1)$区间上的均匀随机数，变换为符合特定概率密度分布的数值，而这个方法就是逆变换采样法  
+
+聪明的数学家们发现 pdf 的积分 cdf (累积分布函数或者叫做连续型随机变量的分布函数) 在绝大多数情况是单调增的(拥有反函数)，并且值域是一定为$[0,1]$的（刚好适配我们的计算机的 $(0,1)$均匀随机数），那么我们就可以利用这个性质
+如果一个连续随机变量的 CDF 是 $F(x) = P(X \le x)$，那么它的反函数 $F^{-1}(u)$：
+- 定义域严格限制在 $[0, 1]$ 之间：因为 CDF 输出的是概率，概率只能在 0 到 1 之间
+- 如果 $U$ 是一个在 $[0, 1]$ 上均匀分布的随机变量，那么随机变量 $X = F^{-1}(U)$ 的累积分布函数正好就是 $F(x)$，而 $X$ 就是我们要的符合我们分布的随机变量  
+
+为了更直观地理解，我们可以看下面这张图。假设我们要生成服从标准正态分布的随机数：
+从左侧的 PDF 可以看出，标准正态分布的随机数绝大部分都密集分布在 $(-2, 2)$ 这个区间内，而而观察右侧的 CDF 反函数 $F^{-1}(u)$ 就会发现，当我们对横轴（即输入 $U$）在 $[0, 1]$ 上进行均匀抽样时，纵轴输出的 $X = F^{-1}(U)$ 绝大部分的几率都会落在 $(-2, 2)$ 区间内（因为只有在 $U$ 极度逼近 0 或 1 的边缘时，$X$ 才会飞向无穷大），正好满足正态分布
+![](images/cg/re0pt/0x03/normal_pdf_cdf_inverse.png)
+
+所以我们通常要使用服从在$(0,1)$区间均匀分布的随机数来获得服从其他分布的随机数时可以遵循下面这个步骤：
+1. 让电脑生成一个 $0 \sim 1$ 的随机数 $u$
+2. 把 $u$ 带入该分布的 CDF 反函数 $F^{-1}(u)$ 中
+3. 得到的结果就是该分布的随机数
+
+### 获得服从 Lambertian Diffuse Model 的 pdf 的采样
+
+
+
 > 下面是在递归深度32，spp8下渲染出的两张图，上面这张是使用均匀采样，而下面那张是使用重要性采样，可以看出差距还是很明显的，尤其是在high box上
 ![](images/cg/re0pt/0x03/1wis.png)
 ![](images/cg/re0pt/0x03/1is.png)
-
 ## Implementing Russian Roulette 
 在 Re0:0x02 中我们已经了解过了 Russian Roulette 的原理，这里我们来实现它。
 我们希望在实现 RR 的基础上保留最小的递归次数，防止光线刚开始生成就被RR杀死，由于是 RR 概率事件，所以有可能你的运气非常不好还是会进行多次递归，所以我们还需要保留最大递归次数，
@@ -260,3 +286,23 @@ Vec3 traceRay(const Ray& ray, const std::vector<std::unique_ptr<Object>>& object
         return material->eval() * incoming_light * (cos_theta / sample_pdf);
     }
 ```
+# 代码结构调整
+
+在 Re0:0x01 中，我们实现了一个非常简单的Path Tracing 渲染器，但是那个适合为了快速搭建出架构有许多设计不合理的地方，所以我们现在需要对其进行一些调整。  
+我们首先观察到代码中很多地方都在用到相似的数学功能，所以我们把这些整合到`Re0Math.h`中：  
+```cpp
+#pragma once
+#include <random>
+
+namespace math {
+static double randomDouble(double min = 0.0, double max = 1.0)
+{
+    static thread_local std::mt19937 generator(std::random_device{}());
+    std::uniform_real_distribution<double> distribution(min, max);
+    return distribution(generator);
+}
+
+} // namespace math
+
+```
+这样 `Renderer.h` 中的`randomProbability`和 `randomOffset` 可以去掉了
