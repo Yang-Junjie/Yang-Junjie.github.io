@@ -1,0 +1,46 @@
+{{- define "main" }}
+
+{{- if .Title }}
+<header class="page-header">
+    <h1>{{ .Title }}</h1>
+    {{- if .Description }}
+    <div class="post-description">
+        {{ .Description }}
+    </div>
+    {{- end }}
+</header>
+{{- end }}
+
+<ul class="terms-tags">
+    {{- $type := .Type }}
+    {{- $renderedWC := false }}
+    {{- range $key, $value := .Data.Terms.Alphabetical }}
+    {{- $name := .Name }}
+    {{- $isWCTerm := and (eq $type "tags") (eq (lower $name) "wc") }}
+    {{- with site.GetPage (printf "/%s/%s" $type $name) }}
+    {{- $count := 0 }}
+    {{- range .Pages }}
+    {{- if or $isWCTerm (not (partial "is_wc_post.html" .)) }}
+    {{- $count = add $count 1 }}
+    {{- end }}
+    {{- end }}
+    {{- if $isWCTerm }}
+    {{- $renderedWC = true }}
+    {{- end }}
+    {{- if or (gt $count 0) $isWCTerm }}
+    <li>
+        <a href="{{ .Permalink }}">{{ .Name }} <sup><strong><sup>{{ $count }}</sup></strong></sup> </a>
+    </li>
+    {{- end }}
+    {{- end }}
+    {{- end }}
+    {{- if and (eq $type "tags") (not $renderedWC) }}
+    {{- with site.GetPage "/tags/wc" }}
+    <li>
+        <a href="{{ .Permalink }}">{{ .Title }} <sup><strong><sup>0</sup></strong></sup> </a>
+    </li>
+    {{- end }}
+    {{- end }}
+</ul>
+
+{{- end }}{{/* end main */ -}}

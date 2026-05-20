@@ -1,0 +1,7 @@
+{{- $isWC := false -}}
+{{- range (.Params.tags | default slice) -}}
+{{- if eq (lower .) "wc" -}}
+{{- $isWC = true -}}
+{{- end -}}
+{{- end -}}
+{{- return $isWC -}}

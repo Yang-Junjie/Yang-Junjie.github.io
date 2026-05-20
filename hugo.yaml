@@ -113,9 +113,9 @@ markup:
         enable: true
         delimiters:
           block:
-            - [ "$$", "$$" ] # 行间公式
+            - ["$$", "$$"] # 行间公式
           inline:
-            - [ "$", "$" ] # 行内公式
+            - ["$", "$"] # 行内公式
     renderer:
       unsafe: true # 允许在 Markdown 中直接书写 HTML 标签
 
@@ -147,6 +147,11 @@ menu:
       name: "搜索"
       url: /search/
       weight: 5
+
+    - identifier: wc
+      name: "厕所"
+      url: /tags/wc/
+      weight: 7
 
     - identifier: mc
       name: "记忆回廊"

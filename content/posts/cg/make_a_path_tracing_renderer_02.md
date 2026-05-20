@@ -231,7 +231,7 @@ $$V(x,x^{\prime}) = \left\{\begin{matrix}
 \end{matrix}\right.$$
 加上这一项后我们的渲染方程变为
 $$
-L_o(x, \omega_o) = \int_{\mathcal{A_{light}} } f_r(x,\omega_i, \omega_o) L_i(x,\omega_i) \cos\theta_i  \frac{\cos \theta_e }{||x-x^{\prime}||}V(x,x^{\prime})dA
+L_o(x, \omega_o) = \int_{\mathcal{A_{light}} } f_r(x,\omega_i, \omega_o) L_i(x,\omega_i) \cos\theta_i  \frac{\cos \theta_e }{||x-x^{\prime}||^2}V(x,x^{\prime})dA
 $$
 
 ### 分层采样 Stratified Sampling
