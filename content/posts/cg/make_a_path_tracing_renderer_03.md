@@ -961,4 +961,164 @@ static constexpr double kSurvivalProbability = 0.8;
 ![](images/cg/re0pt/0x03/wnee.png)
 ![](images/cg/re0pt/0x03/nee.png)
 
-# Implementing MIS 待更新
+# Implementing MIS 
+还记得我们在Re0:0x02中提到的  Power Heuristic $\beta = 2$ MIS 吗？
+
+我们需要计算
+$$ w_{BRDF} = \frac{p_{BRDF}^2(\omega_{BRDF})}{p_{BRDF}^2(\omega_{BRDF})+p_{\omega, Light}^2(\omega_{BRDF})} $$
+$$ w_{Light} = \frac{p_{\omega, Light}^2(\omega_{Light})}{p_{BRDF}^2(\omega_{Light})+p_{\omega, Light}^2(\omega_{Light})} $$
+
+其中
+$$p_{\omega, Light} = p_{Light} \cdot \frac{||x - x'||^2}{\cos \theta_e}$$
+最后合并
+$$L_o \approx w_{BRDF}L_{BRDF} + w_{Light}L_{Light} $$
+我们先给`Renderer.h`添加一个
+```cpp
+double powerHeuristic(const double pdf_a, const double pdf_b) const
+{
+    const double a2 = pdf_a * pdf_a;
+    const double b2 = pdf_b * pdf_b;
+    const double denominator = a2 + b2;
+    if (denominator <= 0.0) {
+        return 0.0;
+    }
+
+    return a2 / denominator;
+}
+```
+对于$ w_{Light} $代码中我们已经有了所有的信息可以直接实现，但是对于$ w_{BRDF} $我们并不知道采样后生成的 `scattered_ray` 下一次是否会击中光源，如果没击中那么
+$p_{\omega, Light}^2(\omega_{BRDF})$应该为0
+
+所以我们需要调整一下我们的 `traceRay`，我们把上一次光线击中的物体 pdf 作为递归参数传递到下一次，这样我们就可以获取上一次物体的 pdf 和这一次击中光源时的 pdf 了  
+> Q&A  
+> Q：为什么可以使用上一次物体的pdf计算?  
+> A：因为如果从 BRDF 采样这次击中了光源，说明这是最后一次递归了，上一次的Shading point是我们最后要算的 Shading point
+```cpp
+Vec3 traceRay(const Ray& ray,
+                const std::vector<std::unique_ptr<Object>>& objects,
+                int depth,
+                double previous_brdf_pdf)
+{
+    if (depth >= kMaxDepth) {
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    bool hit_anything = false;
+    bool is_light = false;
+    double closest_t = std::numeric_limits<double>::max();
+    InterInfo closest_info;
+    std::shared_ptr<Material> material = nullptr;
+    Object* hit_object = nullptr;
+
+    for (const auto& object : objects) {
+        const InterInfo info = object->getInterInfo(ray);
+        if (!info.is_Intersected || info.closest_t >= closest_t) {
+            continue;
+        }
+
+        hit_anything = true;
+        is_light = object->isLight();
+        closest_t = info.closest_t;
+        closest_info = info;
+        material = object->getMaterial();
+        hit_object = object.get();
+    }
+
+    if (!hit_anything || !material) {
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    if (is_light) {
+        if (depth == 0) {
+            return material->emission();
+        }
+
+        if (previous_brdf_pdf <= 1e-8 || !hit_object) {
+            return Vec3(0.0, 0.0, 0.0);
+        }
+
+        const double light_area = hit_object->getArea();
+        const double cos_e = std::max(0.0, dot(closest_info.normal, -ray.getDirection()));
+        if (light_area <= 0.0 || cos_e <= 0.0) {
+            return Vec3(0.0, 0.0, 0.0);
+        }
+
+        const double light_pdf = 1.0 / light_area;
+        const double distance_squared = (closest_info.position - ray.getOrigin()).lengthSquared();
+        const double solid_angle_light_pdf = light_pdf * distance_squared / cos_e;
+        const double weight_brdf = powerHeuristic(previous_brdf_pdf, solid_angle_light_pdf);
+
+        return weight_brdf * material->emission();
+    }
+
+    const Vec3 wo = -ray.getDirection();
+    const Vec3 normal = faceForward(closest_info.normal, wo);
+
+    const std::optional<Vec3> sampled_direction = material->sample(wo, normal);
+    if (!sampled_direction.has_value()) {
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    const double brdf_pdf = material->pdf(*sampled_direction, wo, normal);
+    if (brdf_pdf <= 1e-8) {
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    const double cos_theta = std::max(0.0, dot(normal, *sampled_direction));
+    if (cos_theta <= 0.0) {
+        return Vec3(0.0, 0.0, 0.0);
+    }
+
+    const Ray scattered_ray(closest_info.position + normal * 1e-4, *sampled_direction);
+
+    Vec3 incoming_light;
+
+    if (depth < kMinDepth) {
+        incoming_light = traceRay(scattered_ray, objects, depth + 1, brdf_pdf);
+    } else {
+        if (math::randomDouble() < kSurvivalProbability) {
+            incoming_light = traceRay(scattered_ray, objects, depth + 1, brdf_pdf) / kSurvivalProbability;
+        } else {
+            incoming_light = Vec3(0.0, 0.0, 0.0);
+        }
+    }
+
+    Vec3 direct_light;
+    for (const auto& light : lights_) {
+        const auto light_sample = light->lightSample();
+        if (!light_sample.has_value()) {
+            continue;
+        }
+        const Vec3 light_direction = light_sample->position - closest_info.position;
+        const double distance_squared = light_direction.lengthSquared();
+        const double distance = std::sqrt(distance_squared);
+
+        const Vec3 wi = light_direction / distance;
+
+        const double cos_i = std::max(0.0, dot(normal, wi));
+        const double cos_e = std::max(0.0, dot(light_sample->normal, -wi));
+
+        if (cos_i <= 0.0 || cos_e <= 0.0) {
+            continue;
+        }
+
+        if (!visibleToLight(closest_info.position + normal * 1e-4, wi, distance, light, objects)) {
+            continue;
+        }
+
+        const Vec3 Le = light->getMaterial()->emission();
+        const Vec3 fr = material->eval();
+        const double light_pdf = light_sample->pdf * distance_squared / cos_e;
+        const double brdf_pdf_to_light = material->pdf(wi, wo, normal);
+        const double weight_light = powerHeuristic(light_pdf, brdf_pdf_to_light);
+
+        direct_light += weight_light * Le * fr * (cos_i / light_pdf);
+    }
+
+    const Vec3 indirect_light = material->eval() * incoming_light * (cos_theta / brdf_pdf);
+
+    return direct_light + indirect_light;
+}
+```
+目前暂时只有 Lambertian 漫反射材质不好测试MIS的威力，等我们有了新的材质之后我们再测试
+

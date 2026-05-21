@@ -201,7 +201,7 @@ $$\sigma_{\hat{I}_N} = \sqrt{\frac{\sigma^2}{N}} = \frac{\sigma}{\sqrt{N}}$$
 
 ## 降低方差加快收敛
 我们总是希望图片能越快收敛，所以我们需要寻找一些方法加速我们的渲染。
-### 对光源采样
+### 对光源采样 NEE
 还记得我们的Re0[0x01]吗？其中没有任何的优化方法，完全就是在半球上随机采样，这样会有很多问题，如果我们的光源非常的小，那么我们采样的很多光线是根本没法打到光源浪费掉了，所以我们可以改变一下我们采样的方式，我们可以直接对光源的区域进行采样，这样我们就可以避免很多无用的采样，这样我们就可以大大提高我们的渲染速度  
 这个方法还是很简单的，我们只需要对我们的积分进行一个变换就可以了，渲染方程的积分域原本是立体角，但我们把它变换到光源表面积上
 ![](images/cg/re0pt/0x02/image6.png)
@@ -264,18 +264,35 @@ $$\hat{I}_{MIS} = \sum_{i=1}^n \frac{1}{N_i}\sum_{j=1}^{N_i}w_i(x_{i,j})\frac{f(
 - $w_i(x_{i,j})$为第i个采样策略在第j个样本上的权重，并且满足$\sum_{i=1}^n w_i(x) = 1$ 这样才能保证无偏
 
 所以我们需要找到一个好的$w_i(x_{i,j})$
-其中最经典的就是Veach 提出的 Balance Heuristic
+其中最经典的就是 Eric Veach 的经典论文 Robust Monte Carlo Methods for Light Transport Simulation 中提到的 Balance Heuristic
 $$ w_i(x) = \frac{n_i p_i(x)}{\sum_k n_k p_k(x)}$$
 其中
 - $n_i$ 为第i个采样策略的样本数
 - $p_i(x)$ 为第i个采样策略在x处的概率密度  
- 
-好了我们回到 Path Tracing 中，我们会分别对 BRDF 和 光源 进行采样,再使用 Balance Heuristic 进行合并
+
+除了 Balance Heuristic，Eric Veach还推导了更通用的形式 Power Heuristic
+$$w_i(x) = \frac{(n_i p_i(x))^\beta}{\sum_k (n_k p_k(x))^\beta}$$
+
+人们发现当 $\beta = 2$ 的时候通常比 $\beta = 1$(即Balance Heuristic) 效果更好
+
+好了我们回到 Path Tracing 中，我们会分别对 BRDF 和 光源 进行采样,再使用 Power Heuristic $\beta = 2$ 进行合并
 - 设采样策略1 BRDF 采样的 概率密度函数 pdf 为 $p_{BRDF}$  
 - 设采样策略2 光源 采样的 概率密度函数 pdf 为 $p_{Light}$  
 两者采样同样数量的样本 假设 $N_1 = N_2 = 1$ 则  
-$$ w_{BRDF} = \frac{p_{BRDF}}{p_{BRDF}+p_{Light}} $$
-$$ w_{Light} = \frac{p_{Light}}{p_{BRDF}+p_{Light}} $$
+$$ w_{BRDF} = \frac{p_{BRDF}^2(\omega_{BRDF})}{p_{BRDF}^2(\omega_{BRDF})+p_{\omega, Light}^2(\omega_{BRDF})} $$
+$$ w_{Light} = \frac{p_{\omega, Light}^2(\omega_{Light})}{p_{BRDF}^2(\omega_{Light})+p_{\omega, Light}^2(\omega_{Light})} $$
+
+但要注意的是
+- $p_{Light}$ 是在面积空间定义的（单位：$1/m^2$）
+- $p_{BRDF}$ 是在立体角空间定义的（单位：$1/sr$）  
+在计算 $w_{BRDF},w_{Light}$ 时，不能直接把$p_{BRDF},p_{Light}$相加，必须把 $p_{Light}$ 转换到立体角空间(因为我们的积分方程就是在立体角空间)
+根据概率密度的守恒性，对采样到同一个点，其概率总量必须保持不变，即
+$$p_\omega \cdot d\omega = p_A \cdot dA$$
+然后使用和 NEE 中类似的推导可知
+$$p_\omega = p_A \cdot \frac{||x - x'||^2}{\cos \theta_e}$$
+
+所以
+$$p_{\omega, Light} = p_{Light} \cdot \frac{||x - x'||^2}{\cos \theta_e}$$
 
 最终的 Radiance 估计为
 $$L_o \approx w_{BRDF}L_{BRDF} + w_{Light}L_{Light} $$
