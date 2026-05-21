@@ -3,6 +3,7 @@
 # ==========================================
 baseURL: "https://blog.cglab.top/" # 网站的域名，部署到 GitHub Pages 必须修改此项
 title: "CGLab" # 浏览器标签栏显示的网站标题
+copyright: '© 2026 氧均竭。本站原创内容除特别声明外，采用 [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh-hans) 许可协议。'
 theme: "PaperMod" # 使用的主题名称
 paginate: 1000
 

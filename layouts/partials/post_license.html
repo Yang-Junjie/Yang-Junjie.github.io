@@ -1,0 +1,26 @@
+{{- if and (eq .Section "posts") (not (.Param "hideLicense")) }}
+{{- $author := .Params.author | default site.Params.author | default site.Title }}
+<section class="post-license" aria-label="版权声明">
+  <h2>版权声明</h2>
+  <dl>
+    <dt>作者</dt>
+    <dd>{{ $author }}</dd>
+    {{- if not .Date.IsZero }}
+    <dt>首次发布</dt>
+    <dd>{{ .Date.Format "2006-01-02" }}</dd>
+    {{- end }}
+    {{- if and (not .Lastmod.IsZero) (ne (.Lastmod.Format "2006-01-02") (.Date.Format "2006-01-02")) }}
+    <dt>最后更新</dt>
+    <dd>{{ .Lastmod.Format "2006-01-02" }}</dd>
+    {{- end }}
+    <dt>原文链接</dt>
+    <dd><a href="{{ .Permalink }}">{{ .Permalink }}</a></dd>
+    <dt>许可协议</dt>
+    <dd>
+      除特别声明外，本文原创内容采用
+      <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/deed.zh-hans" rel="license noopener noreferrer" target="_blank">CC BY-NC-ND 4.0</a>
+      许可协议。转载或引用请保留作者、标题与原文链接；禁止商业使用和改编。
+    </dd>
+  </dl>
+</section>
+{{- end }}

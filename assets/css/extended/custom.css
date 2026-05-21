@@ -170,3 +170,56 @@ blockquote {
     border-radius: 10px 10px 0 0;
     /* 仅上方圆角，完美贴合卡片 */
 }
+
+/* ========== 12. 文章版权声明 ========== */
+
+.post-license {
+    margin: 2.5rem 0 1.5rem;
+    padding: 1rem 1.2rem;
+    color: var(--secondary);
+    font-size: 14px;
+    line-height: 1.8;
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+}
+
+.post-license h2 {
+    margin: 0 0 0.75rem;
+    color: var(--primary);
+    font-size: 16px;
+}
+
+.post-license dl {
+    display: grid;
+    grid-template-columns: 5.5em minmax(0, 1fr);
+    gap: 0.35rem 0.85rem;
+    margin: 0;
+}
+
+.post-license dt {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.post-license dd {
+    min-width: 0;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.post-license a {
+    color: inherit;
+    border-bottom: 1px solid var(--secondary);
+}
+
+.post-license a:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+@media (max-width: 480px) {
+    .post-license dl {
+        grid-template-columns: 1fr;
+    }
+}
