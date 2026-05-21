@@ -1,7 +1,7 @@
 ---
 date : '2026-05-06T22:55:35+08:00'
 draft : false
-title : '【CG】Re0:[0x02系统学习 Radiometry&Monte Carlo Integration]'
+title : '【CG】Re0:PathTracing | Radiometry&Monte Carlo Integration | 0x02'
 tags:
   - graphics
 
