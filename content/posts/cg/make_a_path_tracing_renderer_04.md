@@ -1,7 +1,7 @@
 ---
 date : '2026-05-25T20:34:33+08:00'
 draft : true
-title : '【CG】Re0:PathTracing | Microfacet Theory | 0x04'
+title : '【CG | Re0:PathTracing】| Microfacet Theory | 0x04'
 tags:
   - graphics
 
