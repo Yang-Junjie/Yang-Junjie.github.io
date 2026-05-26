@@ -75,7 +75,7 @@ params:
     enabled: true
     Content: >
       <img src="/cgl-logo.png" width="1000" style="border-radius: 500%;
-      margin-bottom: 15px;"><br> 欢迎来的Computer Graphics Lab！<br>
+      margin-bottom: 15px;"><br> 欢迎来到Computer Graphics Lab！<br>
 
   profileMode:
     enabled: false
