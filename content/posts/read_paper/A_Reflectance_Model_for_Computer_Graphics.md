@@ -1,7 +1,7 @@
 ---
 date : '2026-05-25T21:48:53+08:00'
 draft : false
-title : '【CG|Paper Reading】A Reflectance Model for Computer Graphics'
+title : '【CG | Paper Reading】A Reflectance Model for Computer Graphics'
 tags:
   - graphics
 
