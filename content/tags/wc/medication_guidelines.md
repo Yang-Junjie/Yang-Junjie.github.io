@@ -107,6 +107,8 @@ math: true
 # 药物相互作用
 - 绝对禁止饮酒：酒精会严重抑制中枢神经，与三种药物均产生协同作用导致用药过量，可能导致呼吸抑制甚至死亡
 
+一起扛过去就好了 T_T
+
 # References
 [^1]:https://zh.wikipedia.org/wiki/%E5%8A%B3%E6%8B%89%E8%A5%BF%E6%B3%AE
 [^2]:https://zh.wikipedia.org/wiki/%E5%96%B9%E7%A1%AB%E5%B9%B3
