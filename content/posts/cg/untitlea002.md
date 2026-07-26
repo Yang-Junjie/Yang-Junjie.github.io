@@ -74,13 +74,15 @@ Perlin Noise 的核心思想是：既然 普通噪声 全都是随机生成的�
 
 为了解决这个问题，Ken Perlin 引入了 梯度向量 和 位移向量 的点乘。
 
-为什么点乘能产生平滑纹理？
+为什么向量点乘能产生平滑纹理？
 - 当目标点 P 正好落于网格节点上时，位移向量 d = (0, 0)，点乘结果恒等于 0。保证了拼接时候无缝。
 - 当目标点 P 对应的位移向量与梯度向量夹角小于90度时，点乘结果为正（上坡）；
 - 当目标点 P 对应的位移向量与梯度向量夹角大于90度时，点乘结果为负（下坡）；
-- 当目标点 P 对应的位移向量与梯度向量夹角等于90度时，点乘结果为 0  
+- 当目标点 P 对应的位移向量与梯度向量夹角等于90度时，点乘结果为 0 (原地)
 
 当一个像素位于网格中央时，它会同时收到周围 4 个顶点产生的斜面的影响。我们把这 4 个不同方向倾斜的斜面平滑地“缝合”在一起，网格内部就会自然隆起平缓的山丘与谷底，从而彻底消除了网格线与方块感。
+
+并且插值我们不使用线性插值，而是使用 5 次缓动曲线的非线性插值
 
 由此我们可以写出如下代码
 ```cpp
@@ -91,7 +93,6 @@ Perlin Noise 的核心思想是：既然 普通噪声 全都是随机生成的�
 #include <iostream>
 #include <vector>
 
-// 二维向量结构体
 struct Vec2 {
     float x, y;
 
@@ -104,7 +105,6 @@ struct Vec2 {
     }
 };
 
-// 线性插值
 inline float lerp(float a, float b, float t) {
     return a + t * (b - a);
 }
@@ -131,7 +131,7 @@ public:
     }
 
     float noise(float pixel_x, float pixel_y, int img_width, int img_height) const {
-        // 1. 将图像坐标映射到网格空间 [0, m_grid_size - 1]
+        // 将图像坐标映射到网格空间 [0, m_grid_size - 1]
         float x_i = (pixel_x / (float)img_width) * (m_grid_size - 1);
         float y_i = (pixel_y / (float)img_height) * (m_grid_size - 1);
 
@@ -141,27 +141,27 @@ public:
         int x1 = x0 + 1;
         int y1 = y0 + 1;
 
-        // 2. 计算相对坐标 (u, v) \in [0, 1]
+        //  计算相对坐标 (u, v) \in [0, 1]
         float u = x_i - x0;
         float v = y_i - y0;
 
-        // 3. 获取 4 个顶点的梯度向量
+        //  获取 4 个顶点的梯度向量
         Vec2 g00 = m_gradients[y0 * m_grid_size + x0];
         Vec2 g10 = m_gradients[y0 * m_grid_size + x1];
         Vec2 g01 = m_gradients[y1 * m_grid_size + x0];
         Vec2 g11 = m_gradients[y1 * m_grid_size + x1];
 
-        // 4. 计算顶点到当前点的位移向量，并做点乘
+        //  计算顶点到当前点的位移向量，并做点乘
         float n00 = g00.dot(Vec2(u, v));
         float n10 = g10.dot(Vec2(u - 1.0f, v));
         float n01 = g01.dot(Vec2(u, v - 1.0f));
         float n11 = g11.dot(Vec2(u - 1.0f, v - 1.0f));
 
-        // 5. 应用 Fade 曲线平滑插值权重
+        //  应用 Fade 曲线平滑插值权重
         float u_f = fade(u);
         float v_f = fade(v);
 
-        // 6. 双线性插值
+        //  双线性插值
         float nx0 = lerp(n00, n10, u_f);
         float nx1 = lerp(n01, n11, u_f);
         float n = lerp(nx0, nx1, v_f);
