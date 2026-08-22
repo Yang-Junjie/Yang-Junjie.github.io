@@ -17,6 +17,11 @@ layout: "about"
   - 图形学前沿技术
 
 
+# 学习任务
+1. CSAPP、PBRT、Working Tasks of TDSG
+2. 离散数学、SICP、操作系统
+
+
 ## 🚀 关于 CGLab
 
 这里是我个人的技术空间，主要聚焦于 **计算机图形学**和**数学专业课**。
