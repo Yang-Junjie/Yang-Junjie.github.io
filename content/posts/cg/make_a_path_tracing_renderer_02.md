@@ -148,31 +148,41 @@ $$
 # The Monte Carlo Integration 蒙特卡洛积分
 我们知道BRDF版的渲染方程是
 $$
-L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{\mathcal{H}^2(\mathbf{n}) } f_r(p,\omega_i, \omega_o) L_i(p,\omega_i) \cos\theta_i  d\omega_i
+L_o(p, \omega_o) = L_e(p, \omega_o) + \int_{\mathcal{H}^2(\mathbf{n}) } f_r(p,\omega_i, \omega_o) L_i(p,\omega_i) (\omega_i \cdot \mathbf{n})  d\omega_i
 $$
 我们只看反射方程部分
 $$
-L_o(p, \omega_o) = \int_{\mathcal{H}^2(\mathbf{n}) } f_r(p,\omega_i, \omega_o) L_i(p,\omega_i) \cos\theta_i  d\omega_i
+L_o(p, \omega_o) = \int_{\mathcal{H}^2(\mathbf{n}) } f_r(p,\omega_i, \omega_o) L_i(p,\omega_i) (\omega_i \cdot \mathbf{n})  d\omega_i
 $$
 这是一个积分方程，我们怎么计算这个积分呢？
-由于我们的场景可能是一个茶壶，也可能是一个城市，而且这个方程我们观察它可以知道这是一个递归定义的方程，所以这个积分是没有解析解的，我们只能通过数值的方式来计算这个积分，而我们在这里最常用的数值积分方法就是蒙特卡洛积分，我们假设你有基础的概率论水平，这就够了
+由于我们的场景可能是一个茶壶，也可能是一个城市，而且这个方程我们观察它可以知道这是一个递归定义的方程，所以这个积分是没有解析解的，我们只能通过数值的方式来计算这个积分，而我们在这里最常用的数值积分方法就是 **蒙特卡洛积分**，我们假设你有基础的概率论水平，这就够了
 
 ## The Monte Carlo Estimator
-事实上蒙特卡洛积分是一个估计量，而估计量是个随机变量，所以当你使用蒙特卡洛积分渲染图像的时候每次采样的样本不同，那么得到的结果也就不同，但是最终会收敛到正确的值，所以这个估计量是无偏的，所以我们可以使用蒙特卡洛估计量去近似渲染方程所要的积分，接下来我们从数学出发验证一下我们上面提到的这些性质。
+事实上蒙特卡洛积分是一个估计量，而估计量是个随机变量，所以当你使用蒙特卡洛积分渲染图像的时候每次采样的样本不同，那么得到的结果也就不同，但是最终会收敛到正确的值，所以这个估计量是 **无偏(unbias)** 的，所以我们可以使用蒙特卡洛估计量去近似渲染方程所要的积分，接下来我们从数学出发验证一下我们上面提到的这些性质。
 
 ### 1. 蒙特卡洛估计量可以近似渲染方程的积分
-我们假设我们要积分的渲染方程的函数$f(x)$即
+我们假设我们要积分的渲染方程的函数 $f(x)$ 即
 $$I = \int_{\Omega} f(x)dx$$
 我们可以对其进行变形
 $$I = \int_{\Omega} \frac{f(x)}{p(x)}p(x)dx$$
+- 其中 $p(x)$ 为概率密度函数  
+
 熟悉概率论的一眼就能看出这是对随机变量 $\frac{f(x)}{p(x)}$ 求期望即
-$$I = E[\frac{f(X)}{p(X)}] = \int_{\Omega} \frac{f(x  )}{p(x)}p(x)dx \qquad \text{其中}X独立同分布服从p(x)$$
-而根据大数定律告诉我们：如果$X_1,X_2,...,X_N$ 独立同分布于$p(x)$，那么样本平均值依概率收敛于期望，即
-$$\frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}\overset{N\to\infty }{\rightarrow}E[\frac{f(x)}{p(x)}] =I $$
+$$
+I = E[\frac{f(X)}{p(X)}] = \int_{\Omega} \frac{f(x  )}{p(x)}p(x)dx \qquad \text{其中}X独立同分布服从p(x)
+$$
+而根据大数定律告诉我们：如果 $X_1,X_2,...,X_N$ 独立同分布于$p(x)$，那么样本平均值依概率收敛于期望，即
+$$
+\frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}\overset{N\to\infty }{\rightarrow}E[\frac{f(x)}{p(x)}] =I 
+$$
 我们使用 $\hat{I}_N$ 表示这个估计量
-$$\hat{I}_N =  \frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}\qquad \text{其中}X \sim p(x)$$
+$$
+\hat{I}_N =  \frac{1}{N}\sum_{i=1}^N \frac{f(X_i)}{p(X_i)}\qquad \text{其中}X \sim p(x)
+$$
 所以最终将渲染方程代入到蒙特卡洛积分中，可以得到
-$$ \hat{L}_o(p, \omega_o)=L_e(p,\omega_o)+\frac{1}{N}\sum_{i=1}^N\frac{f_r(p,\omega_i,\omega_o)L_i(p,\omega_i)\cos \theta_i}{p(\omega_i)} $$
+$$
+ \hat{L}_o(p, \omega_o)=L_e(p,\omega_o)+\frac{1}{N}\sum_{i=1}^N\frac{f_r(p,\omega_i,\omega_o)L_i(p,\omega_i)(\omega_i \cdot \mathbf{n})}{p(\omega_i)} 
+$$
 其中 
 - $N$ 为对单个像素的采样次数
 - $p(\omega_i)$ 为采样策略/概率密度函数
@@ -181,20 +191,33 @@ $$ \hat{L}_o(p, \omega_o)=L_e(p,\omega_o)+\frac{1}{N}\sum_{i=1}^N\frac{f_r(p,\om
 这个我都不需要验证了因为我们就是从积分的定义中推导出来的，所以是无偏的。
 如果非要验证也可以  
 我们只需对 $\hat{I}_N$ 求一次期望，看看它是否等于真实值 $I$
-$$E[\hat{I}_N] = E\left[\frac{1}{N} \sum_{i=1}^{N} \frac{f(X_i)}{p(X_i)}\right]$$
+$$
+E[\hat{I}_N] = E\left[\frac{1}{N} \sum_{i=1}^{N} \frac{f(X_i)}{p(X_i)}\right]
+$$
 因为期望具有线性性，且所有的样本都是从同一个分布 $p(x)$ 中独立采样的，所以
-$$E[\hat{I}_N] = \frac{1}{N} \sum_{i=1}^{N} E\left[\frac{f(X_i)}{p(X_i)}\right] = \frac{1}{N} \cdot N \cdot E\left[\frac{f(X)}{p(X)}\right] = \int_{\Omega} \frac{f(x)}{p(x)} p(x) dx = \int_{\Omega} f(x) dx = I$$
+$$
+E[\hat{I}_N] = \frac{1}{N} \sum_{i=1}^{N} E\left[\frac{f(X_i)}{p(X_i)}\right] = \frac{1}{N} \cdot N \cdot E\left[\frac{f(X)}{p(X)}\right] = \int_{\Omega} \frac{f(x)}{p(x)} p(x) dx = \int_{\Omega} f(x) dx = I
+$$
 
 ### 3. 蒙特卡洛估计量的方差
 由于我们使用了采样那么肯定于真实值直接存在误差，体现在渲染的图上就是噪点，我们总是希望我们渲染的图是没有噪点的，所以研究一下蒙特卡洛估计量的方差是很有必要的  
-设 $Y_i = \frac{f(X_i)}{p(X_i)}$，每个$Y_i$都是独立同分布的
-$$Var[\hat{I}_N] = Var[\frac{1}{N}\sum_{i=1}^N Y_i]$$
+设 $Y_i = \frac{f(X_i)}{p(X_i)}$，每个 $Y_i$ 都是独立同分布的
+
+$$
+Var[\hat{I}_N] = Var[\frac{1}{N}\sum_{i=1}^N Y_i]
+$$
 根据方差的性质：对于独立随机变量，和的方差等于方差之和，常数可以提出来再平方
-$$Var[\hat{I}_N] = \frac{1}{N^2}Var[\sum_{i=1}^N Y_i] = \frac{1}{N^2}\cdot N\cdot Var[Y] = \frac{1}{N} Var[\frac{f(X)}{p(X)}]$$
+$$
+Var[\hat{I}_N] = \frac{1}{N^2}Var[\sum_{i=1}^N Y_i] = \frac{1}{N^2}\cdot N\cdot Var[Y] = \frac{1}{N} Var[\frac{f(X)}{p(X)}]
+$$
 我们令 $\sigma^2 = Var[\frac{f(X)}{p(X)}]$，则：
-$$Var[\hat{I}_N] = \frac{\sigma^2}{N}$$
+$$
+Var[\hat{I}_N] = \frac{\sigma^2}{N}
+$$
 则标准差为:
-$$\sigma_{\hat{I}_N} = \sqrt{\frac{\sigma^2}{N}} = \frac{\sigma}{\sqrt{N}}$$
+$$
+\sigma_{\hat{I}_N} = \sqrt{\frac{\sigma^2}{N}} = \frac{\sigma}{\sqrt{N}}
+$$
 从中我们可以看出两个点
 - 蒙特卡洛积分的收敛速度是$O(1/\sqrt{N})$
 - 方差由 $ Var[ \frac{f(x)}{p(x)} ] $决定，如果$\frac{f(x)}{p(x)}$是常数则方差为 0 
@@ -237,9 +260,6 @@ $$
 ### 分层采样 Stratified Sampling
 由于在渲染中我们采样的样本都是独立同分布的，所以他们的采样是完全随机的，如果采样的点全都聚集在一起就会造成浪费，有些区域稀疏或完全没有样本则会产生大量噪点。  
 所以我们可以强行让这些采样点分开，我们可以把积分域拆成N个互不相交的区域，然后只在对应的区域中采样一次，这样样本被强制均匀分布在整个积分域上，不会出现大片空白或严重扎堆  
-具体的严格证明这里就不给出了，也许未来添加？
-在实操中我们可以这么做，对于单个像素，如果我们的spp是n，则我们可以将这个像素划分为n个互不相交的区域二维数组，然后我们分别在每个区域中采样就行了。
-
 > 读者也可以自行了解一下低差异序列，低差异序列用确定性的数学构造来强制均匀
 
 ### 重要性采样 Importance Sampling
