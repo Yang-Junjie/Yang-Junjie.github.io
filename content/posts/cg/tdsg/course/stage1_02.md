@@ -273,17 +273,17 @@ $$
 ```python
 import numpy
 
-def rotate(radians, vector):
+def rotate(radians, point):
     rotation_matrix = numpy.array([[numpy.cos(radians), -numpy.sin(radians), 0],
                                    [numpy.sin(radians),  numpy.cos(radians), 0],
                                    [     0,                    0,            1]])
-    return rotation_matrix.dot(vector)
+    return rotation_matrix.dot(point)
 
-def translate(translation, vector):
+def translate(translation, point):
     translation_matrix = numpy.array([[1, 0, translation[0]],
                                       [0, 1, translation[1]],
                                       [0, 0,      1        ]])
-    return translation_matrix.dot(vector)
+    return translation_matrix.dot(point)
 
 p = numpy.array([1, 0, 1])
 
@@ -291,7 +291,7 @@ print("rotate(pi/4) * translate(1,1) * p = ", rotate(numpy.pi/4, translate([1, 1
 
 print("translate(1,1) * rotate(pi/4) * p = ", translate([1, 1], rotate(numpy.pi/4, p)))
 
-print("is equal:", numpy.allclose(rotate(numpy.pi/4, translate([1, 1], p)), 
+print("Is equal:", numpy.allclose(rotate(numpy.pi/4, translate([1, 1], p)), 
                               translate([1, 1], rotate(numpy.pi/4, p))))
 ```
 
