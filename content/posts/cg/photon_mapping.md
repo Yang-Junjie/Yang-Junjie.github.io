@@ -111,9 +111,9 @@ $$L_o(p_{surf}, \omega_o) = \int_{\Omega} f_r(p_{surf}, \omega_{i}, \omega_o) \f
  
 其中
 
-- **$L_o(p_{surf}, \omega_o)$**：表面点 $p_{surf}$ 沿出射方向 $\omega_o$ 的 **出射 Radiance**
-- **$\omega_{i,p}$**：第 $p$ 个光子到达表面点 $p_{surf}$ 时的**入射方向**
-- **$\Delta\Phi_p(p_{surf}, \omega_{i,p})$**：第 $p$ 个光子所携带的**能量/通量**
+- **$L_o(p_{surf}, \omega_o)$**：表面点 $p_{surf}$ 沿出射方向 $\omega_o$ 的出射 Radiance
+- **$\omega_{i,p}$**：第 $p$ 个光子到达表面点 $p_{surf}$ 时的入射方向
+- **$\Delta\Phi_p(p_{surf}, \omega_{i,p})$**：第 $p$ 个光子所携带的Flux
 - **$\pi r^2$**：估算的表面微元面积 $\Delta A$。以 $p_{surf} $为中心展开一个包含这 $N$ 个光子的最小球体，球体半径为 $r$，论文将光子落在表面的投影区域近似为一个半径为 $r$ 的圆盘（面积即 $\pi r^2$）
 
 在光子密度过低的情况下，Radiance 估计可能会给出模糊的结果，为了补偿这种情况，论文引入了一个权重附加给每个 photon $p$ 到表面 $x$ 的距离 $d$,$d_p$ 表示第 $p$ 个光子到 $x$ 的距离。
