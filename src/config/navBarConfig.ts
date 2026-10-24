@@ -130,7 +130,7 @@ export const LinkPresets: Record<string, NavBarLink> = {
 	},
 	GitHub: {
 		name: "GitHub",
-		url: "https://github.com/LyraVoid/Shirone",
+		url: "https://github.com/Yang-Junjie",
 		icon: "fa7-brands:github",
 		external: true,
 		pageKey: "github",
