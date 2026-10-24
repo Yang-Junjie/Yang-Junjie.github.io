@@ -1,6 +1,6 @@
-import type { SkillsConfig } from "@/types/skillsConfig";
 import { withUserConfig } from "../utils/config-overlay.ts";
 
+import type { SkillsConfig } from "@/types/skillsConfig";
 /**
  * 技能页行为与展示配置。
  *

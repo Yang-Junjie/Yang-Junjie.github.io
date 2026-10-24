@@ -1,0 +1,151 @@
+---
+title: "【CG】 Importance Resampling for Global Illumination"
+published: 2026-10-03
+draft: false
+tags:
+  - "Graphics"
+  - "Math"
+category: "图形学"
+---
+
+> 转至 [TDSG Website](https://tds-graphics.github.io/TDS-Graphics-Website/blog/2026/10/03/cg/ReservoirSampling) 我为 TDSG 撰写技术 blog。
+
+## 目录
+- [Reservoir Sampling](#reservoir-sampling)
+- [Weighted Reservoir Sampling](#weighted-reservoir-sampling)
+
+## Reservoir Sampling
+
+Reservoir Sampling 是一种抽样算法，能够在 **样本数量 $n$ 未知** 或者 **样本数量 $n$ 极其庞大** 时保持等概率抽取 $k$ 个样本。是现代实时光线追踪算法 ReSTIR[^3] 的基础。
+
+它的时间复杂度是 $O(n)$，空间复杂度固定为 $O(k)$。
+
+它的大致流程是创建一个大小为 $k$ 的容器来保存我们最终抽样的样本，这个容器叫做 Reservoir ，然后遍历所有的样本 $i$，在 Reservoir 不满的情况下将样本 $i$ ($0 \le i<k$)直接加入 Reservoir 中。
+当 Reservoir 满了时，我们以均匀分布在区间 $[0,i]$ 随机生成一个整数 $p$
+- 如果 $p < k$ ，则用第 $i$ 个样本替换 Reservoir 中位置为 $p$ 的原样本。
+- 否则，放弃第 $i$ 个样本，继续遍历下一个样本。
+
+我相信用代码描述这个算法可能更加清晰。
+```python
+import random
+
+def reservoir_sampling(samples, k):
+    reservoir = []
+    for idx, item in enumerate(samples):
+        if idx < k:
+            reservoir.append(item)
+        else:
+            p = random.randint(0, idx)
+            if p < k:
+                reservoir[p] = item
+                
+    return reservoir
+```
+
+## 等概率证明
+:::::info[注意]
+在下面证明的时候，我们的 $i$ 使用 1-index base ，而在上面的算法中使用 0-index base 。两者不矛盾，只是计数方式不同。  
+
+或者更近一步，如果你不想看数学证明可以跳过，学会算法就行了，你只需要知道这个算法是等概率抽样的。
+:::::
+为什么这样做样本空间中每个样本都是等概率被抽样的呢？接下来我们从数学的角度来证明一下。
+
+我们通过直接法来证明，即通过计算最终被抽样到 Reservoir 中的样本 $i$ 概率是否相同。  
+
+我们需要分两种情况：
+1. 当 $i < k$ 时
+2. 当 $i \ge k$ 时
+
+### 1. 当 $i < k$ 时
+因为这些样本是一开始直接被添加到 Reservoir 中的，所以我们只需要考虑后续我们遍历 $k$ 后面的元素时，样本 $i$ 还没被替换的概率，换句话说就是样本 $i$ 最终存活的概率。
+
+- 处理第 $k+1$ 个样本时，样本 $i$ 被替换需要同时满足两个条件：1. 第 $k+1$ 个样本决定加入 Reservoir，概率是$\frac{k}{k+1}$；2. 第 $i$ 个样本被替换，概率是 $\frac{1}{k}$。所以第 $i$ 个样本被替换的概率是
+$\frac{k}{k+1} \cdot \frac{1}{k} = \frac{1}{k+1}$，则存活的概率是 $1-\frac{1}{k+1} = \frac{k}{k+1}$
+- 同理处理第 $k+2$ 个样本时，存活的概率是 $\frac{k+1}{k+2}$
+- ......
+- 处理第 $n$ 个样本时，存活的概率是 $\frac{n-1}{n}$
+
+这个样本需要存活到最后所以必须保证每一次都不被替换，所以最终的概率 $P$ 是：
+$$
+P = \frac{k}{k+1} \cdot \frac{k+1}{k+2} \cdot \cdots \cdot \frac{n-1}{n} = \frac{k}{n}
+$$
+
+### 2. 当 $i \ge k$ 时
+与上面的类似，它需要在第 $i$ 步被选中（概率为 $\frac{k}{i}$），然后从第 $i+1$ 步到最后第 $n$ 步都不能被替换。  
+
+所以概率 $P$ 是：
+$$
+P = \frac{k}{i} \cdot \frac{i}{i+1} \cdot \frac{i+1}{i+2} \cdot \cdots \cdot \frac{n-1}{n} = \frac{k}{n}
+$$
+
+两种情况的概率都是 $\frac{k}{n}$，证毕。
+
+## Weighted Reservoir Sampling
+在 Reservoir Sampling 中，所有样本的概率都是相等的，但有些时候某些情况下有的样本可能比其他样本重要。而 Weighted Reservoir Sampling 就是一种处理这种情况的算法。
+
+它也是一种能在 **样本数量 $n$ 未知** 或者 **样本数量 $n$ 极其庞大** 时抽取 $k$ 个样本的抽样算法，其中每个元素被抽中的概率与其权重成正比。  
+
+Weighted Reservoir Sampling 有很多不同种类的算法，在 ReSTIR DI[^3] 中使用的是 Chao[^1] 给出的 Weighted Reservoir Sampling。所以接下来我们介绍 Chao[^1] 的算法。
+
+### Chao's Algorithm 流程
+
+假设流中每个样本 $i$ 都有一个非负权重 $w_i$。在处理完前 $i$ 个样本后，记它们的权重总和为：
+$w_{sum}(i)$
+- **前 $k$ 个样本（$i < k$）**：直接放入 Reservoir 中，并更新权重和 $w_{sum}(i) = \sum_{i=0}^{k-1} w_i$。
+- **第 $i$ 个样本（$i \ge k$）**：
+   - 更新权重和：$w_{sum}(i) = w_{sum}(i-1) + w_i$。
+   - 以概率 $P_{accept} = \min(1, \frac{k \cdot w_i}{w_{sum}(i)})$ 决定是否将样本 $i$ 放入 Reservoir 中。
+   - 若放入 Reservoir 中，则在 Reservoir 已有的 $k$ 个样本中**均匀随机**选择一个位置 $p \in [0, k-1]$ 进行替换。
+
+以下是 Python 描述：
+
+```python
+import random
+
+def weighted_reservoir_sampling(samples, weights, k):
+    reservoir = []
+    w_sum = 0.0
+
+    for idx, (item, w) in enumerate(zip(samples, weights)):
+        w_sum += w
+        if idx < k:
+            reservoir.append(item)
+        else:
+            # 决定是否接受第 idx 个样本
+            p_accept = min(1.0, (k * w) / w_sum)
+            if random.random() < p_accept:
+                # 均匀随机替换 Reservoir 中的一个位置
+                replace_idx = random.randint(0, k - 1)
+                reservoir[replace_idx] = item
+
+    return reservoir
+```
+
+在 ReSTIR DI[^3] 中，由于内存与计算开销限制，绝大多数情况下每个像素仅维护 $k = 1$ 的 Reservoir。此时 Chao 算法可以极大地简化，甚至不再需要显式维护列表或计算复杂的替换索引。
+此时代码为：
+```python
+import random
+
+def weighted_reservoir_sampling(samples, weights):
+    reservoir_item = None
+    w_sum = 0.0
+
+    for item, w in zip(samples, weights):
+        w_sum += w
+        # 当 k = 1 时，accept 概率简化为 w / w_sum
+        p_accept = w / w_sum if w_sum > 0 else 0.0
+        
+        if random.random() < p_accept:
+            reservoir_item = item
+
+    return reservoir_item
+```
+
+类似的我们可以使用和 Reservoir Sampling 一样的思路来证明 Weighted Reservoir Sampling 抽样的概率正比于权重。
+
+如果想看更详细的描述可以看看 NVIDIA 的 cwyman[^2] 的文章
+
+[^1]:[Chao](https://doi.org/10.2307/2336002)
+[^2]:[cwyman](https://cwyman.org/papers/rtg2-weightedReservoir.pdf)
+[^3]:[ReSTIR DI](https://research.nvidia.com/sites/default/files/pubs/2020-07_Spatiotemporal-reservoir-resampling/ReSTIR.pdf)
+
