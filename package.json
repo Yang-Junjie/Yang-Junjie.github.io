@@ -62,7 +62,7 @@
 		"perf:measure": "node scripts/perf/measure.mjs"
 	},
 	"dependencies": {
-		"@astrojs/check": "^0.9.10",
+		"@astrojs/check": "^0.9.11",
 		"@astrojs/markdown-remark": "^7.3.3",
 		"@astrojs/mdx": "^8.0.3",
 		"@astrojs/rss": "^4.0.19",
@@ -79,7 +79,7 @@
 		"@iconify-json/fa7-solid": "^1.2.5",
 		"@iconify-json/material-symbols": "^1.2.95",
 		"@iconify-json/simple-icons": "^1.2.100",
-		"@iconify/svelte": "^5.2.2",
+		"@iconify/svelte": "^5.2.3",
 		"@material/material-color-utilities": "^0.4.0",
 		"@panzoom/panzoom": "4.6.2",
 		"@swup/astro": "^1.8.0",
