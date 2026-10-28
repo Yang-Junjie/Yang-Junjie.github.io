@@ -1,5 +1,5 @@
 ---
-title: "【CG】 Importance Resampling for Global Illumination"
+title: "【CG】 Reservoir Sampling"
 published: 2026-10-03
 draft: false
 tags:
