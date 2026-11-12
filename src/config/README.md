@@ -136,6 +136,8 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 | `llmsConfig.ts` | 大语言模型与 AI 友好内容系统：`/llms.txt`（索引）与 `/llms-full.txt`（全量正文汇编）静态端点生成控制、加密文章过滤、排除标签与自定义章节配置；支持内容仓 `config/llms.yaml` 覆盖（领域键 `llms`） |
 | `seriesConfig.ts` | 系列连载：`/series/` 索引与 `/series/<slug>/` 详情页总开关（默认开启）、索引页 `title`/`description`（`$t:` i18n 引用或字面量，描述留空用动态汇总）、文章内系列块位置 `cardPosition: "top" \| "bottom"`（top = 元信息区下方、正文之前；bottom = 正文之后、版权/分享/延伸阅读之前）；支持内容仓 `config/series.yaml` 覆盖（领域键 `series`）。关闭时系列页 404、导航/侧栏/sitemap 入口裁剪、文章内系列卡消失（系列实体与文章 frontmatter 见 `shirone-writing` 与内容分离文档） |
 
+`siteConfig.background` 控制全站固定静态背景图：显式设置 `enable: true` 和 `src` 后加载，图片按 `cover` 等比铺满视口；`position` 使用 CSS `object-position` 指定裁切焦点。`/images/...` 路径对应 `public/images/...`，会自动适配部署 `base`；也支持现有资源解析器的本地资源和远程 URL。关闭、未配置或 `src` 为空时不输出背景图层、样式和图片请求。它独立于顶部 Banner（`wallpaperMode`）与程序纹理（`texture`）；只需静态图时设置 `texture: false`，同时裁掉纹理选择器。`displaySettings.wallpaperMode` 仅控制访客是否可切换顶部 Banner 模式；固定静态背景启用时建议隐藏该控件，避免把“纯色”误解为关闭全站图片。背景位于 Swup 持久页框，切页及滚动不会重新挂载，无需客户端脚本。
+
 非首页 Banner 的标题、说明和可选日期由各页面通过 `MainGridLayout` 提供，并在 Swup 导航后从被替换的主内容容器同步。该上下文默认显示、不设配置开关；说明为空或与标题相同时自动省略，移动端非首页仍沿用紧凑布局并隐藏 Banner。
 
 ## 侧栏编排与页框宽度

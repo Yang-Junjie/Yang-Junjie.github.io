@@ -2,6 +2,7 @@
 import { Font } from "astro:assets";
 import Snackbar from "@components/atoms/overlay/Snackbar.svelte";
 import ConfigCarrier from "@components/system/ConfigCarrier.astro";
+import PageBackground from "@components/system/PageBackground.astro";
 import UmamiRuntime from "@components/system/UmamiRuntime.astro";
 import { resolveAsset } from "@utils/asset-utils";
 import { createDefaultSchemeStyle } from "@utils/theme-utils";
@@ -233,6 +234,7 @@ const defaultSchemeStyle = createDefaultSchemeStyle();
 		data-banner-has-mobile={String(hasMobileBanner)}
 	>
 		<ConfigCarrier></ConfigCarrier>
+		<PageBackground />
 		{umamiOptions && <UmamiRuntime />}
 		{textureEnabled && (
 			<div

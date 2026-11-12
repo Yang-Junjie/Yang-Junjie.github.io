@@ -5,6 +5,16 @@ import type { TextureConfig } from "./textureConfig";
 
 export type WallpaperMode = "banner" | "none";
 
+/** 全站静态背景图，与顶部 Banner 和程序纹理分别配置。 */
+export type PageBackgroundConfig = {
+	/** 显式开启后加载图片；关闭或省略时不输出背景图层。 */
+	enable?: boolean;
+	/** 图片路径：/ 开头对应 public，或相对 src 的本地资源路径、https URL。 */
+	src?: string;
+	/** cover 裁切焦点，使用 CSS object-position，如 "65% center"；默认 center。 */
+	position?: string;
+};
+
 export type TopAppBarContentAlign = "left" | "center";
 
 export type DisplaySettingsConfig = {
@@ -114,6 +124,8 @@ export type SiteConfig = {
 	wallpaperMode: {
 		defaultMode: WallpaperMode;
 	};
+	/** 全站固定静态背景图；未配置时保留主题纯色背景。 */
+	background?: PageBackgroundConfig;
 	/** 页面背景纹理系统配置，支持布尔值直接开关或详细配置对象 */
 	texture?: boolean | TextureConfig;
 	banner: BannerConfig;

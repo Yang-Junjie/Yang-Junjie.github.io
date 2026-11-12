@@ -20,6 +20,7 @@
 
 @import "./transition.css" layer(components);
 @import "./scrollbar.css" layer(components);
+@import "./card-surfaces.css" layer(components);
 @import "./markdown.css" layer(components);
 /* Typography emits prose heading metrics in the utilities layer. Keep this
    narrowly scoped bridge there so Markdown owns the final heading rhythm. */

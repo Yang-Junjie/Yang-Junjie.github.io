@@ -11,7 +11,7 @@
  * - 正文区是紧凑的元数据行：评分（星 + 数值）、游玩时长、平台，随后是类型 chips
  *   与两行钳制的简评，底部外链按钮右对齐；
  * - 卡片外壳沿用站点卡片语言（--card-bg + outline-variant 描边 + corner-l，
- *   hover 升级描边与 elevation-2），与项目/友链卡片保持一致。
+ *   hover 升级描边、无卡片阴影），与项目/友链卡片保持一致。
  */
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
@@ -170,13 +170,11 @@ const ratingLabel = $derived(
 	border-radius: var(--shape-corner-l)
 	transition:
 		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		transform var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		background-color var(--m3e-duration-medium) var(--m3e-easing-standard)
 
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-2)
 		transform: translateY(-2px)
 		background: unquote("color-mix(in oklab, var(--on-surface) 2%, var(--card-bg))")
 

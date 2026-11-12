@@ -38,8 +38,8 @@ async function expectSubtitleTyping(page: import("@playwright/test").Page) {
 async function expectBannerOverlap(page: import("@playwright/test").Page) {
 	const geometry = await page.evaluate(() => {
 		const banner = document.getElementById("banner-wrapper");
-		const categoryBar = document.getElementById("category-bar-region");
-		if (!banner || !categoryBar) return null;
+		const mainContent = document.getElementById("main-content-column");
+		if (!banner || !mainContent) return null;
 
 		const rootStyle = getComputedStyle(document.documentElement);
 		const resolveLength = (property: string): number => {
@@ -55,7 +55,7 @@ async function expectBannerOverlap(page: import("@playwright/test").Page) {
 		return {
 			actual:
 				banner.getBoundingClientRect().bottom -
-				categoryBar.getBoundingClientRect().top,
+				mainContent.getBoundingClientRect().top,
 			expected: resolveLength("--banner-panel-overlap"),
 		};
 	});

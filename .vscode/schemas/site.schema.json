@@ -281,6 +281,25 @@
       },
       "additionalProperties": false
     },
+    "background": {
+      "type": "object",
+      "properties": {
+        "enable": {
+          "type": "boolean",
+          "description": "显式开启后加载图片；关闭或省略时不输出背景图层。"
+        },
+        "src": {
+          "type": "string",
+          "description": "图片路径：/ 开头对应 public，或相对 src 的本地资源路径、https URL。"
+        },
+        "position": {
+          "type": "string",
+          "description": "cover 裁切焦点，使用 CSS object-position，如 \"65% center\"；默认 center。"
+        }
+      },
+      "description": "全站固定静态背景图；未配置时保留主题纯色背景。",
+      "additionalProperties": false
+    },
     "texture": {
       "anyOf": [
         {},

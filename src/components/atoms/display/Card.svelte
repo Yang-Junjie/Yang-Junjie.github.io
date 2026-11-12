@@ -66,6 +66,7 @@ const styleVars = [
 {#if href}
     <a
         id={id}
+        data-surface={color?.trim() === "var(--card-bg)" ? "card" : undefined}
         href={href}
         target={target ?? undefined}
         class="m3-card m3-card--{variant} m3-card--interactive {className}"
@@ -77,6 +78,7 @@ const styleVars = [
 {:else if onClick}
     <button
         id={id}
+        data-surface={color?.trim() === "var(--card-bg)" ? "card" : undefined}
         class="m3-card m3-card--{variant} m3-card--interactive {className}"
         class:m3-card--disabled={!enabled}
         onclick={onClick}
@@ -88,6 +90,7 @@ const styleVars = [
 {:else}
     <div
         id={id}
+        data-surface={color?.trim() === "var(--card-bg)" ? "card" : undefined}
         class="m3-card m3-card--{variant} {className}"
         style={styleVars || undefined}
     >
@@ -145,4 +148,10 @@ const styleVars = [
         cursor: default
         opacity: 0.38
         pointer-events: none
+
+    /* Site surfaces stay flat even when composed with the elevated variant. */
+    &[data-surface="card"]
+        box-shadow: none
+        &:hover
+            box-shadow: none
 </style>

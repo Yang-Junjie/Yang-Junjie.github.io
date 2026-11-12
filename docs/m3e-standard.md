@@ -63,7 +63,9 @@ variables.styl  --mc-* → 语义令牌（--primary、--surface-container-low…
 | 令牌 | 含义 |
 |---|---|
 | `--page-bg` | 页面背景（light: container-low / dark: surface） |
-| `--card-bg` | 卡片背景（light: container-lowest / dark: container-high） |
+| `--card-bg` | 卡片背景（支持 `color-mix` 时以动态 `--primary` 着色、75% 不透明；否则 light: container-lowest / dark: container-high） |
+| `--card-tint` | 卡片染色来源，默认 `var(--primary)`，随主题色实时变化 |
+| `--card-opacity` | 卡片背景不透明度，默认 `75%`；调低更透明、调高更实，不影响文字和内容自身的不透明度 |
 | `--float-panel-bg` | 浮层面板背景（container） |
 | `--field-filled-bg` | 填充输入框容器（light: container-high / dark: surface-bright，避开暗色卡片的 container-high） |
 | `--btn-regular-bg/-hover/-active` | 常规按钮的层级渐升（container-low → container → high → highest） |
@@ -73,6 +75,8 @@ variables.styl  --mc-* → 语义令牌（--primary、--surface-container-low…
 | `--line-divider`、`--line-color`、`--meta-divider` | 分隔线 |
 | `--inline-code-bg/-color`、`--codeblock-bg`、`--codeblock-topbar-bg` | 代码块（行内代码底色 light: container-low / dark: surface-bright，避开暗色卡片、表头与批注气泡的 container-high） |
 | `--admonitions-color-*` | 提示块语义色（固定色相，不随种子） |
+
+透明度参数集中在 `src/styles/variables.styl`，表面选择器集中在 `src/styles/card-surfaces.css`。卡片使用半透明底色，不添加模糊、饱和滤镜、玻璃高光或交互阴影。通用 `Card` 通过 `color="var(--card-bg)"` 接入共用表面；自定义颜色和默认 M3 变体保留各自样式。浏览器缺少 `color-mix` 支持、用户请求减少透明度或提高对比度、强制颜色模式及打印时，卡片使用原有实色背景。
 
 ### 3.2 形状
 

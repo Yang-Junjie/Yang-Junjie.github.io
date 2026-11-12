@@ -98,7 +98,7 @@ export const sidebarConfig: SidebarConfig = withUserConfig("sidebar", {
 		},
 		{
 			type: "stats",
-			enable: true,
+			enable: false,
 			slot: "top",
 			column: "secondary",
 			pages: ["home", "archive", "categories", "tags"],

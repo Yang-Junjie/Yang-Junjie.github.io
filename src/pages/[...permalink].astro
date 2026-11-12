@@ -211,7 +211,7 @@ const jsonLd = {
 };
 ---
 
-<MainGridLayout banner={entry.data.image} ogImage={ogImage} title={entry.data.title} description={effectiveDescription} bannerDate={formatDateToYYYYMMDD(entry.data.published)} lang={entry.data.lang} setOGTypeArticle={true} headings={effectiveHeadings} postCategory={entry.data.category || undefined} page="post" hasComments={postCommentEnabled}>
+<MainGridLayout banner={entry.data.image} ogImage={ogImage} title={entry.data.title} description={effectiveDescription} bannerDate={formatDateToYYYYMMDD(entry.data.published)} lang={entry.data.lang} setOGTypeArticle={true} headings={effectiveHeadings} page="post" hasComments={postCommentEnabled}>
     {hasMath && <link slot="head" rel="stylesheet" data-swup-optional="math" href={katexStylesheet} />}
     {hasMath && <link slot="head" rel="stylesheet" data-swup-optional="math" href={overlayScrollbarsStylesheet} />}
     {markdownStylesheetAssets.map(({ pack, css }) => <style is:inline slot="head" data-swup-optional={pack} set:html={css}></style>)}

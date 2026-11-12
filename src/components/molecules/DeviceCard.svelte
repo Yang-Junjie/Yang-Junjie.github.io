@@ -2,7 +2,7 @@
 /**
  * 设备卡片（分子）：统一卡片壳 + 单一骨架，无断点分叉。
  * - 卡片壳对齐站点卡片语言（ProjectCard/FriendCard/SkillCard）：
- *   --card-bg + outline-variant 描边 + corner-l，hover 升级描边与 elevation-2；
+ *   --card-bg + outline-variant 描边 + corner-l，hover 升级描边，无卡片阴影；
  * - 主力推荐（featured）：高亮边框渐变 + 角标；
  * - 媒体区：有 image 时展示设备图（object-contain 锁高，任意宽度不拉伸），
  *   无 image 时回退为精致图标瓷砖头；
@@ -141,13 +141,11 @@ const showImage = $derived(Boolean(device.image) && !coverFailed);
 	border-radius: var(--shape-corner-l)
 	transition:
 		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		transform var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		background-color var(--m3e-duration-medium) var(--m3e-easing-standard)
 
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-2)
 		transform: translateY(-2px)
 		background: unquote("color-mix(in oklab, var(--on-surface) 2%, var(--card-bg))")
 

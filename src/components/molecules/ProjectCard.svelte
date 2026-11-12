@@ -2,7 +2,7 @@
 /**
  * 项目卡片（分子）：统一卡片壳 + 单一骨架，无断点分叉。
  * - 卡片壳对齐站点卡片语言（FriendCard/AnimeCard/SkillCard）：
- *   --card-bg + outline-variant 描边 + corner-l，hover 升级描边与 elevation-2；
+ *   --card-bg + outline-variant 描边 + corner-l，hover 升级描边，无卡片阴影；
  * - 代表项目（featured）：高亮边框渐变 + Featured 徽章；
  * - 有封面：通栏 16/9 媒体区（aspect-ratio 锁高 + object-fit: cover），
  *   任何宽度下图片都不可能撑高卡片，手机端不再被拉伸；
@@ -161,13 +161,11 @@ const showCover = $derived(Boolean(project.cover) && !coverFailed);
 	border-radius: var(--shape-corner-l)
 	transition:
 		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		transform var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		background-color var(--m3e-duration-medium) var(--m3e-easing-standard)
 
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-2)
 		transform: translateY(-2px)
 		background: unquote("color-mix(in oklab, var(--on-surface) 2%, var(--card-bg))")
 

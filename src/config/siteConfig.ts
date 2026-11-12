@@ -22,10 +22,10 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 	displaySettings: {
 		colorStyle: true, // 是否展示配色风格 9 宫格
 		colorSpec: true, // 是否展示 Color Spec 调色规范切换
-		wallpaperMode: true, // 是否展示页面背景（纯色/横幅）切换
+		wallpaperMode: false, // 隐藏 Banner 模式切换；全站静态背景由 background 固定配置
 		layoutMode: true, // 是否展示文章列表布局（列表/网格）切换
 		reduceMotion: true, // 是否展示减少动效切换
-		texture: true, // 是否展示背景纹理选择
+		texture: false, // 当前使用静态背景图，隐藏程序纹理选择
 	},
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	// IANA time zone for precise post and moment timestamps. It is independent of lang.
@@ -39,18 +39,22 @@ export const siteConfig: SiteConfig = withUserConfig("site", {
 		// 差异仅在调色板派生（库的 colorSpec 静态为 2025 委托）
 		spec: "2025",
 	},
-	// 默认页面背景模式："banner" 使用壁纸横幅，"none" 使用主题纯色。
+	// 默认顶部横幅模式："banner" 显示壁纸横幅，"none" 不显示横幅。
+	// 全站静态背景图单独由下方 background 控制。
 	// 访客在“显示设置”中的选择会保存在浏览器中，并覆盖这里的默认值。
 	wallpaperMode: {
 		defaultMode: "none",
 	},
-	// 页面背景纹理系统配置（5 大精美预设 + 零开销 HCT 动态取色）
-	texture: {
-		enable: true, // 是否启用背景纹理系统
-		defaultPreset: "sakura", // 默认纹理预设："none" | "starlight" | "cyber-dots" | "topography" | "geometric" | "sakura"
-		defaultOpacity: 0.12, // 默认纹理浓度 (0.05 ~ 0.25)
-		allowMotion: true, // 是否允许背景微动效（开启 reduced-motion 时自动静止）
+	// 全站静态背景：固定铺满视口，使用 cover 等比裁切，适用于首页和内页。
+	background: {
+		enable: true, // false 或省略整个 background 时，不加载图片、不输出背景 DOM。
+		// 图片放在 public/images/backgrounds/；也支持相对 src 的资源路径或 https URL。
+		src: "/images/backgrounds/academy.webp",
+		position: "65% center", // 裁切焦点略偏右，手机竖屏优先保留人物；可改为 center。
 	},
+	// 程序纹理单独关闭：不加载纹理样式、不生成纹理图层，也不显示纹理选择器。
+	// 如需恢复，改成 { enable: true, defaultPreset: "sakura", defaultOpacity: 0.12, allowMotion: true }。
+	texture: false,
 	banner: {
 		// 推荐将图片放入 src/assets，并填写相对 src 的路径，以启用构建期 AVIF/WebP 响应式优化。
 		// 以 "/" 开头的 public 路径与远程 URL 仍可用，但会保留原图、不生成候选。

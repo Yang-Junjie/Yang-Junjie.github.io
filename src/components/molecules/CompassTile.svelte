@@ -88,12 +88,10 @@ const host = $derived.by(() => {
 	--m3e-state-color: var(--on-surface)
 	transition:
 		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		background-color var(--m3e-duration-medium) var(--m3e-easing-standard)
 
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-1)
 		background: unquote("color-mix(in oklab, var(--on-surface) 3%, var(--card-bg))")
 
 	&__link

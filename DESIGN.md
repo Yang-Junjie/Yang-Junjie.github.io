@@ -429,6 +429,8 @@ Depth in MD3 is communicated through **tonal surface color**, not shadows. Five 
 - **Surface Container**: Default container for navigation bars, menus, and docked chrome (`--surface-container`).
 - **Surface Container High**: High-emphasis container for light mode inputs, dialogs, and dark mode cards (`--surface-container-high`).
 - **Surface Container Highest**: Highest-emphasis container for switches, active chips, and selected list rows (`--surface-container-highest`).
+- **Page background image**: A site-configured static image may fill the viewport behind the semantic page surface.
+- **Translucent card surface**: Content cards use a flat surface tinted with the live primary role at 75% opacity by default. Background opacity is adjustable independently of text and media; no backdrop filter, glass highlight or hover elevation is applied. Reduced-transparency preferences and unsupported browsers retain the solid light/dark card surface.
 - **On-Surface**: Default reading text and prominent icons.
 - **On-Surface-Variant**: Supporting text, timestamps, metadata, and unselected icons.
 

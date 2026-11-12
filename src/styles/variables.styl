@@ -170,11 +170,33 @@ define({
   --radius-large: var(--shape-corner-l)
   --page-bg: var(--surface-container-low)
   --card-bg: var(--surface-container-lowest)
+  --card-tint: var(--primary)
+  --card-opacity: 75%
   --float-panel-bg: var(--surface-container)
 :root.dark
   --page-bg: var(--surface)
   --card-bg: var(--surface-container-high)
   --float-panel-bg: var(--surface-container)
+
+/* 共用卡片背景：只调整底色不透明度，文字和内容保持不透明。 */
+@supports (color: unquote("color-mix(in srgb, red, blue)"))
+  :root
+    --card-bg: unquote("color-mix(in srgb, color-mix(in srgb, var(--card-tint) 12%, var(--surface-container-lowest)) var(--card-opacity), transparent)")
+  :root.dark
+    --card-bg: unquote("color-mix(in srgb, color-mix(in srgb, var(--card-tint) 16%, var(--surface-container-high)) var(--card-opacity), transparent)")
+
+/* 透明度和对比度偏好优先，回退至原有实色表面。 */
+@media (prefers-reduced-transparency: reduce)
+  :root
+    --card-bg: var(--surface-container-lowest)
+  :root.dark
+    --card-bg: var(--surface-container-high)
+
+@media (prefers-contrast: more), (forced-colors: active), print
+  :root
+    --card-bg: var(--surface-container-lowest)
+  :root.dark
+    --card-bg: var(--surface-container-high)
 
 /* ============================================================
    M3E 响应式 / 间距 / 密度令牌

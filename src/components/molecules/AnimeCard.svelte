@@ -138,11 +138,9 @@ const metaLine = $derived(
 	border: 1px solid var(--outline-variant)
 	transition:
 		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
 		transform var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate)
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-2)
 		transform: translateY(-2px)
 
 	/* 2:3 海报封面：渐变占位同时充当图片加载背景 */

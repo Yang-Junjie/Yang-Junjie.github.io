@@ -58,10 +58,9 @@ let { album }: { album: AlbumIndexItem } = $props();
 	border: 1px solid var(--outline-variant)
 	border-radius: var(--shape-corner-l)
 	background: var(--card-bg)
-	transition: border-color var(--m3e-duration-medium) var(--m3e-easing-standard), box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate)
+	transition: border-color var(--m3e-duration-medium) var(--m3e-easing-standard)
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-1)
 	&__link
 		display: block
 		color: inherit

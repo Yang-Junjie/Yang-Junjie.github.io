@@ -65,13 +65,10 @@ const fallback = $derived((skill.name.charAt(0) || "?").toUpperCase());
 	background: var(--card-bg)
 	border: 1px solid var(--outline-variant)
 	border-radius: var(--shape-corner-l)
-	transition:
-		border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate),
-		box-shadow var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate)
+	transition: border-color var(--m3e-duration-medium) var(--m3e-easing-emphasized-decelerate)
 
 	&:hover
 		border-color: var(--outline)
-		box-shadow: var(--m3e-elevation-1)
 
 	&__header
 		display: flex

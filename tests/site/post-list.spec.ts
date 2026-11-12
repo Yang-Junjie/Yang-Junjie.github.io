@@ -17,6 +17,26 @@ function runningCardAnimations(): number {
 }
 
 test.describe("文章列表布局模式", () => {
+	test("共享页面不再渲染顶部分类导航栏", async ({ page }) => {
+		for (const route of ["/", "/archive/", "/posts/guide/"]) {
+			await page.goto(route);
+			await expect(page.locator("#category-bar-region")).toHaveCount(0);
+		}
+	});
+
+	test("文章卡片标题和摘要使用略大的字号", async ({ page }) => {
+		await page.goto("/");
+		const firstCard = page.locator(".m3-blog-postcard").first();
+		await expect(firstCard.locator(".m3-blog-postcard__title")).toHaveCSS(
+			"font-size",
+			"24px",
+		);
+		await expect(firstCard.locator(".m3-blog-postcard__desc")).toHaveCSS(
+			"font-size",
+			"16px",
+		);
+	});
+
 	test("置顶文章排在首位并输出 SSR 状态标记", async ({ page }) => {
 		await page.goto("/");
 		const firstCard = page.locator(".m3-blog-postcard").first();

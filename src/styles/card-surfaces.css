@@ -1,0 +1,21 @@
+/* Shared content cards use a flat translucent background. Opacity belongs to
+ * --card-bg, so text and media retain their full opacity. Generic Card opts in
+ * through color="var(--card-bg)"; its other M3 variants keep their own finish. */
+:is(
+	.m3-card[data-surface="card"],
+	.m3-blog-postcard,
+	.album-card,
+	.album-detail__gallery:not(:has(.password-gate)),
+	.anime-card,
+	.compass-tile,
+	.device-card,
+	.friend-card,
+	.game-card,
+	.project-card,
+	.skill-card,
+	.timeline-card__body,
+	.moment-card,
+	.last-updated-notice
+) {
+	box-shadow: none;
+}
