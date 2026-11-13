@@ -8,6 +8,8 @@ tags:
 category: "图形学"
 ---
 
+> 其实我认为你初看这些概念可能会很陌生，很难懂，但是当你接触多了之后，就不觉得这有什么问题了。 Artichoke 一开始看的时候也非常的懵逼，对于看不懂的内容欢迎和 Aritchoke 进行友好讨论，或者你去问问 AI 也不错呢~！。
+
 在这篇文章中你是一只草履虫，我们现在的任务是掌握测度论中的一些基础概念，并用于解释 Eric Veach 在图形学领域提出的路径积分。
 
 ## Riemann 积分居然有问题
@@ -96,7 +98,7 @@ $$
 所以在测度的定义为（注意这里的定义还不严格，在我们的故事走向下，我们会完善这个定义）：
 
 
-给定某个集合 $X$ ，$\mathcal{F}$ 是集合 $X$ 的幂集，对于定义在 $\mathcal{F}$ 上的函数 $\mu:\mathcal{F} \to [0,+ \infty]$，如果这个函数满足下面的三个性质，则 $\mu$ 是 $X$ 上的一个测度。
+给定某个非空集合 $X$ ，$\mathcal{F}$ 是集合 $X$ 的幂集，对于定义在 $\mathcal{F}$ 上的函数 $\mu:\mathcal{F} \to [0,+ \infty]$，如果这个函数满足下面的三个性质，则 $\mu$ 是 $X$ 上的一个测度。
 
 1. 对于任意的一个集合 $E$ ,$E \in \mathcal{F}$ ，有 $\mu(E) \ge 0$
 2. 对于空集 $\mu(\emptyset) = 0$
@@ -118,23 +120,156 @@ $$
 或者我们先看看一些直观的例子，对于 $\mathbb{R}$ 上的某个子集 $\{ [1,2] , (4,5) , 6 \}$ 他的长度怎么计算，对于这个具体的例子我们直觉告诉我们他的长度是 $2-1 + 5-4 + 0 = 2$ 嗯对，但是我们需要一种更通用的方法（我们的直觉往往建立在我们的生活经验上，但我们的生活经验往往覆盖不了所有的情况），$R$ 上的子集可能长得奇形怪状，就如 $[0,1]$ 上的 $\mathbb{Q}$ 一样。
 
 既然我们只会通过区间计算长度，那么不妨我们就用开区间来构造出一种通用的方法。我们可以使用与有限覆盖定理类似的思想，我们可以通过可数个开区间来覆盖我们的集合，并求得这可数个开区间的长度，并对所有的覆盖方法取最其下确界，用开集定义出来的测度我们叫做外测度。用数学的语言写就是：
-对于 $\mathcal{F}$ 下的任意一个集合 $E$ 的测度
+
+对于 $\mathcal{F}$ 下的任意一个集合 $E$ 的外测度 $m^*$
 $$
 m^{*} (E) = \inf \{ \sum_{k = 1}^{\infty} \| I_k \|:E \subset \bigcup_{k = 1}^{\infty} I_k, I_k \text{为开集} \}
 $$
 
+好了有了外测度我们可以来尝试求一下 $[0,1] = \mathbb{Q}_{01}$ 区间上的有理数的长度了，对于 $\mathbb{Q}_{01}$ 中的任意一个元素 $q_i$ 我们都可以取任意一个 $\varepsilon > 0$ 并构造一个开区间 
+$$
+I_i = (q_i-\frac{\varepsilon}{2^{i+1}},q_i+\frac{\varepsilon}{2^{i+1}})
+$$ 
+将 $q_i$ 包含在其中。则我们可以得到
+$$
+\sum_{i = 1}^{\infty} \| I_k \| = \sum_{i = 1}^{\infty} \frac{\varepsilon}{2^i} = \varepsilon
+$$
+
+而 $\varepsilon$ 的下确界就是 $0$ ,那么我们求得 $m*(Q_{01}) = 0$
+
+“！！！！！哈哈哈哈，到了这里我们终于算出来 Artichoke 给我们那个积分了。”
+
+这时 Artichoke 开始耍赖了，你定义的这个外测度有问题啊，它并不能测量 $\mathbb{R}$ 上的 Vitali 集。（至于为什么这里就不展开了，不然文章太长了）
+
+“什么怎么会这样 T^T ” (要知道草履虫 Artichoke 从来不会说谎话)
 
 
 ## 挑选出可被测量的集合 (可测集)
 
+“我们的测度在 $\mathbb{R}$ 上居然不完备，要怎么办呢？” 
 
----
+我们定义的外测度有一个性质，那就是次可加性，即：
+$$
+m^* \left( \bigcup_{n=1}^{\infty} E_k \right) \leq \sum_{n=1}^{\infty} m^*(E_k)
+$$
+而我们测度的定义是要求满足可数可加性也就是
+$$
+\mu \left( \bigcup_{n=1}^{\infty} E_n \right) = \sum_{n=1}^{\infty} \mu(E_n)
+$$
+也就是我们定义的外测度其实有问题，为了解决这个问题，我们加上一个条件，挑选出那些能被我们定义的测度所测量的集合：
 
-## 遇到 Lebesgue (Lebesgue 测度 & 积分)
+如果对于 $\forall A \subseteq \mathbb{R}$  $E \subseteq \mathbb{R}$ 都满足 
+$$
+m^*(A) = m^*(A \cap E) + m^*(A \cap E^c)
+$$
+则称 $E$ 是 $\mathbb{R}$ 上的 Lebesgue 可测集
 
+这个问题的根源是由于我们的集合论是定义在 ZFC 公理上的，而其中的选择公理导致了我们的外测度在 $\mathbb{R}$ 上存在某些集合是不可测的。
 
----
+好了就这样我们完整的构建了 Lebesgue 外测度 和 Lebesgue 可测集，让我们用数学的形式化语言总结一下这些概念
+
+## 标准定义的可测集、测度、测度空间、Lebesgue 可测集、Lebesgue 测度、Lebesgue 积分
+
+### 可测集
+设 $X$ 是一个非空集合，$\mathcal{F}$ 是 $X$ 的某些子集构成的集合，集合 $E$ 是 $\mathcal{F}$ 中的元素，若 $\mathcal{F}$ 满足下列条件，则称 $E$ 为可测集，$\mathcal{F}$ 是 $X$ 上的一个 $\sigma-$代数。
+
+1. 全集在里面: $X \in \mathcal{F}$
+2. 对补集封闭: 若 $E \in \mathcal{F}$ 则 $E^c \in \mathbf{F}$
+3. 对可数并封闭: 若 $E_1,E_2,\dots \in \mathcal{F}$ 则 $\bigcup_{n = 1}^{\infty} \in \mathcal{F}$
+
+### 测度与测度空间
+给定某个非空集合 $X$ ，$\mathcal{F}$ 是集合 $X$ 的一个$\sigma-$代数 ，对于定义在 $\mathcal{F}$ 上的函数 $\mu:\mathcal{F} \to [0,+ \infty]$，如果这个函数满足下面的三个性质，则 $\mu$ 是 $X$ 上的一个测度。
+
+1. 对于任意的一个集合 $E$ ,$E \in \mathcal{F}$ ，有 $\mu(E) \ge 0$
+2. 对于空集 $\mu(\emptyset) = 0$
+3. 若 $\{ E_0 ,E_1, E_2 ,\dots \} $ 是 $\mathcal{F}$ 中一个两两不相交的集合，则
+$$
+\mu \left( \bigcup_{n=1}^{\infty} E_n \right) = \sum_{n=1}^{\infty} \mu(E_n)
+$$
+称三元组
+$$
+(X,\mathcal{F},\mu)
+$$
+为测度空间。
+
+### Lebesgue 可测集
+设 $m*$ 为 $\mathbb{R}^n$ 上的 Lebesgue 外测度，即对任意 $A \subseteq \mathbb{R}^n$：
+$$
+m^{*} (E) = \inf \{ \sum_{k = 1}^{\infty} \| I_k \|:E \subset \bigcup_{k = 1}^{\infty} I_k, I_k \text{为开集} \}
+$$
+并且对于对任意 $A \subseteq \mathbb{R}^n$ 满足 Carathéodory 可测性条件：
+$$
+m^*(A) = m^*(A \cap E) + m^*(A \cap E^c)
+$$
+则称 $E \subseteq \mathbb{R}^n$ 为 Lebesgue 可测集。
+
+所有的 Lebesgue 可测集 构成的集族记为：
+$$
+\mathcal{L} = \{ E \subseteq \mathbb{R}: \forall A \subseteq \mathbb{R}^n \, m^*(A) = m^*(A \cap E) + m^*(A \cap E^c) \}
+$$
+则称集合 $\mathcal{L}$ 为 Lebesgue $\sigma-$代数。
+
+### Lebesgue 测度
+设 $m^*$ 为 $\mathbb{R}^n$ 上的 Lebesgue 外测度，$\mathcal{L}$ 为 Lebesgue $\sigma-$代数。将 $ m^* $ 限制在 $\mathcal{L}$ 上，记为:
+$$
+m = m^*|_{\mathcal{L}} : \mathcal{L} \to [0, +\infty]
+$$
+则称 $m$ 为为 $\mathbb{R}^n$ 上的 Lebesgue 测度。三元组 
+$(\mathbb{R},\mathcal{L},m)$
+为 Lebesgue 测度空间。
+
+### Lebesgue 积分
+我们还没有给出 Lebesgue 积分。构造 Lebesgue 积分的分三步：
+
+1. 非负简单函数的积分
+
+非负简单函数的就是形如：
+$$
+\phi(x) = \sum_{i=1}^{k} a_i \mathcal{X}_{A_i}(x)
+$$
+其中 $A_i$ 是可测集，$\mathcal{X}_{A_i}(x)$ 是示性函数, $a_i \ge 0$, $A_i$ 两两不相交
+$$ 
+\mathcal{X}_{A_i}(x) = 
+\left\{\begin{matrix}
+ 1 & x \in A_i\\
+ 0 & x \notin A_i
+\end{matrix}\right.
+$$
+对于这类函数它的积分直接定义为：
+$$
+\int \phi \mathrm{d}m = \sum_{i=1}^{k} a_i \cdot m(A_i) 
+$$
+其实对于我们一开始给出的函数 $D(x)$ 的积分就可以用这个积分去计算：
+$$
+\int_{[0,1]}D \mathrm{d}m = 1 \cdot m(\mathbb{Q}_{01}) + 0 \cdot m(\mathbb{R} \setminus  \mathbb{Q}) = 0
+$$
+
+2. 对于非负可测函数 $f$
+
+$$
+\int f \, dm = \sup \left\{ \int \phi \, dm :\forall x, 0 \leq \phi(x) \leq f(x), \phi \text{ 为简单函数} \right\}
+$$
+也就是说，用所有不超过 $f$ 的简单函数 $\phi$ 从下方逼近，取它们积分值的上确界。
+
+3. 一般可测函数
+
+把 $f$ 拆成:
+$$
+f = f^+ - f^-, \quad f^+ = \max(f,0), \quad f^- = \max(-f,0) 
+$$
+
+如果 $\int f^+ dm$ 和 $\int f^- dm$，不同时为无穷大，就定义
+$$
+\int f dm = \int f^+ dm - \int f^- dm
+$$
+
+若两者都有限，则称 $f$ 是 Lebesgue 可积的。
+
+在 Lebesgue 积分下，有一个和 Riemann 积分没有的性质，就是可数可加性：
+若对测度 $E = \bigcup_n^{\infty} E_n$ 两两不相交，则
+$$
+\int_E f \mathrm{d}m = \sum_{n=1}^{\infty} \int_{E_n} f \mathrm{d}m
+$$
+并且，如果一个函数 Riemann 可积，则一定 Lebesgue 可积。
 
 ## 看看路径积分
-
----
