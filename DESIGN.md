@@ -431,6 +431,7 @@ Depth in MD3 is communicated through **tonal surface color**, not shadows. Five 
 - **Surface Container Highest**: Highest-emphasis container for switches, active chips, and selected list rows (`--surface-container-highest`).
 - **Page background image**: A site-configured static image may fill the viewport behind the semantic page surface.
 - **Translucent card surface**: Content cards use a flat surface tinted with the live primary role at 75% opacity by default. Background opacity is adjustable independently of text and media; no backdrop filter, glass highlight or hover elevation is applied. Reduced-transparency preferences and unsupported browsers retain the solid light/dark card surface.
+- **Accent surface**: The top app bar (including its scrolled state), metadata icon badges, and regular controls (including tags, pagination and article entry buttons) share `--accent-surface-bg`: the card tint at 20% strength over Surface Container Low in both light and dark modes, at 85% opacity. This gives them a slightly deeper, less transparent background than content cards. Regular controls mix in the On-Surface role at 8% on hover and 12% when pressed. Text and icons remain opaque; reduced-transparency, high-contrast, forced-color and print preferences restore solid surfaces.
 - **On-Surface**: Default reading text and prominent icons.
 - **On-Surface-Variant**: Supporting text, timestamps, metadata, and unselected icons.
 

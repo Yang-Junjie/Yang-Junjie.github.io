@@ -191,7 +191,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 		width: 2.5rem
 		height: 2.5rem
 		border-radius: var(--shape-corner-m)
-		background: var(--surface-container-low)
+		background: var(--btn-regular-bg)
 		color: var(--primary)
 		text-decoration: none
 		--m3e-state-color: var(--primary)
@@ -202,7 +202,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 			width: 1.5rem
 			height: 1.5rem
 		&:hover:not(.m3-blog-pagination__arrow--disabled)
-			background: var(--surface-container-high)
+			background: var(--btn-regular-bg-hover)
 
 		&--disabled
 			opacity: 0.38
@@ -219,7 +219,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 		padding: 0 var(--m3e-space-3)
 		border: none
 		border-radius: var(--shape-corner-m)
-		background: var(--surface-container-low)
+		background: var(--btn-regular-bg)
 		color: var(--on-surface)
 		font: var(--m3e-type-label-large)
 		--m3e-state-color: var(--on-surface)
@@ -228,7 +228,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 			background-color var(--m3e-duration-short) var(--m3e-easing-standard),
 			transform var(--m3e-duration-short) var(--m3e-easing-standard)
 		&:hover
-			background: var(--surface-container-high)
+			background: var(--btn-regular-bg-hover)
 
 		&-current
 			font-weight: 700
@@ -241,14 +241,14 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 			color: var(--on-surface-variant)
 			font-variant-numeric: tabular-nums
 
-	/* 跳转输入框（脚本动态替换按钮） */
-	&__jump-input
+	/* 脚本创建的输入框没有 Astro scope 属性，用分页器内的全局类匹配。 */
+	:global(.m3-blog-pagination__jump-input)
 		width: 5rem
 		height: 2.5rem
 		padding: 0 var(--m3e-space-2)
 		border: none
 		border-radius: var(--shape-corner-m)
-		background: var(--surface-container-low)
+		background: var(--btn-regular-bg)
 		color: var(--on-surface)
 		font: var(--m3e-type-label-large)
 		font-weight: 700
@@ -269,7 +269,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 		width: 2.5rem
 		height: 2.5rem
 		border-radius: var(--shape-corner-m)
-		background: var(--surface-container-low)
+		background: var(--btn-regular-bg)
 		font: var(--m3e-type-label-large)
 		font-weight: 700
 		text-decoration: none
@@ -279,7 +279,7 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 			background-color var(--m3e-duration-short) var(--m3e-easing-standard),
 			color var(--m3e-duration-short) var(--m3e-easing-standard)
 		&:hover
-			background: var(--surface-container-high)
+			background: var(--btn-regular-bg-hover)
 
 		&--active
 			background: var(--primary)
@@ -327,6 +327,8 @@ const pageLabel = (p: number) => labels.page.replace("{page}", String(p));
 
 		const restore = () => {
 			if (input.parentElement) {
+				// Replacing a focused input fires blur; prevent re-entering restore.
+				input.removeEventListener("blur", restore);
 				input.replaceWith(btn);
 			}
 		};

@@ -104,18 +104,18 @@ export const LinkPresets: Record<string, NavBarLink> = {
 	// 	icon: "material-symbols:photo-library-outline-rounded",
 	// 	pageKey: "albums",
 	// },
-	Categories: {
-		name: i18n(I18nKey.categories),
-		url: "/categories/",
-		icon: "material-symbols:folder-outline-rounded",
-		pageKey: "categories",
-	},
-	Tags: {
-		name: i18n(I18nKey.tags),
-		url: "/tags/",
-		icon: "material-symbols:tag-rounded",
-		pageKey: "tags",
-	},
+	// Categories: {
+	// 	name: i18n(I18nKey.categories),
+	// 	url: "/categories/",
+	// 	icon: "material-symbols:folder-outline-rounded",
+	// 	pageKey: "categories",
+	// },
+	// Tags: {
+	// 	name: i18n(I18nKey.tags),
+	// 	url: "/tags/",
+	// 	icon: "material-symbols:tag-rounded",
+	// 	pageKey: "tags",
+	// },
 	Series: {
 		name: i18n(I18nKey.series),
 		url: "/series/",
@@ -146,8 +146,8 @@ const defaultNavBarConfig: NavBarConfig = {
 		// LinkPresets.Anime,
 		// LinkPresets.Compass,
 		// LinkPresets.Albums,
-		LinkPresets.Categories,
-		LinkPresets.Tags,
+		// LinkPresets.Categories,
+		// LinkPresets.Tags,
 		LinkPresets.About,
 		LinkPresets.GitHub,
 		{
@@ -161,8 +161,6 @@ const defaultNavBarConfig: NavBarConfig = {
 				// LinkPresets.Skills,
 				// 分类/标签入口不进导航菜单（避免菜单项过多），预设已登记指向独立页面，
 				// 需要时取消注释即可
-
-				
 			],
 		},
 	],

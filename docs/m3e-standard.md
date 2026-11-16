@@ -66,9 +66,12 @@ variables.styl  --mc-* → 语义令牌（--primary、--surface-container-low…
 | `--card-bg` | 卡片背景（支持 `color-mix` 时以动态 `--primary` 着色、75% 不透明；否则 light: container-lowest / dark: container-high） |
 | `--card-tint` | 卡片染色来源，默认 `var(--primary)`，随主题色实时变化 |
 | `--card-opacity` | 卡片背景不透明度，默认 `75%`；调低更透明、调高更实，不影响文字和内容自身的不透明度 |
+| `--accent-surface-bg` | 导航栏（含滚动后）、MetaIcon 徽标与常规按钮（标签、分页、文章进入按钮等）共用的主题半透明背景；复用 `--card-tint`，较卡片染色更浓、透明度更低；不支持混色、减少透明度或高对比度模式下回退到实色表面 |
+| `--accent-surface-opacity` | 共用强调表面的背景不透明度，默认 `85%`；独立于卡片的 `--card-opacity` |
+| `--accent-surface-tint-strength` | 共用背景的主题染色占比，默认 `20%`；明暗模式均混入各自的 container-low，使底色略深于卡片 |
 | `--float-panel-bg` | 浮层面板背景（container） |
 | `--field-filled-bg` | 填充输入框容器（light: container-high / dark: surface-bright，避开暗色卡片的 container-high） |
-| `--btn-regular-bg/-hover/-active` | 常规按钮的层级渐升（container-low → container → high → highest） |
+| `--btn-regular-bg/-hover/-active` | 常规按钮默认复用 `--accent-surface-bg`；悬停/按下时分别混入 8% / 12% 的 on-surface，保持主题染色与半透明效果；不支持混色时沿用实色层级 |
 | `--btn-plain-bg-hover/-active`、`--btn-card-bg-hover/-active` | 其他按钮层叠 |
 | `--deep-text` | 主色背景上的深色文字（= on-primary） |
 | `--link-underline/-hover/-active`、`--title-active` | 链接 / 标题强调色 |
@@ -218,7 +221,7 @@ variables.styl  --mc-* → 语义令牌（--primary、--surface-container-low…
 | BadgedBox | `display/BadgedBox.svelte` | 徽标锚定容器（Compose BadgedBox 移植）：默认插槽为锚定内容、`badge` 命名插槽放徽标（配合 `Badge.svelte`），自动定位右上角（translate 50%/-50%） | — | 移植 |
 | Divider | `display/Divider.svelte` | `vertical`、`thickness`、`color`；默认 1px | outline-variant | 移植 |
 | AccentBar | `display/AccentBar.svelte` | 标题左侧竖线装饰原子（Svelte，纯装饰 aria-hidden）：`size`（small 16 / medium 20 / large 24）、`color`（默认 `--primary`，可覆盖 token/色值）、`radius`（默认 6px）；定位由调用方负责（absolute / flex 首项）；已封装进 WidgetLayout / DisplaySettings / 文章页标题 / blog/PostCard 卡片标题 | `--primary` | 原创 |
-| MetaIcon | `display/MetaIcon.astro` | 图标徽标（单图标徽标语言）：32px tonal 圆角方块容器（btn-regular-bg 跟随明暗）+ 20px 图标，纯装饰 aria-hidden；消费方与文字搭配（PostMeta 的日期/分类/标签） | btn-regular-bg / btn-content | 原创 |
+| MetaIcon | `display/MetaIcon.astro` | 图标徽标（单图标徽标语言）：32px tonal 圆角方块容器（accent-surface-bg 跟随主题色与明暗）+ 20px 图标，纯装饰 aria-hidden；消费方与文字搭配（PostMeta 的日期/分类/标签） | accent-surface-bg / btn-content | 原创 |
 | Avatar | `display/Avatar.svelte` | 通用头像（原创）：`src`/`alt`、`size`（直径 px，默认 40）、`shape`（circle 圆 / rounded 圆角 / square 方形）、`fallback`（无图或加载失败时的文字，默认取 alt 首字符）；容器 surface-container-high 底 + on-surface-variant 回退字 | `--surface-container-high` | 原创 |
 | Skeleton | `display/Skeleton.svelte` | 加载占位（原创）：`variant`（text 一行 / circle 圆形 / rect 矩形块，默认）、`width`/`height`/`radius` 可覆盖；surface-container-high 底 + shimmer 高光扫过动画 | `--surface-container-high` | 原创 |
 | Dialog | `overlay/Dialog.svelte` | `open`（$bindable）、`title`、默认插槽 + `actions` 命名插槽；scrim/ESC 关闭、打开聚焦容器、Tab 焦点陷阱循环、关闭后焦点返还触发元素；**进场 scrim fade + 内容 scale 展开，退场对称动画后卸载**（closing 状态 + animationend） | surface-container-high、`--m3e-elevation-3`、scrim `--mc-scrim` | 移植 |

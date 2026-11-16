@@ -2,7 +2,7 @@
 /**
  * M3E 展示原子 — MetaIcon 图标徽标。
  * 32px tonal 圆角方块图标容器（单图标徽标语言）：
- * btn-regular-bg 跟随明暗模式、corner-s 圆角、20px 图标。
+ * accent-surface-bg 与导航共用主题半透明底色、corner-s 圆角、20px 图标。
  * 纯装饰展示件：无交互、无文字，图标自带 aria-hidden；
  * 与外部文字搭配使用（PostMeta 的日期/分类/标签等）。
  */
@@ -30,7 +30,7 @@ const { icon, class: className, style } = Astro.props;
 	width: 2rem
 	height: 2rem
 	border-radius: var(--shape-corner-s)
-	background: var(--btn-regular-bg)
+	background: var(--accent-surface-bg)
 	color: var(--btn-content)
 	flex-shrink: 0
 	> :global(svg)

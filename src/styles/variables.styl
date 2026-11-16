@@ -26,8 +26,8 @@ define({
   /* 按钮文本 = 次级对比文字（on-surface-variant），用于中性表面容器按钮如标签、meta 图标、面板按钮 */
   --btn-content: var(--on-surface-variant) var(--on-surface-variant)
 
-  /* 按钮背景 = 表面容器层级（tonal elevation） */
-  --btn-regular-bg: var(--surface-container-low) var(--surface-container-low)
+  /* 常规按钮复用导航、元信息徽标的主题半透明表面。 */
+  --btn-regular-bg: var(--accent-surface-bg) var(--accent-surface-bg)
   --btn-regular-bg-hover: var(--surface-container) var(--surface-container)
   --btn-regular-bg-active: var(--surface-container-high) var(--surface-container-high)
 
@@ -172,16 +172,24 @@ define({
   --card-bg: var(--surface-container-lowest)
   --card-tint: var(--primary)
   --card-opacity: 75%
+  /* 导航、元信息徽标、标签和常规按钮共用更浓、更实的主题表面。 */
+  --accent-surface-opacity: 75%
+  --accent-surface-tint-strength: 20%
+  --accent-surface-bg: var(--surface-container-low)
   --float-panel-bg: var(--surface-container)
 :root.dark
   --page-bg: var(--surface)
   --card-bg: var(--surface-container-high)
   --float-panel-bg: var(--surface-container)
 
-/* 共用卡片背景：只调整底色不透明度，文字和内容保持不透明。 */
+/* 共用主题表面：只调整底色不透明度，文字和内容保持不透明。 */
 @supports (color: unquote("color-mix(in srgb, red, blue)"))
+  :root, :root.dark
+    --btn-regular-bg-hover: unquote("color-mix(in srgb, var(--on-surface) 8%, var(--accent-surface-bg))")
+    --btn-regular-bg-active: unquote("color-mix(in srgb, var(--on-surface) 12%, var(--accent-surface-bg))")
   :root
     --card-bg: unquote("color-mix(in srgb, color-mix(in srgb, var(--card-tint) 12%, var(--surface-container-lowest)) var(--card-opacity), transparent)")
+    --accent-surface-bg: unquote("color-mix(in srgb, color-mix(in srgb, var(--card-tint) var(--accent-surface-tint-strength), var(--surface-container-low)) var(--accent-surface-opacity), transparent)")
   :root.dark
     --card-bg: unquote("color-mix(in srgb, color-mix(in srgb, var(--card-tint) 16%, var(--surface-container-high)) var(--card-opacity), transparent)")
 
@@ -189,12 +197,14 @@ define({
 @media (prefers-reduced-transparency: reduce)
   :root
     --card-bg: var(--surface-container-lowest)
+    --accent-surface-bg: var(--surface-container-low)
   :root.dark
     --card-bg: var(--surface-container-high)
 
 @media (prefers-contrast: more), (forced-colors: active), print
   :root
     --card-bg: var(--surface-container-lowest)
+    --accent-surface-bg: var(--surface-container-low)
   :root.dark
     --card-bg: var(--surface-container-high)
 
