@@ -12,7 +12,7 @@ category: "计算机图形学"
 
 看这篇文章的前提条件是你熟悉渲染方程、对测度论有简单的了解（我也会在文章中简单介绍一下）
 
-## The Rendering Equation
+## 渲染方程与测度变换
 我们熟悉的 **渲染方程** 长下面这个样子。
 $$
 \begin{equation}
@@ -26,7 +26,7 @@ $$
 
 如下图：
 
-> 需要注意的是下图所示的 半球空间 $\mathcal{H}$（或写成 $\Omega$） 是 $S^2$ 的真子集。
+> 需要注意的是下图所示的 半球空间 $\mathcal{H}$ 是 $S^2$ 的真子集。
 
 ![Fig.1.](/images/new/2026-11/16-PathIntegral/1.png)
 
@@ -95,16 +95,32 @@ $$
 $$
 V(x, x') = \begin{cases} 1, & \text{若点 } x \text{ 与 } x' \text{ 之间无任何几何体遮挡} \\  0, & \text{若点 } x \text{ 与 } x' \text{ 之间存在遮挡物} \end{cases}
 $$
-如果我们令 $xx'$ 是一条从点 $x$ 到 点 $x'$ 的一条在 $\mathbb{R}^3$ 中的路径 (通俗的说就是线段)，则 $V(x,x')$ 还能简短的写成。
+如果我们令 $(x,x')$ 是一条从点 $x$ 到 点 $x'$ 的一条在 $\mathbb{R}^3$ 中的路径 (通俗的说就是线段)，则 $V(x,x')$ 还能简短的写成。
 $$ 
-V(x,x') = 1 - \mathbf{1}_{\Phi}(\alpha)
+V(x,x') = \mathbf{1}_{\Phi}(\alpha)
 $$
-其中 $\mathbf{1}_{\Phi}(\alpha)$ 是集合 $\Phi = \{ \alpha: xx' \cap \mathcal{M} \ne \emptyset \}$ 的指示函数/示性函数。
+其中 $\mathbf{1}_{\Phi}(\alpha)$ 是集合 $\Phi = \{ \alpha: xx' \cap \mathcal{M} = \emptyset \}$ 的指示函数/示性函数。
+
+由于被积函数中的 $L_i$ 和 $L_o$ 还是不同的函数符号，这在数学上其实并不能说是递归，为了将他们统一起来，我们可以引入光线投射函数 $x_{\mathcal{M}(x,\omega)}$ ，它返回从 $x$ 处沿方向 $\omega$ 在 $\mathcal{M}$ 上的第一个可见点。所以我们可以表示：
+$$
+L_i(x,\omega) = L_o(x_{\mathcal{M}}(x,\omega),-\omega)
+$$
 
 所以最后我们的方程能写成：
 $$
 \begin{equation}
-L_o(x, \omega_o) = L_e(x, \omega_o) + \int_{\mathcal{M}} f_r(x, \omega_i, \omega_o) L_i(x, \omega_i) G(x,x') dA(x')
+L_o(x, \omega_o) = L_e(x, \omega_o) + \int_{\mathcal{M}} f_r(x, \omega_i, \omega_o) L_o(x_{\mathcal{M}}(x,\omega_i),-\omega_i) G(x,x') dA(x')
 \end{equation}
+$$
+
+公式 (5) 被称为光传输方程 (The Light Transport Equation)。
+
+## 路径的表示
+在路径积分中我们看不到任何的 $\omega$ 符号，也就是不用方向表示，而是用路径表示，而路径是用 $\mathcal{M}$ 上一系列点 $x$ 所定义的。
+所以在这一节中，我们将消去方程中的方向变量 $\omega$ ，转而使用 $x \to x'$ 表示单位方向。
+
+若 $\omega$ 表示方向 $x' - x$，其中 $x,x' \in \mathcal{M}$ 是场景曲面上的点（三维空间中的向量），则我们定义：
+$$
+L(x \to x') = L(x,\omega)
 $$
 [^1]:[Eric Veach](https://graphics.stanford.edu/papers/veach_thesis/thesis.pdf)
