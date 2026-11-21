@@ -9,7 +9,7 @@ category: "图形学"
 > 还发布在 [TDSG](https://tds-graphics.github.io/TDS-Graphics-Website/blog/) 这里面还有好多图形学知识呢！！！！！
 在光线追踪算法中，我们通常需要表述光线从相机到光源或者从光源到相机的过程之中击中了什么材质，或者换句话说，我们需要知道路径顶点的材质是什么。比如从光源出发 -> 击中漫反射材质 -> 理想镜面材质 -> 相机。
 
-而这种样式的描述对于科研人员来说有点太过于繁琐，所以 [Heckbert 1990.][^1] 给出了一种符号记号，叫做 **光路正则表达式** (Light path regular expressions) 或者 **Heckbert 路径正则表达式** (Heckbert's path regular expressions)，并且 [Eric Veach 1997.][^2] 在其文章中扩展了 Heckbert 的表示方式，给出了更完整的 **全路径正则表达式** ，并且广泛应用于描述 Bidirectional Path Tracing 、Metropolis Light Transport 等技术的采样策论中。
+而这种样式的描述对于科研人员来说有点太过于繁琐，所以 [Heckbert 1990.][^1] 给出了一种符号记号，叫做 **光路正则表达式** (Light path regular expressions) 或者 **Heckbert 路径正则表达式** (Heckbert's path regular expressions)，并且 [Eric Veach 1997.][^2] 在其文章中扩展了 Heckbert 的表示方式，给出了更完整的 **全路径正则表达式** ，并且广泛应用于描述 Bidirectional Path Tracing 、Metropolis Light Transport 等技术的采样策略中。
 
 我们的文章主要围绕着 Eric Veach 的文章简单介绍一下这种表述方式，以便于我们今后使用。所以这篇文章会非常的简单，纯介绍性的，和 Artichoke 写的大部分文章不一样，不要害怕 >3<。
 
