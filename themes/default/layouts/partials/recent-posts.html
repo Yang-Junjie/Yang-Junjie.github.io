@@ -1,0 +1,8 @@
+{% if default(site.extra.show_recent_posts, true) and default(site.extra.recent_posts_limit, 5) > 0 and length(site.posts) > 0 %}
+    <aside class="recent-posts" aria-label="最近文章">
+      <h2>最近文章</h2>
+      <ul>
+{% for post in site.posts %}{% if loop.index < default(site.extra.recent_posts_limit, 5) %}        <li><a href="{{ post.url }}">{{ post.title }}</a><time datetime="{{ post.date }}">{{ post.date }}</time></li>
+{% endif %}{% endfor %}      </ul>
+    </aside>
+{% endif %}

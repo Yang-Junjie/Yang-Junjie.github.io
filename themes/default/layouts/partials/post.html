@@ -1,0 +1,1 @@
+<li class="post-item"><a href="{{ post.url }}">{% if default(post.extra.cover, "") != "" %}<img class="post-cover" src="{{ url(post.extra.cover) }}" alt="" loading="lazy">{% endif %}{{ post.title }}</a><time>{{ post.date }}</time></li>

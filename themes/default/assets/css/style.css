@@ -1,0 +1,404 @@
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #24292f;
+  --muted: #57606a;
+  --border: #d0d7de;
+  --accent: #0969da;
+  --code-bg: #f6f8fa;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #9198a1;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --code-bg: #161b22;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 3rem 1.25rem 5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", -apple-system, "Segoe UI",
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 2em 0 0.75em;
+  line-height: 1.3;
+}
+
+h1 {
+  margin-top: 0;
+  font-size: 2rem;
+}
+
+header {
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  margin: 0 0 0.25em;
+  overflow-wrap: anywhere;
+}
+
+header time {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+header time:empty {
+  display: none;
+}
+
+.home-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.home-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 1rem 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.home-header .site-nav {
+  margin-bottom: 0;
+}
+
+.post-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.post-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.post-item a {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.post-cover {
+  flex: 0 0 5rem;
+  width: 5rem;
+  height: 3.25rem;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.page-cover {
+  display: block;
+  width: 100%;
+  max-height: 24rem;
+  margin-block-end: 1.5rem;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.post-item time {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+h2 {
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid var(--border);
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0 0 1.2em;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+blockquote {
+  margin: 1.5em 0;
+  padding: 0.5em 1em;
+  border-left: 3px solid var(--accent);
+  color: var(--muted);
+}
+
+code,
+pre {
+  font-family: Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+code {
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  background: var(--code-bg);
+  font-size: 0.9em;
+}
+
+pre {
+  margin: 1.5em 0;
+  padding: 1em;
+  border-radius: 6px;
+  background: var(--code-bg);
+  overflow-x: auto;
+}
+
+pre code {
+  padding: 0;
+  background: none;
+}
+
+table {
+  width: 100%;
+  margin: 1.5em 0;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.5em 0.75em;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+th {
+  background: var(--code-bg);
+}
+
+hr {
+  margin: 2.5em 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+li.task-list-item {
+  list-style: none;
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 2rem 1rem 4rem;
+    font-size: 15.5px;
+  }
+
+  h1 {
+    font-size: 1.7rem;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+  }
+
+  .post-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+}
+
+/* 列表分页与年份归档 */
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-block: 2rem;
+}
+
+.pagination [aria-current],
+.empty-state {
+    color: var(--muted);
+}
+
+.archive-year {
+    margin-block: 2rem;
+}
+
+.archive-year h2 {
+    font-size: 1.25rem;
+}
+
+/* 正文目录与章节链接，无需 JavaScript。 */
+.article-content {
+  overflow-wrap: anywhere;
+}
+
+.article-content :is(h1, h2, h3, h4, h5, h6)[id] {
+  scroll-margin-top: 1.5rem;
+}
+
+.heading-anchor {
+  margin-inline-start: 0.25em;
+  color: var(--muted);
+  font-size: 0.8em;
+  font-weight: normal;
+}
+
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.toc {
+  margin-block: 0 2.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--code-bg);
+  font-size: 0.95rem;
+}
+
+.toc summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.toc ol {
+  margin-block: 0.75rem 0;
+  padding-inline-start: 1.5rem;
+}
+
+.toc li {
+  margin-block: 0.25rem;
+}
+
+.article-content pre {
+  overflow-wrap: normal;
+}
+
+@media (max-width: 640px) {
+  .toc {
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* 全站文章摘要由主题决定显示方式与数量。 */
+body.with-sidebar {
+  max-width: 1080px;
+}
+
+.with-sidebar .site-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 15rem;
+  align-items: start;
+  gap: 3rem;
+}
+
+.site-content {
+  min-width: 0;
+}
+
+.recent-posts {
+  padding-inline-start: 1.5rem;
+  border-inline-start: 1px solid var(--border);
+}
+
+.recent-posts h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+.recent-posts ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recent-posts li {
+  margin-block: 0 1rem;
+  overflow-wrap: anywhere;
+}
+
+.recent-posts time {
+  display: block;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .with-sidebar .site-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+
+  .recent-posts {
+    padding: 1.5rem 0 0;
+    border-inline-start: 0;
+    border-block-start: 1px solid var(--border);
+  }
+}
+
+/* Article taxonomies share the theme's existing colors and spacing. */
+.taxonomy-navigation, .post-taxonomies nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-block: 1rem;
+}
+.term-list {
+  list-style: none;
+  padding: 0;
+}
+.term-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-block: 1rem;
+}
+.term-list a, .post-taxonomies a {
+  overflow-wrap: anywhere;
+}

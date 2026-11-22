@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ page.description }}">
+  <meta name="author" content="{{ site.author }}">
+  <title>{{ page.title }}{% if page.kind != "home" %} · {{ site.title }}{% endif %}</title>
+{% if page.canonical_url != "" %}  <link rel="canonical" href="{{ page.canonical_url }}">
+{% endif %}{% if feed_url != "" %}  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ feed_url }}">
+{% endif %}  <link rel="stylesheet" href="{{ asset_base }}css/style.css">
+{% include "partials/reading.html" %}
+  {% block head %}{% endblock %}
+</head>
+<body{% if default(site.extra.show_recent_posts, true) and default(site.extra.recent_posts_limit, 5) > 0 and length(site.posts) > 0 %} class="with-sidebar"{% endif %}>
+  <div class="site-layout">
+    <div class="site-content">
+{% block content %}{% endblock %}
+    </div>
+{% include "partials/recent-posts.html" %}
+  </div>
+{% include "partials/footer.html" %}
+</body>
+</html>

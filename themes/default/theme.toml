@@ -1,0 +1,11 @@
+name = "Mizuki Default"
+engine = "inja"
+
+[extra]
+show_toc = true
+show_recent_posts = true
+recent_posts_limit = 5
+code_highlight = true
+code_copy = true
+math_render = true
+footer_text = ""

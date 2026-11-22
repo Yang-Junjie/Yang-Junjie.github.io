@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+  <header class="home-header">
+    <h1>{{ site.title }}</h1>
+    <p>{{ site.description }}</p>
+    {% include "partials/navigation.html" %}
+    {% include "partials/taxonomy-navigation.html" %}
+  </header>
+  <main>
+    <section aria-labelledby="articles-heading">
+      <h2 id="articles-heading">文章</h2>
+      <ul class="post-list">
+{% include "partials/posts.html" %}      </ul>
+    </section>
+    {% include "partials/pagination.html" %}
+  </main>
+{% endblock %}

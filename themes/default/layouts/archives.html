@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <header class="home-header">
+    <h1>{{ page.title }}</h1>
+    <p>{{ site.title }}</p>
+    {% include "partials/navigation.html" %}
+  </header>
+  <main>
+{% if length(archives) == 0 %}<p class="empty-state">暂无文章。</p>
+{% endif %}{% for group in archives %}<section class="archive-year" aria-labelledby="year-{{ group.year }}">
+<h2 id="year-{{ group.year }}">{{ group.year }}</h2>
+<ul class="post-list">
+{% for post in group.posts %}{% include "partials/post.html" %}{% endfor %}</ul>
+</section>
+{% endfor %}  </main>
+{% endblock %}

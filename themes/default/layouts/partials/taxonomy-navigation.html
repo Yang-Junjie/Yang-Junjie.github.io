@@ -1,0 +1,4 @@
+{% if length(site.tags) > 0 or length(site.categories) > 0 %}<nav class="taxonomy-navigation" aria-label="文章索引">
+{% if length(site.tags) > 0 %}<a href="{{ url("tags/") }}">标签</a>{% endif %}
+{% if length(site.categories) > 0 %}<a href="{{ url("categories/") }}">分类</a>{% endif %}
+</nav>{% endif %}

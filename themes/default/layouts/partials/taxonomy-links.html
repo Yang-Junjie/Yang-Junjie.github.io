@@ -1,0 +1,4 @@
+{% if length(page.tags) > 0 or length(page.categories) > 0 %}<div class="post-taxonomies">
+{% if length(page.categories) > 0 %}<nav aria-label="文章分类"><span>分类：</span>{% for entry in page.categories %}<a href="{{ entry.url }}">{{ entry.name }}</a>{% endfor %}</nav>{% endif %}
+{% if length(page.tags) > 0 %}<nav aria-label="文章标签"><span>标签：</span>{% for entry in page.tags %}<a href="{{ entry.url }}" rel="tag">{{ entry.name }}</a>{% endfor %}</nav>{% endif %}
+</div>{% endif %}

@@ -1,0 +1,7 @@
+{% if page.features.code or page.features.math or page.features.footnotes or page.features.admonitions %}  <link rel="stylesheet" href="{{ asset_base }}css/reading.css">
+{% endif %}{% if page.features.code %}{% if default(site.extra.code_highlight, true) %}  <script defer src="{{ asset_base }}vendor/highlight/highlight.min.js"></script>
+{% endif %}{% if default(site.extra.code_highlight, true) or default(site.extra.code_copy, true) %}  <script defer src="{{ asset_base }}js/code.js" data-highlight="{{ default(site.extra.code_highlight, true) }}" data-copy="{{ default(site.extra.code_copy, true) }}"></script>
+{% endif %}{% endif %}{% if page.features.math and default(site.extra.math_render, true) %}  <link rel="stylesheet" href="{{ asset_base }}vendor/katex/katex.min.css">
+  <script defer src="{{ asset_base }}vendor/katex/katex.min.js"></script>
+  <script defer src="{{ asset_base }}js/math.js"></script>
+{% endif %}

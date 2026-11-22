@@ -1,0 +1,27 @@
+title = "CGLab"
+description = "Artichoke's Writing Lab"
+author = "Artichoke"
+language = "zh-CN"
+base_url = "/"
+content = "content"
+theme = "themes/default"
+output = "dist"
+paginate_by = 10
+archives = true
+
+[markdown]
+math = true
+footnotes = true
+admonitions = true
+
+[[navigation]]
+title = "首页"
+url = "/"
+
+[[navigation]]
+title = "关于"
+url = "/pages/about.md"
+
+[[navigation]]
+title = "归档"
+url = "/archives/"

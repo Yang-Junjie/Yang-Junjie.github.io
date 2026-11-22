@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+  <header class="home-header">
+    <p><a href="{{ taxonomy.url }}">全部{{ taxonomy.title }}</a></p>
+    <h1>{{ term.name }}</h1>
+    <p>{{ term.count }} 篇文章</p>
+    {% include "partials/navigation.html" %}
+  </header>
+  <main>
+    <ul class="post-list">
+{% include "partials/posts.html" %}    </ul>
+    {% include "partials/pagination.html" %}
+  </main>
+{% endblock %}
