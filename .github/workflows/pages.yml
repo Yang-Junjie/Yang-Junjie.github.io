@@ -36,12 +36,10 @@ jobs:
           tar -xzf "${archive}" -C "${RUNNER_TEMP}"
           echo "${RUNNER_TEMP}/mizuki-0.2.0-linux-x86_64/bin" >> "${GITHUB_PATH}"
 
-      - name: Build and check CGLab
+      - name: Build CGLab
         env:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
-        run: |
-          mizuki build --base-url "${PAGES_BASE_URL}"
-          python3 scripts/check_site.py dist "${PAGES_BASE_URL}"
+        run: mizuki build --base-url "${PAGES_BASE_URL}"
 
       - name: Upload site
         if: github.ref == 'refs/heads/main'

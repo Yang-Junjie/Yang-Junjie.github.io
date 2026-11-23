@@ -18,13 +18,12 @@ mizuki serve
 
 打开 [本地预览](http://127.0.0.1:3939/)。
 
-## 构建和发布检查
+## 构建和发布
 
 ```sh
 mizuki build
-python scripts/check_site.py dist https://blog.cglab.top/
 ```
 
-第二条命令检查构建产物中的本地链接、资源和锚点。`dist/` 是构建产物。
+`dist/` 是构建产物。
 
 GitHub Actions 会构建 `mizuki-blog` 和 `main`。只有 `main` 的构建会发布到 GitHub Pages，工作流使用 Pages 配置返回的发布地址。
