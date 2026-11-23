@@ -1,0 +1,119 @@
+/* Public theme hooks. Override variables after this stylesheet to change the palette. */
+:root {
+  --syntax-comment: #a2aab5;
+  --syntax-keyword: #ff8fa3;
+  --syntax-string: #a5d6ff;
+  --syntax-number: #91caff;
+  --syntax-title: #d7b6ff;
+  --syntax-variable: #ffc68a;
+  --syntax-addition: #7ee787;
+  --syntax-deletion: #ff8fa3;
+  --code-font-size: 0.9rem;
+  --code-line-height: 1.7;
+  --code-radius: 8px;
+  --math-font-size: 1.05em;
+  --footnote-font-size: 0.9em;
+  --admonition-note: #79b8ff;
+  --admonition-tip: #7ee787;
+  --admonition-important: #d7b6ff;
+  --admonition-warning: #e3b341;
+  --admonition-caution: #ff8fa3;
+}
+[data-markdown] pre {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--code-radius);
+  font-size: var(--code-font-size);
+  line-height: var(--code-line-height);
+  white-space: pre;
+  overflow-wrap: normal;
+  tab-size: 4;
+}
+[data-markdown] pre code { font-size: inherit; white-space: inherit; }
+[data-markdown] pre:focus-visible, .code-copy:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.code-block { min-width: 0; margin-block: 1.5em; }
+.code-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--code-radius) var(--code-radius) 0 0;
+  background: var(--code-bg, var(--code-background));
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.code-language { margin-inline-end: auto; }
+[data-markdown] .code-block pre {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--code-radius) var(--code-radius);
+}
+.code-copy {
+  color: inherit;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.3rem 0.5rem;
+}
+.code-copy:hover { color: var(--accent); border-color: var(--border); }
+.code-copy-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.hljs { color: inherit; }
+.hljs-comment, .hljs-quote { color: var(--syntax-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-tag, .hljs-doctag { color: var(--syntax-keyword); }
+.hljs-string, .hljs-regexp, .hljs-attribute, .hljs-meta .hljs-string { color: var(--syntax-string); }
+.hljs-number, .hljs-literal, .hljs-symbol, .hljs-bullet { color: var(--syntax-number); }
+.hljs-title, .hljs-section, .hljs-selector-id, .hljs-selector-class { color: var(--syntax-title); }
+.hljs-variable, .hljs-template-variable, .hljs-type, .hljs-built_in, .hljs-attr { color: var(--syntax-variable); }
+.hljs-meta, .hljs-name { color: var(--syntax-number); }
+.hljs-addition { color: var(--syntax-addition); }
+.hljs-deletion { color: var(--syntax-deletion); }
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 700; }
+x-equation { font-family: ui-monospace, monospace; white-space: pre-wrap; }
+x-equation[type="display"] { display: block; max-width: 100%; overflow-x: auto; margin-block: 1.5em; padding-block: 0.25em; }
+x-equation.math-rendered { font-family: inherit; white-space: normal; }
+x-equation .katex { font-size: var(--math-font-size); }
+x-equation .katex-display { margin: 0; padding: 0.25em; }
+x-equation.math-error { color: var(--admonition-caution); }
+.footnotes {
+  margin-block-start: 2.5rem;
+  border-top: 1px solid var(--border);
+  font-size: var(--footnote-font-size);
+  color: var(--muted);
+}
+.footnotes li { scroll-margin-top: 6rem; }
+.footnotes li:target { background: var(--code-bg, var(--code-background)); }
+.footnote-backref { margin-inline-start: 0.4em; }
+[data-markdown] sup { line-height: 0; scroll-margin-top: 6rem; }
+:is(.admonition-note, .admonition-tip, .admonition-important, .admonition-warning, .admonition-caution) {
+  --admonition-color: var(--admonition-note);
+  margin-block: 1.5em;
+  padding: 0.5em 1.1em;
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--admonition-color);
+  border-radius: 6px;
+}
+.admonition-tip { --admonition-color: var(--admonition-tip); }
+.admonition-important { --admonition-color: var(--admonition-important); }
+.admonition-warning { --admonition-color: var(--admonition-warning); }
+.admonition-caution { --admonition-color: var(--admonition-caution); }
+[data-markdown] .admonition-title { color: var(--admonition-color); font-weight: 600; text-transform: capitalize; margin-block: 0.4em; }
+@media print {
+  .code-toolbar { display: none; }
+  [data-markdown] pre, [data-markdown] pre code { white-space: pre-wrap; overflow-wrap: anywhere; }
+  x-equation[type="display"] { overflow: visible; }
+}

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="archive-panel" aria-labelledby="archive-title">
+    <h1 id="archive-title">{{ page.title }}</h1>
+
+    {% if length(archives) == 0 %}
+      <p class="empty-state">暂无文章。</p>
+    {% else %}
+      <div class="archive-scroll" tabindex="0" role="region" aria-label="文章归档列表">
+        {% for group in archives %}
+          <section class="archive-year" aria-labelledby="year-{{ group.year }}">
+            <h2 id="year-{{ group.year }}">{{ group.year }}</h2>
+            <ul class="archive-list">
+              {% for post in group.posts %}
+                <li class="archive-entry">
+                  <time datetime="{{ post.date }}">{{ post.date }}</time>
+                  <div class="archive-categories">
+                    {% for entry in post.categories %}
+                      <a href="{{ entry.url }}">{{ entry.name }}</a>
+                    {% endfor %}
+                  </div>
+                  <a class="archive-title" href="{{ post.url }}" title="{{ post.title }}">{{ post.title }}</a>
+                  <div class="archive-tags">
+                    {% for entry in post.tags %}
+                      <a href="{{ entry.url }}" rel="tag">{{ entry.name }}</a>
+                    {% endfor %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          </section>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </section>
+{% endblock %}

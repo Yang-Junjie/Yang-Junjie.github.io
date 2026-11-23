@@ -2,9 +2,9 @@ title = "CGLab"
 description = "Artichoke's Writing Lab"
 author = "Artichoke"
 language = "zh-CN"
-base_url = "/"
+base_url = "https://blog.cglab.top/"
 content = "content"
-theme = "themes/default"
+theme = "themes/cglab"
 output = "dist"
 paginate_by = 10
 archives = true
@@ -19,9 +19,9 @@ title = "首页"
 url = "/"
 
 [[navigation]]
-title = "关于"
-url = "/pages/about.md"
-
-[[navigation]]
 title = "归档"
 url = "/archives/"
+
+[[navigation]]
+title = "关于"
+url = "/pages/about.md"

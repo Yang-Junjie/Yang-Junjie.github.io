@@ -1,0 +1,30 @@
+# CGLab
+
+Artichoke 的图形学与技术写作博客，使用 [Mizuki](https://github.com/Yang-Junjie/Mizuki) 构建。站点地址为 [blog.cglab.top](https://blog.cglab.top/)。
+
+- `content/posts/` 存放 Markdown 文章，元数据使用 `+++` 包裹的 TOML。
+- `content/pages/about.md` 是博客关于页。
+- `content/profile/` 是独立个人主页，发布路径为 `/profile/`。
+- `content/images/` 存放文章图片，`themes/cglab/` 存放博客主题。
+- `mizuki.toml` 定义站点地址、导航和构建配置。
+
+## 本地预览
+
+安装 [Mizuki v0.2.0](https://github.com/Yang-Junjie/Mizuki/releases/tag/v0.2.0)，在仓库根目录运行：
+
+```sh
+mizuki serve
+```
+
+打开 [本地预览](http://127.0.0.1:3939/)。
+
+## 构建和发布检查
+
+```sh
+mizuki build
+python scripts/prepare_pages.py dist https://blog.cglab.top/
+```
+
+第二条命令生成旧文章地址、`/archive/` 和 `/about/` 的静态跳转，并检查本地链接、资源和锚点。`dist/` 是构建产物。
+
+GitHub Actions 会构建 `mizuki-blog` 和 `main`。只有 `main` 的构建会发布到 GitHub Pages，工作流使用 Pages 配置返回的发布地址。

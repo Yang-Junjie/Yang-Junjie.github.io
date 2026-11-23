@@ -1,0 +1,29 @@
+<ol>
+  {% for heading in toc %}
+    <li>
+      <a href="{{ heading.url }}">
+        {% if heading.text == "" %}
+          （无标题）
+        {% else %}
+          {{ heading.text }}
+        {% endif %}
+      </a>
+
+      {% if length(heading.children) > 0 %}
+        <ol>
+          {% for child in heading.children %}
+            <li>
+              <a href="{{ child.url }}">
+                {% if child.text == "" %}
+                  （无标题）
+                {% else %}
+                  {{ child.text }}
+                {% endif %}
+              </a>
+            </li>
+          {% endfor %}
+        </ol>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ol>

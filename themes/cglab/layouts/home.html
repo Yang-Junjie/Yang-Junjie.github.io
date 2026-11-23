@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section aria-labelledby="articles-heading">
+    <h1 class="visually-hidden" id="articles-heading">{{ site.title }} 文章</h1>
+    <ul class="post-list">
+      {% include "partials/posts.html" %}
+    </ul>
+    {% include "partials/pagination.html" %}
+  </section>
+{% endblock %}

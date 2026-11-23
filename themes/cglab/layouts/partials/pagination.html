@@ -1,0 +1,13 @@
+{% if pagination.total_pages > 1 %}
+  <nav class="pagination" aria-label="文章分页">
+    {% if pagination.previous_url != "" %}
+      <a rel="prev" href="{{ pagination.previous_url }}">上一页</a>
+    {% endif %}
+
+    <span aria-current="page">第 {{ pagination.current_page }} / {{ pagination.total_pages }} 页</span>
+
+    {% if pagination.next_url != "" %}
+      <a rel="next" href="{{ pagination.next_url }}">下一页</a>
+    {% endif %}
+  </nav>
+{% endif %}

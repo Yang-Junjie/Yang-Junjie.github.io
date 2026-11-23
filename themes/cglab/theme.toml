@@ -1,0 +1,8 @@
+name = "CGLab"
+engine = "inja"
+
+[extra]
+show_toc = true
+code_highlight = true
+code_copy = true
+math_render = true

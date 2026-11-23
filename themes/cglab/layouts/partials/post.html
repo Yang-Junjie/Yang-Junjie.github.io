@@ -1,0 +1,37 @@
+<li class="post-item">
+  <article class="post-card">
+    <div class="post-summary">
+      <h3><a class="post-title" href="{{ post.url }}">{{ post.title }}</a></h3>
+      <p class="post-meta">
+        <time datetime="{{ post.date }}">{{ post.date }}</time>
+        {% for entry in post.categories %}
+          <a href="{{ entry.url }}">{{ entry.name }}</a>
+        {% endfor %}
+      </p>
+
+      {% if post.description != "" %}
+        <p class="post-description">{{ post.description }}</p>
+      {% endif %}
+
+      {% if length(post.tags) > 0 %}
+        <ul class="tag-list" aria-label="文章标签">
+          {% for entry in post.tags %}
+            <li><a href="{{ entry.url }}" rel="tag">{{ entry.name }}</a></li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+
+    {% if default(post.extra.cover, default(post.extra.image, "")) != "" %}
+      <img
+        class="post-cover"
+        src="{{ url(default(post.extra.cover, default(post.extra.image, ""))) }}"
+        width="176"
+        height="112"
+        loading="lazy"
+        decoding="async"
+        alt=""
+      >
+    {% endif %}
+  </article>
+</li>

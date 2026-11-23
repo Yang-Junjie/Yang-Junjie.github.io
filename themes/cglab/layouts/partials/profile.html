@@ -1,0 +1,47 @@
+<aside class="sidebar" aria-label="博客资料">
+  <section class="profile">
+    <a class="avatar-link" href="{{ url("/pages/about.html") }}" aria-label="关于 {{ site.author }}">
+      <img class="avatar" src="{{ asset_base }}images/avatar.jpg" width="256" height="256" alt="">
+    </a>
+    <div class="profile-info">
+      <h2>{{ site.author }}</h2>
+      <p>Always learning. Always creating.</p>
+      <nav class="profile-links" aria-label="社交链接">
+        <a href="https://github.com/Yang-Junjie">GitHub</a>
+        <a href="https://space.bilibili.com/438433526">Bilibili</a>
+        <a href="https://x.com/DaBei3347">X</a>
+      </nav>
+    </div>
+  </section>
+
+  {% if length(site.categories) > 0 %}
+    <nav class="sidebar-panel categories" aria-label="分类">
+      <h2>分类</h2>
+      <ul>
+        {% for entry in site.categories %}
+          <li>
+            <a href="{{ entry.url }}">
+              <span>{{ entry.name }}</span>
+              <span>{{ entry.count }}</span>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+      <a class="index-link" href="{{ url("/categories/") }}">全部分类</a>
+    </nav>
+  {% endif %}
+
+  {% if length(site.tags) > 0 %}
+    <nav class="sidebar-panel tags" aria-label="标签">
+      <h2>标签</h2>
+      <ul class="tag-list">
+        {% for entry in site.tags %}
+          {% if loop.index < 12 %}
+            <li><a href="{{ entry.url }}">{{ entry.name }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+      <a class="index-link" href="{{ url("/tags/") }}">全部标签</a>
+    </nav>
+  {% endif %}
+</aside>

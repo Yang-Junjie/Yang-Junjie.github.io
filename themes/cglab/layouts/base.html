@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="{{ site.language }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{{ page.description }}">
+    <meta name="color-scheme" content="dark">
+    <title>{{ page.title }}{% if page.kind != "home" %} · {{ site.title }}{% endif %}</title>
+
+    {% if page.canonical_url != "" %}
+      <link rel="canonical" href="{{ page.canonical_url }}">
+    {% endif %}
+
+    {% if feed_url != "" %}
+      <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ feed_url }}">
+    {% endif %}
+
+    {% include "partials/reading.html" %}
+    <link rel="icon" href="{{ asset_base }}images/logo.ico" type="image/x-icon">
+    <link rel="stylesheet" href="{{ asset_base }}css/style.css">
+    <script defer src="{{ asset_base }}js/header.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">跳到正文</a>
+
+    <header class="site-header">
+      <div class="header-inner">
+        <a class="wordmark" href="{{ url("/") }}">
+          <img src="{{ asset_base }}images/cgl-icon.png" width="36" height="36" alt="">
+          {{ site.title }}
+        </a>
+        {% include "partials/navigation.html" %}
+      </div>
+    </header>
+
+    <div class="site-layout{% if page.kind == "post" %} reading-layout{% else if page.kind == "home" or page.kind == "archives" or page.kind == "page" %} sidebar-left{% endif %}">
+      <main id="main" tabindex="-1">
+        {% block content %}
+        {% endblock %}
+      </main>
+      {% if page.kind == "post" %}
+        {% include "partials/desktop-toc.html" %}
+      {% else %}
+        {% include "partials/profile.html" %}
+      {% endif %}
+    </div>
+
+    {% include "partials/footer.html" %}
+  </body>
+</html>

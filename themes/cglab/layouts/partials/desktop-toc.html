@@ -1,0 +1,6 @@
+{% if default(page.extra.show_toc, site.extra.show_toc) and length(toc) > 0 %}
+  <nav class="sidebar-panel desktop-toc" aria-label="文章目录">
+    <h2>目录</h2>
+    {% include "partials/toc-list.html" %}
+  </nav>
+{% endif %}

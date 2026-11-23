@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <header class="home-header">
+    <h1>{{ page.title }}</h1>
+  </header>
+
+  <div class="listing">
+    <ul class="term-list">
+      {% for entry in terms %}
+        <li>
+          <a href="{{ entry.url }}">{{ entry.name }}</a>
+          <span>{{ entry.count }} 篇文章</span>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endblock %}

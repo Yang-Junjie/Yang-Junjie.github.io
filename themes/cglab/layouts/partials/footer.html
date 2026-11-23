@@ -1,0 +1,9 @@
+<footer class="site-footer">
+  <span>{{ site.title }} · {{ site.author }}</span>
+  <div class="footer-links">
+    <span>本博客由 <a href="https://github.com/Yang-Junjie/Mizuki">Mizuki</a> 构建</span>
+    {% if feed_url != "" %}
+      <a href="{{ feed_url }}">RSS</a>
+    {% endif %}
+  </div>
+</footer>

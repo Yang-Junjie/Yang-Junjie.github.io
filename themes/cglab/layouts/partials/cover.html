@@ -1,0 +1,7 @@
+{% if default(page.extra.cover, "") != "" %}
+  <img
+    class="page-cover"
+    src="{{ url(page.extra.cover) }}"
+    alt="{{ default(page.extra.cover_alt, "") }}"
+  >
+{% endif %}

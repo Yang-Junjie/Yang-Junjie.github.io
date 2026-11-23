@@ -1,0 +1,9 @@
+{% if length(navigation) > 0 %}
+  <nav aria-label="主导航">
+    <ul class="site-nav">
+      {% for item in navigation %}
+        <li><a href="{{ item.url }}">{{ item.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </nav>
+{% endif %}

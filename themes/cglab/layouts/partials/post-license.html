@@ -1,0 +1,27 @@
+<section class="post-license" aria-labelledby="post-license-title">
+  <h2 id="post-license-title">{{ page.title }}</h2>
+  <dl class="post-license-details">
+    <div>
+      <dt>文章链接</dt>
+      <dd>
+        {% if page.canonical_url != "" %}
+          <a href="{{ page.canonical_url }}">{{ page.canonical_url }}</a>
+        {% else %}
+          <a href="{{ page.url }}">{{ page.url }}</a>
+        {% endif %}
+      </dd>
+    </div>
+    <div>
+      <dt>作者</dt>
+      <dd>{{ site.author }}</dd>
+    </div>
+    <div>
+      <dt>发布日期</dt>
+      <dd><time datetime="{{ page.date }}">{{ page.date }}</time></dd>
+    </div>
+    <div>
+      <dt>许可协议</dt>
+      <dd><a rel="license" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a></dd>
+    </div>
+  </dl>
+</section>
