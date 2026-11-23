@@ -41,7 +41,7 @@ jobs:
           PAGES_BASE_URL: ${{ steps.pages.outputs.base_url }}
         run: |
           mizuki build --base-url "${PAGES_BASE_URL}"
-          python3 scripts/prepare_pages.py dist "${PAGES_BASE_URL}"
+          python3 scripts/check_site.py dist "${PAGES_BASE_URL}"
 
       - name: Upload site
         if: github.ref == 'refs/heads/main'

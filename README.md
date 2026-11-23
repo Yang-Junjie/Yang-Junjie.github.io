@@ -22,9 +22,9 @@ mizuki serve
 
 ```sh
 mizuki build
-python scripts/prepare_pages.py dist https://blog.cglab.top/
+python scripts/check_site.py dist https://blog.cglab.top/
 ```
 
-第二条命令生成旧文章地址、`/archive/` 和 `/about/` 的静态跳转，并检查本地链接、资源和锚点。`dist/` 是构建产物。
+第二条命令检查构建产物中的本地链接、资源和锚点。`dist/` 是构建产物。
 
 GitHub Actions 会构建 `mizuki-blog` 和 `main`。只有 `main` 的构建会发布到 GitHub Pages，工作流使用 Pages 配置返回的发布地址。

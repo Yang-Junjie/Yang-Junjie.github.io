@@ -1,8 +1,6 @@
-"""Prepare legacy routes and validate the generated CGLab site."""
+"""Validate the generated CGLab site."""
 
-from html import escape
 from html.parser import HTMLParser
-import json
 from pathlib import Path
 import sys
 from urllib.parse import quote, unquote, urljoin, urlsplit
@@ -22,38 +20,6 @@ class Page(HTMLParser):
         attribute = {"a": "href", "img": "src", "link": "href", "script": "src"}.get(tag)
         if values.get(attribute):
             self.links.add(values[attribute])
-
-
-def add_redirect(output, base_url, old_path, new_path):
-    if not (output / new_path).is_file():
-        raise ValueError(f"Missing redirect target: {new_path}")
-    path = output / old_path / "index.html"
-    destination = urljoin(base_url, quote(new_path))
-    link = escape(destination, quote=True)
-    script_url = json.dumps(destination)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("x", encoding="utf-8") as file:
-        file.write(f"""<!DOCTYPE html>
-<html lang="zh-CN">
-<meta charset="utf-8">
-<title>页面已迁移 · CGLab</title>
-<link rel="canonical" href="{link}">
-<meta http-equiv="refresh" content="0; url={link}">
-<script>location.replace({script_url} + location.search + location.hash);</script>
-<p><a href="{link}">前往新页面</a></p>
-</html>
-""")
-
-
-def add_legacy_routes(output, base_url):
-    articles = sorted((output / "posts").rglob("*.html"))
-    for article in articles:
-        relative = article.relative_to(output)
-        old_path = relative.with_suffix("").as_posix().lower()
-        add_redirect(output, base_url, old_path, relative.as_posix())
-    add_redirect(output, base_url, "archive", "archives/index.html")
-    add_redirect(output, base_url, "about", "pages/about.html")
-    return len(articles) + 2
 
 
 def check_links(output, base_url):
@@ -90,9 +56,8 @@ def main():
     for required in ("index.html", "rss.xml", "sitemap.xml", "profile/index.html"):
         if not (output / required).is_file():
             raise SystemExit(f"Missing build output: {required}")
-    redirects = add_legacy_routes(output, base_url)
     pages = check_links(output, base_url)
-    print(f"Checked local links in {pages} pages, including {redirects} legacy redirects.")
+    print(f"Checked local links in {pages} pages.")
 
 
 if __name__ == "__main__":
