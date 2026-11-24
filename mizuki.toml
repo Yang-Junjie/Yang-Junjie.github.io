@@ -9,6 +9,10 @@ output = "dist"
 paginate_by = 10
 archives = true
 
+[build.images]
+compress = true
+quality = 85
+
 [markdown]
 math = true
 footnotes = true
