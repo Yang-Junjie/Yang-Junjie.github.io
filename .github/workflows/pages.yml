@@ -26,15 +26,15 @@ jobs:
         id: pages
         uses: actions/configure-pages@v6
 
-      - name: Install Mizuki v0.2.0
+      - name: Install Mizuki v0.2.1
         run: |
-          archive=mizuki-0.2.0-linux-x86_64.tar.gz
+          archive=mizuki-0.2.1-linux-x86_64.tar.gz
           curl --fail --silent --show-error --location --retry 3 \
-            "https://github.com/Yang-Junjie/Mizuki/releases/download/v0.2.0/${archive}" \
+            "https://github.com/Yang-Junjie/Mizuki/releases/download/v0.2.1/${archive}" \
             --output "${archive}"
-          echo "a83e37640242b546cbe69df98d3be4fdd3582f84351aad8c4b3139f9327ff690  ${archive}" | sha256sum --check
+          echo "7c63bcbcda9e5cae331fc30fb989c16759ab0f7141e0ab1b61de0d805a39ba52  ${archive}" | sha256sum --check
           tar -xzf "${archive}" -C "${RUNNER_TEMP}"
-          echo "${RUNNER_TEMP}/mizuki-0.2.0-linux-x86_64/bin" >> "${GITHUB_PATH}"
+          echo "${RUNNER_TEMP}/mizuki-0.2.1-linux-x86_64/bin" >> "${GITHUB_PATH}"
 
       - name: Build CGLab
         env:
