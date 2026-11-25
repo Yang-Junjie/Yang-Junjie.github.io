@@ -4,7 +4,12 @@
   <article class="document">
     <header class="document-header">
       <h1>{{ page.title }}</h1>
-      <time datetime="{{ page.date }}">{{ page.date }}</time>
+      <p class="document-meta">
+        <time datetime="{{ page.date }}">{{ page.date }}</time>
+        {% if default(page.word_count, -1) >= 0 %}
+          <span>{{ page.word_count }} 字</span>
+        {% endif %}
+      </p>
       {% include "partials/taxonomy-links.html" %}
     </header>
 

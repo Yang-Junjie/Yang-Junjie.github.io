@@ -7,6 +7,9 @@
         {% for entry in post.categories %}
           <a href="{{ entry.url }}">{{ entry.name }}</a>
         {% endfor %}
+        {% if default(post.word_count, -1) >= 0 %}
+          <span>{{ post.word_count }} 字</span>
+        {% endif %}
       </p>
 
       {% if post.description != "" %}

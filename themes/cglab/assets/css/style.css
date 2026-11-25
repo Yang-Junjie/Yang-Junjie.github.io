@@ -308,6 +308,7 @@ body::before {
 .document-header { margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border); }
 .document-header h1 { margin: 0 0 .45rem; font-size: clamp(1.65rem, 3.5vw, 2.55rem); letter-spacing: -.035em; }
 .document-header time { color: var(--muted); font-size: .875rem; }
+.document-meta { display: flex; flex-wrap: wrap; gap: .25rem .8rem; margin: 0; color: var(--muted); font-size: .875rem; }
 .post-taxonomies, .post-taxonomies nav { display: flex; flex-wrap: wrap; gap: .35rem .65rem; }
 .post-taxonomies { margin-top: .55rem; font-size: .875rem; }
 .post-taxonomies nav[aria-label="文章标签"] a { color: var(--muted); }
