@@ -15,26 +15,33 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: read
       pages: read
     steps:
       - uses: actions/checkout@v7
 
+      - name: Check out Mizuki main
+        uses: actions/checkout@v7
+        with:
+          repository: Yang-Junjie/Mizuki
+          ref: refs/heads/main
+          path: mizuki-source
+          persist-credentials: false
+
       - name: Read Pages configuration
         id: pages
         uses: actions/configure-pages@v6
 
-      - name: Install Mizuki v0.2.1
+      - name: Build Mizuki from main
         run: |
-          archive=mizuki-0.2.1-linux-x86_64.tar.gz
-          curl --fail --silent --show-error --location --retry 3 \
-            "https://github.com/Yang-Junjie/Mizuki/releases/download/v0.2.1/${archive}" \
-            --output "${archive}"
-          echo "7c63bcbcda9e5cae331fc30fb989c16759ab0f7141e0ab1b61de0d805a39ba52  ${archive}" | sha256sum --check
-          tar -xzf "${archive}" -C "${RUNNER_TEMP}"
-          echo "${RUNNER_TEMP}/mizuki-0.2.1-linux-x86_64/bin" >> "${GITHUB_PATH}"
+          git -C mizuki-source log -1 --format='Mizuki source %H'
+          cmake -S mizuki-source -B "${RUNNER_TEMP}/mizuki-build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DMIZUKI_BUILD_DISTRIBUTION=ON
+          cmake --build "${RUNNER_TEMP}/mizuki-build" --parallel 2 --target mizuki
+          "${RUNNER_TEMP}/mizuki-build/bin/mizuki" --version
+          echo "${RUNNER_TEMP}/mizuki-build/bin" >> "${GITHUB_PATH}"
 
       - name: Build CGLab
         env:
