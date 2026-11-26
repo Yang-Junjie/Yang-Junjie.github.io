@@ -33,7 +33,7 @@
       </div>
     </header>
 
-    <div class="site-layout{% if page.kind == "post" %} reading-layout{% else if page.kind == "home" or page.kind == "archives" or page.kind == "page" %} sidebar-left{% endif %}">
+    <div class="site-layout{% if page.kind == "post" %} reading-layout{% else %} sidebar-left{% endif %}">
       <main id="main" tabindex="-1">
         {% block content %}
         {% endblock %}
