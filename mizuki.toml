@@ -9,6 +9,9 @@ output = "dist"
 paginate_by = 10
 archives = true
 
+[build]
+incremental = true
+
 [build.images]
 compress = true
 quality = 85
