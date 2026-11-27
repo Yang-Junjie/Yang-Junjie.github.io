@@ -97,14 +97,25 @@ BDPT 与 Path Tracing 不同，它不是递归方法，而是将我们之前熟�
  Fig.5. 一条长度为 2 的路径拥有 4 种采样策略，分别是 (a)(0,3)、(b)(1,2)、(c)(2,1)、(d)(3,0)。
 </p>
 
-我们在一开始说了，对于不同的采样策略 $(s,t)$ 在路径空间上都有不同的概率分布。对于策略 $(s, t)$，路径的生成由光源端采样、眼睛端采样、各散射顶点的 BSDF 方向采样以及子路径末端连接共同决定；在路径空间上，这些采样步骤的密度共同构成了策略 $(s, t)$ 对应的概率分布 $p_{s,t}$，从而给出具体路径 $\bar{x}$ 的概率密度 $p_{s,t}(\bar{x})$。
+我们在一开始说了，对于不同的采样策略 $(s,t)$ 在路径空间上都有不同的概率分布。对于策略 $(s, t)$，路径的生成由光源端采样、眼睛端采样、各散射顶点的 BSDF 方向采样以及子路径末端连接共同决定；在路径空间上，这些采样步骤的概率密度共同构成了策略 $(s, t)$ 对应的概率密度函数 $p_{s,t}$，从而给出具体路径 $\bar{x}$ 的概率密度 $p_{s,t}(\bar{x})$。对于所有不同的策略 $(s,t)$ 它们的概率密度函数都是 Importance Sampling 的良好候选因子，所以后续我们将会使用 MIS 将所有不同 $(s,t)$ 的概率密度函数 $p_{s,t}$ 组合起来。
+
+### 2.3 我们熟悉的策略
+**对于 (0,t)** 
+
+**对于 (1,1)**
+
+**对于 (s,1)**
+
+
 
 接下来我们将在 Section 3 中简单复习路径积分与 Monte Carlo 方法，并深入数学推导了解如何通过 MIS 组合这些不同策略的概率密度，最终给出无偏的 MIS Path Integral Monte Carlo Estimator.
 
 ## 3. BDPT Monte Carlo Estimator
-我们这篇文章基于 [Eric Veach. 1997][^4] 的路径积分框架下，对路径积分还不熟悉的朋友可以看看 [Akiyama Artichoke 2026][^6] 有关路径积分的简单介绍，当然你也可以选择去看原文。
 
-在路径积分框架下每个测量值都可以表述成如下形式：
+我们这篇文章基于 [Eric Veach. 1997][^4] 的路径积分框架，对路径积分还不熟悉的朋友可以看看 [Akiyama Artichoke 2026][^6] 有关路径积分的简单介绍，当然你也可以选择去看原文。
+
+### 3.1 BDPT MIS Monte Carlo Estimator
+在路径积分框架下每个相机的测量值 $I_j$ 都可以表述成如下形式：
 
 $$
 \begin{equation}
@@ -124,15 +135,72 @@ f(\bar{x}) &= L_e(\mathbf{x}_0 \to \mathbf{x}_1) G(\mathbf{x}_0 \leftrightarrow 
 \end{equation}
 $$
 
-其 Importance Sampling Monte Carlo Estimator 表述为:
-
+其在某一策略 $(s,t)$ 的概率密度 $p_{s,t}$ 下采样 $N_{s,t}$ 条路径/样本的 Importance Sampling Monte Carlo Estimator 表述为:
 
 $$
 \begin{equation}
-\hat{I_j} = \frac{1}{N} \sum_{i}^{N} \frac{f_j(\bar{X})}{p(\bar{X})}
+\hat{I}_{j,s,t} = \frac{1}{N_{s,t}} \sum_{i}^{N_{s,t}} \frac{f_j(\bar{x}_{s,t,i})}{p_{s,t}(\bar{x}_{s,t,i})}
 \end{equation}
 $$
 
+其中 $\bar{x}_{s,t,i}$ 是在概率密度函数 $p_{s,t}$ 中采样得到的一条路径/样本。
+
+我们固定路径长度为 $k$ 同时考虑所有可行的 $(s, t)$ 策略（共 $k+2$ 种，其中 $s \ge 0, t \ge 0, s+t = k+1$）并使用 MIS 将所有的策略组合到一起，就可以得到 BDPT MIS Monte Carlo Estimator：
+
+$$
+\begin{equation} 
+\hat{I}_j^{\text{BDPT}} = \sum_{k=1}^{\infty} \sum_{s+t=k+1} \frac{1}{N_{s,t}} \sum_{i=1}^{N_{s,t}} w_{s,t}(\bar{x}_{s,t,i}) \frac{f_j(\bar{x}_{s,t,i})}{p_{s,t}(\bar{x}_{s,t,i})} 
+\end{equation}
+$$
+
+若我们对任意一个采样策略 $p_{s,t}$ 从中都只采样一条路径，则我们的公式变成这样：
+
+$$
+\begin{equation}
+\hat{I}_j^{\text{BDPT}} = \sum_{k=1}^{\infty} \sum_{s+t=k+1} w_{s,t}(\bar{x}_{s,t}) \frac{f_j(\bar{x}_{s,t})}{p_{s,t}(\bar{x}_{s,t})} 
+\end{equation}
+$$
+
+在 [Eric Veach. 1997][^4] 中被表示成：
+
+$$
+\begin{equation}
+\hat{I}_j^{\text{BDPT}} = \sum_{s \ge 0} \sum_{t \ge 0} w_{s,t}(\bar{x}_{s,t}) \frac{f_j(\bar{x}_{s,t})}{p_{s,t}(\bar{x}_{s,t})}
+\end{equation}
+$$
+
+公式 (5) 和 公式 (6) 这两种表达都是可以的只是方式不同，让我们解释一下。对于 公式 (5) 我们遍历所有长度 $k \ge 1$ 的路径，并且对于某个长度 $k$ 对于任意的 $(s,t)$ 需要满足 $s,t \ge 0 ,\quad s + t = k + 1$ 并使用 $(s,t)$ 对应的概率密度 $p_{s,t}$ 采样一个路径 $\bar{x}_{s,t}$ 将其带入公式计算， 并将它们全部加起来；对于 公式 (6) 只需要满足 $s,t \ge 0$ 即可，但这存在一些问题，对于 $(0,0)$ 即 $s = 0$, $t = 0$ 此时 $k = - 1$ 同理 $(1,0)$、$(0,1)$ 此时顶点数不足 2 个，构不成有效传输路径，Veach 在文中约定这些退化情况的贡献为 $0$
+
+### 3.2 生成一条路径
+为了计算 公式 (4) 我们需要从 $p_{s,t}$ 采样一条路径，所以接下来我们在这一节中讲一下如何获取一个路径。
+
+生成路径通常是在实践中特别关心的问题，在实际上我们不可能对于不同的策略 $(s,t)$ 每次都从光源追踪 $s$ 步，从相机追踪 $t$ 步，这不仅仅对于开销来说非常的大，为了减少这种开销，我们会使用类似 Path Tracing 的方式分别从相机和光源出发预先生成一系列顶点并将它们存起来。然后我们根据不同的 $(s,t)$ 分别从预存储的光源顶点和相机顶点中从 $y_0$ 和 $z_0$ 开始按顺序选择前 $s$ 和 $t$ 个顶点，最后将它们连接起来。这是一种为了性能折中的做法，实际在理论上对于两个不同的 $(s,t)$ 其路径具体的顶点坐标是可以不同的。
+
+使用这种折中方法具体的我们可以这么做：
+
+先生成一条具有 $n_L$ 个顶点的光源子路径：
+
+$$
+\mathbf{y}_0 \dots \mathbf{y}_{n_L-1}
+$$
+
+再生成一条具有 $n_E$ 个顶点的相机子路径:
+
+$$
+\mathbf{z}_0 \dots \mathbf{z}_{n_E-1}
+$$
+
+将这两组顶点分别缓存起来。其中 $\mathbf{y}_0$ 位于光源上，$\mathbf{z}_0$ 位于相机上，$n_E$ 与 $n_L$ 的大小由 Russian Roulette (俄罗斯轮盘赌) 决定（ RR 决定了我们递归采样顶点何时停止，也就决定了 $n_E$ 和 $n_L$） 的大小，通过 RR 我们能保证 在有限的路径长度（$n_E$ 与 $n_L$ 是有限的）下我们的 BDPT MIS 估计量依然无偏。
+
+然后我们为了从 $p_{s,t}$ 中获取样本 $\bar{x}_{s,t}$，我们只需要按照下面的方式将两个路径连接起来：
+
+$$
+\bar{x}_{s,t} = \mathbf{y}_0 \dots \mathbf{y}_{s-1}\mathbf{z}_{t - 1} \dots \mathbf{z}_{0}
+$$
+
+这是一条具有 $s+t$ 个顶点的路径，它的长度为 $k = s+t-1$ 其中 $0 \le s \le n_L,\quad 0 \le t \le n_E，k \ge 1$ ，顶点 $\mathbf{y}_{s-1}$ 与 $\mathbf{z}_{t-1}$ 被称为连接顶点，它们之间的边称为连接边，在对连接顶点进行连接的时候我们判断这条边的可见性，判断这条边是否被遮挡 $s = 0 $ 或者 $t = 0 $ 时不需要判断，如果连接边被遮挡则该路径的贡献为 0；在我们有了具体的路径 $\bar{x}_{s,t}$ 后我们就可以将其带入我们的估计量进行计算了，不过对于现在我们掌握的知识还计算不了，因为我们只能计算其中的 $f_{j}(\bar{x}_{s,t})$ 项，对于 $p_{s,t}(\bar{x}_{s,t})$ 和 $w_{s,t}(\bar{x}_{s,t}) $ 我们完全不知道怎么计算。
+
+所以接下来我们将推导出 $p_{s,t}(\bar{x}_{s,t})$ 和 $w_{s,t}(\bar{x}_{s,t}) $ 的公式。
 
 [^1]:[Eric Veach and Leonidas J. Guibas.  1994 Bidirectional Estimators for Light Transport](https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Veach94.pdf)
 [^2]:[Eric P Lafortune and Yves D Willems. 1993 BIDIRECTIONAL PATH TRACING](https://graphics.cs.kuleuven.be/publications/BDPT/BDPT_paper.pdf)
